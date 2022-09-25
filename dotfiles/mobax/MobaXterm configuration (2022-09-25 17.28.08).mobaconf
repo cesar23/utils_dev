@@ -201,8 +201,8 @@ SidebarWidth=300
 ExportedSettings=Home and Slash directories location|Local terminal settings|Global X server settings|Global SSH settings|Services settings|MobaXterm interface settings|Sessions|Macros|Stored passwords|Stored credentials|SSH tunnels|MobaTextEditor settings|WSL settings|Custom syntaxes|Shared sessions|Suppressed message dialogs
 mobauser@mobaserver=
 MobaVersion=21.1
-ExportDate=2022-09-24
-ExportTime=13:06:04
+ExportDate=2022-09-25
+ExportTime=17:28:24
 ExportUsername=cesar
 ExportComputer=LAPTOP-2LFVSTJ3
 
