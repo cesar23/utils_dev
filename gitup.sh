@@ -16,7 +16,7 @@ function gitup() {
     git pull origin master
 	  git add -A
     git commit -m "${MY_INFO} se actualizo :${DATE_HOUR_GIT}"
-    git push origin master && git push origin2 master
+    git push origin master
 }
 
 function gitup2() {
