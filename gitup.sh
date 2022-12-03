@@ -16,6 +16,7 @@ function gitup() {
     git pull origin master
 	  git add -A
     git commit -m "${MY_INFO} se actualizo :${DATE_HOUR_GIT}"
+    #git push origin master && git push origin2 master # por que  github no acepta  archivos  pesados
     git push origin master
 }
 

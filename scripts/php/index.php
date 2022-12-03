@@ -36,10 +36,10 @@ if(strlen($stressOption)>0){
     </div>
     <div class="row">
         <div class="col">
-            <button type="button" class="btn btn-danger">Generar stress</button>
+            <button type="button" onclick="?stress=start" class="btn btn-danger">Generar stress</button>
         </div>
         <div class="col">
-            <button type="button" class="btn btn-secondary">Parar stress</button>
+            <button type="button" onclick="?stress=no" class="btn btn-secondary">Parar stress</button>
         </div>
         <div class="col">
             <div class="card" style="width: 18rem;">
