@@ -1,5 +1,6 @@
 <?php
 session_start();
+define("VERSION",'1.0.1');
 if (!isset($_SESSION['command'])) {
     $_SESSION['command'] = array();
 }
@@ -227,7 +228,7 @@ if (strlen(isset($_POST)) > 0) {
 <div class="container text-center">
     <div class="row" style="padding: 7px">
         <div class="col">
-
+                Version <?php echo VERSION;?>
         </div>
         <div class="col">
             <img src="https://pbs.twimg.com/profile_images/1377340526890872832/Qvi0U8pF_400x400.jpg" width="100px"
@@ -300,14 +301,14 @@ if (strlen(isset($_POST)) > 0) {
         <h3 class="card-title">5. Extra comandos</h3>
         <div class="col-4">
             <div class="row" style="padding: 7px">
-                <textarea name="cmd" id="cmd" cols="30" rows="10">pwd</textarea>
+                <textarea name="cmd" id="cmd" cols="30" rows="10" style="background-color: rgba(26,23,23,0.87); color:#fff; border-radius: 15px; overflow-y: scroll; height:90px;">pwd</textarea>
                 <button type="button" id="btn_cmd" class="btn btn-success">Comando - Enviar comando</button>
             </div>
 
         </div>
         <div class="col-8">
 
-            <div style="background-color: #821bc2; color:#fff; border-radius: 15px; overflow-y: scroll; height:150px;">
+            <div style="background-color: rgba(26,23,23,0.87); color:#fff; border-radius: 15px; overflow-y: scroll; height:150px;">
                 <div id="resul_cmd"></div>
             </div>
         </div>
@@ -381,6 +382,7 @@ if (strlen(isset($_POST)) > 0) {
                 Hello, world! This is a toast message.
             </div>`
 
+    const url_server = window.location.origin+'/index.php' ;
     /*
     ------------------------------------------------
     Para  obtener informacion del servidor
@@ -389,7 +391,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_Info_server = async () => {
         try {
             cpu.innerHTML = img_loading
-            const url = window.location.origin + "?get_data=info_server";
+            const url =url_server + "?get_data=info_server";
             const resp = await axios.get(url);
             console.log(resp.data);
             cpu.innerHTML = `${resp.data.info_cpu} <br> ${resp.data.info_memoria} <br> ${resp.data.info_memoria_porcentaje} <br>`
@@ -409,7 +411,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_generar_stress = async () => {
         try {
             comandos_history.innerHTML = img_loading
-            const url = window.location.origin + "?get_data=start_stress";
+            const url = url_server+ "?get_data=start_stress";
             const resp = await axios.get(url);
             console.log(resp.data);
             if (resp.data.statusCode === 200) {
@@ -437,7 +439,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_stop_stress = async () => {
         try {
             comandos_history.innerHTML = img_loading
-            const url = window.location.origin + "?get_data=stop_stress";
+            const url = url_server + "?get_data=stop_stress";
             const resp = await axios.get(url);
             console.log(resp.data);
 
@@ -467,7 +469,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_history_comands = async () => {
         try {
             comandos_history.innerHTML = img_loading
-            const url = window.location.origin + "?get_data=get_history_command";
+            const url = url_server + "?get_data=get_history_command";
             const resp = await axios.get(url);
             console.log(resp.data);
 
@@ -493,7 +495,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_history_clear_comands = async () => {
         try {
             comandos_history.innerHTML = img_loading
-            const url = window.location.origin + "?get_data=get_history_clear_command";
+            const url = url_server+ "?get_data=get_history_clear_command";
             const resp = await axios.get(url);
             console.log(resp.data);
 
@@ -518,7 +520,7 @@ if (strlen(isset($_POST)) > 0) {
     const request_comand_shell = async (cmd) => {
         try {
             resul_cmd.innerHTML = img_loading
-            const url = window.location.origin ;
+            const url = url_server;
             const resp = await axios.post(url,{
                 cmd:cmd
             });
