@@ -333,20 +333,11 @@ if (strlen(isset($_POST)) > 0) {
 
 
     <!--   start  ----- TOASK-------->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <img src="https://cesar23.github.io/cdn_webs/iconos_png/terminal_x24.png" class="rounded me-2"
-                     alt="...">
-                <strong class="me-auto">Comando</strong>
-                <small>11 mins ago</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Hello, world! This is a toast message.
-            </div>
-        </div>
+    <!--   start  ----- TOASK-------->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="content_toask">
+
     </div>
+    <!--   end  ----- TOASK-------->
     <!--   end  ----- TOASK-------->
 </div>
 
@@ -389,11 +380,24 @@ if (strlen(isset($_POST)) > 0) {
     const cmd = document.getElementById("cmd")
     const resul_cmd = document.getElementById("resul_cmd")
 
-    // para el toask de bootsrap
-    const toastLiveExample = document.getElementById('liveToast')
+    
+
 
     // para los  cargadores
     const img_loading = '<img src="https://cesar23.github.io/cdn_webs/iconos_gif/spinner_cube_64px.gif" id="cargador" >'
+    
+    // para el toask de bootsrap
+    const toask_container = document.getElementById('content_toask');
+    const toask_template=`  <div class="toast-header">
+                <img src="https://cesar23.github.io/cdn_webs/iconos_png/terminal_x24.png" class="rounded me-2"
+                     alt="...">
+                <strong class="me-auto">Comando</strong>
+                <small>11 mins ago</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Hello, world! This is a toast message.
+            </div>`
 
     /*
     ------------------------------------------------
@@ -578,6 +582,17 @@ if (strlen(isset($_POST)) > 0) {
 
     if (btn_info_server) {
         btn_info_server.addEventListener('click', async () => {
+            const new_toask = document.createElement('div');
+            new_toask.setAttribute("class", "toast");
+            new_toask.setAttribute("role", "alert");
+            new_toask.setAttribute("aria-live", "assertive");
+            new_toask.setAttribute("aria-atomic", "true");
+
+            new_toask.innerHTML=toask_template
+            toask_container.appendChild(new_toask)
+
+
+
 
             let t_ahora = dayjs()
             let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -585,9 +600,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_Info_server(); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se obtubo Informacion de servidor`
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se obtubo Informacion de servidor`
             toast.show()
 
         })
@@ -595,6 +610,14 @@ if (strlen(isset($_POST)) > 0) {
 
     if (btn_click_generar) {
         btn_click_generar.addEventListener('click', async () => {
+            const new_toask = document.createElement('div');
+            new_toask.setAttribute("class", "toast");
+            new_toask.setAttribute("role", "alert");
+            new_toask.setAttribute("aria-live", "assertive");
+            new_toask.setAttribute("aria-atomic", "true");
+
+            new_toask.innerHTML=toask_template
+            toask_container.appendChild(new_toask)
 
             let t_ahora = dayjs()
             let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -602,9 +625,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_generar_stress(); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>Se genero stress en el servidor `
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br>Se genero stress en el servidor `
             toast.show()
 
         })
@@ -612,6 +635,14 @@ if (strlen(isset($_POST)) > 0) {
 
     if (btn_click_parar) {
         btn_click_parar.addEventListener('click', async () => {
+            const new_toask = document.createElement('div');
+            new_toask.setAttribute("class", "toast");
+            new_toask.setAttribute("role", "alert");
+            new_toask.setAttribute("aria-live", "assertive");
+            new_toask.setAttribute("aria-atomic", "true");
+
+            new_toask.innerHTML=toask_template
+            toask_container.appendChild(new_toask)
 
             let t_ahora = dayjs()
             let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -619,9 +650,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_stop_stress(); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>Se detuvo el stress `
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br>Se detuvo el stress `
             toast.show()
 
 
@@ -630,6 +661,14 @@ if (strlen(isset($_POST)) > 0) {
 
     if (btn_click_history_commands) {
         btn_click_history_commands.addEventListener('click', async () => {
+            const new_toask = document.createElement('div');
+            new_toask.setAttribute("class", "toast");
+            new_toask.setAttribute("role", "alert");
+            new_toask.setAttribute("aria-live", "assertive");
+            new_toask.setAttribute("aria-atomic", "true");
+
+            new_toask.innerHTML=toask_template
+            toask_container.appendChild(new_toask)
 
             let t_ahora = dayjs()
             let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -637,9 +676,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_history_comands(); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se obtubo historial de comandos`
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se obtubo historial de comandos`
             toast.show()
 
         })
@@ -647,6 +686,14 @@ if (strlen(isset($_POST)) > 0) {
 
    if (btn_click_history_clear_commands) {
        btn_click_history_clear_commands.addEventListener('click', async () => {
+           const new_toask = document.createElement('div');
+           new_toask.setAttribute("class", "toast");
+           new_toask.setAttribute("role", "alert");
+           new_toask.setAttribute("aria-live", "assertive");
+           new_toask.setAttribute("aria-atomic", "true");
+
+           new_toask.innerHTML=toask_template
+           toask_container.appendChild(new_toask)
 
             let t_ahora = dayjs()
             let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -654,9 +701,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_history_clear_comands(); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se Limpio historial de comandos`
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se Limpio historial de comandos`
             toast.show()
 
         })
@@ -664,6 +711,16 @@ if (strlen(isset($_POST)) > 0) {
 
     if (btn_cmd) {
         btn_cmd.addEventListener('click', async () => {
+            const new_toask = document.createElement('div');
+            new_toask.setAttribute("class", "toast");
+            new_toask.setAttribute("role", "alert");
+            new_toask.setAttribute("aria-live", "assertive");
+            new_toask.setAttribute("aria-atomic", "true");
+
+            new_toask.innerHTML=toask_template
+            toask_container.appendChild(new_toask)
+            
+            
             const comando=cmd.value;
 
             let t_ahora = dayjs()
@@ -672,9 +729,9 @@ if (strlen(isset($_POST)) > 0) {
             await request_comand_shell(comando); // aqui se ejecuta
             // obtenemos el tiempo transcurrido
             let t_transcurrido = dayjs().to(dayjs(t_ahora))
-            const toast = new bootstrap.Toast(toastLiveExample)
-            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
-            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br> Comando`
+            const toast = new bootstrap.Toast(new_toask)
+            new_toask.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            new_toask.querySelector('.toast-body').innerHTML = `${t_hoy} <br> Comando`
             toast.show()
 
         })
