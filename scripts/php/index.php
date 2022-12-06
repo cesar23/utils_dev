@@ -6,24 +6,6 @@ if (!isset($_SESSION['command'])) {
 
 
 $command = "";
-if (strlen(isset($_GET['stress'])) > 0) {
-    if ($_GET['stress'] == "start") {
-        $command = 'stress-ng --cpu 4 -v --timeout 60s > /dev/null 2 >/dev/null &';
-        exec($command);
-        if (!isset($_SESSION['command'])) {
-            array_push($_SESSION['command'], date("Y-m-d H:i:s") . "[separador]" . $command);
-        } else {
-            array_push($_SESSION['command'], date("Y-m-d H:i:s") . "[separador]" . $command);
-        }
-
-    } else {
-        $command = 'pkill -9 stress-ng-cpu';
-        exec($command);
-        array_push($_SESSION['command'], date("Y-m-d H:i:s") . "[separador]" . $command);
-    }
-    header('Location: ' . $_SERVER['HTTP_REFERER']);
-    exit;
-}
 
 
 function getIpLocal()
@@ -380,12 +362,12 @@ if (strlen(isset($_POST)) > 0) {
     const cmd = document.getElementById("cmd")
     const resul_cmd = document.getElementById("resul_cmd")
 
-    
+
 
 
     // para los  cargadores
     const img_loading = '<img src="https://cesar23.github.io/cdn_webs/iconos_gif/spinner_cube_64px.gif" id="cargador" >'
-    
+
     // para el toask de bootsrap
     const toask_container = document.getElementById('content_toask');
     const toask_template=`  <div class="toast-header">
@@ -719,8 +701,8 @@ if (strlen(isset($_POST)) > 0) {
 
             new_toask.innerHTML=toask_template
             toask_container.appendChild(new_toask)
-            
-            
+
+
             const comando=cmd.value;
 
             let t_ahora = dayjs()
