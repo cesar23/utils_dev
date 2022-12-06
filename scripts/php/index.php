@@ -129,6 +129,26 @@ function getHistoryClearCommads()
     exit;
 }
 
+function shell_ejecute($cmd)
+{
+    exec(" ${cmd} ", $output, $return_var);
+    $result_json = array('statusCode' => 200, 'msg' => "",'return'=>'');
+    if ($return_var>0) {
+        $result_json["statusCode"] = 200;
+        $result_json["msg"] = $output;
+        $result_json["return"] = $return_var;
+    } else {
+        $result_json["statusCode"] = 200;
+        $_SESSION['command']=[];
+        $result_json["msg"] = $output;
+        $result_json["return"] = $return_var;
+    }
+
+    echo json_encode($result_json);
+    exit;
+}
+
+
 if (strlen(isset($_GET['get_data'])) > 0) {
     // -----respuesta  json
     header('Cache-Control: no-cache, must-revalidate');
@@ -153,6 +173,22 @@ if (strlen(isset($_GET['get_data'])) > 0) {
             getHistoryClearCommads();
             break;
     }
+
+}
+
+
+$_POST = json_decode(file_get_contents("php://input"),true);
+
+
+
+if (strlen(isset($_POST)) > 0) {
+    // -----respuesta  json
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+    header('Content-type: application/json');
+
+   shell_ejecute($_POST['cmd']);
+
 
 }
 ?>
@@ -278,6 +314,23 @@ if (strlen(isset($_GET['get_data'])) > 0) {
         </div>
     </div>
 
+    <div class="row" style="padding: 7px">
+        <h3 class="card-title">5. Extra comandos</h3>
+        <div class="col-4">
+            <div class="row" style="padding: 7px">
+                <textarea name="cmd" id="cmd" cols="30" rows="10">pwd</textarea>
+                <button type="button" id="btn_cmd" class="btn btn-success">Comando - Enviar comando</button>
+            </div>
+
+        </div>
+        <div class="col-8">
+
+            <div style="background-color: #821bc2; color:#fff; border-radius: 15px; overflow-y: scroll; height:150px;">
+                <div id="resul_cmd"></div>
+            </div>
+        </div>
+    </div>
+
 
     <!--   start  ----- TOASK-------->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -330,6 +383,11 @@ if (strlen(isset($_GET['get_data'])) > 0) {
     const btn_click_parar = document.getElementById("btn_click_parar")
     const btn_click_history_commands = document.getElementById("btn_click_history_commands")
     const btn_click_history_clear_commands = document.getElementById("btn_click_history_clear_commands")
+
+    // conmando shell
+    const btn_cmd = document.getElementById("btn_cmd")
+    const cmd = document.getElementById("cmd")
+    const resul_cmd = document.getElementById("resul_cmd")
 
     // para el toask de bootsrap
     const toastLiveExample = document.getElementById('liveToast')
@@ -471,6 +529,26 @@ if (strlen(isset($_GET['get_data'])) > 0) {
         }
     };
 
+    const request_comand_shell = async (cmd) => {
+        try {
+            resul_cmd.innerHTML = img_loading
+            const url = window.location.origin ;
+            const resp = await axios.post(url,{
+                cmd:cmd
+            });
+            console.log(resp.data);
+
+
+            resul_cmd.innerHTML = `${resp.data.msg}   ${resp.data.res} `
+
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+
+        }
+    };
+
     // const myInterval =  setInterval(sendGetRequest, 3000);
     //
     //
@@ -579,6 +657,24 @@ if (strlen(isset($_GET['get_data'])) > 0) {
             const toast = new bootstrap.Toast(toastLiveExample)
             toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
             toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br>se Limpio historial de comandos`
+            toast.show()
+
+        })
+    }
+
+    if (btn_cmd) {
+        btn_cmd.addEventListener('click', async () => {
+            const comando=cmd.value;
+
+            let t_ahora = dayjs()
+            let t_hoy = dayjs().format('YYYY-MM-DD HH:mm:ss')
+
+            await request_comand_shell(comando); // aqui se ejecuta
+            // obtenemos el tiempo transcurrido
+            let t_transcurrido = dayjs().to(dayjs(t_ahora))
+            const toast = new bootstrap.Toast(toastLiveExample)
+            toastLiveExample.querySelector('small').innerHTML = `ejecutado (${t_transcurrido})`;
+            toastLiveExample.querySelector('.toast-body').innerHTML = `${t_hoy} <br> Comando`
             toast.show()
 
         })
