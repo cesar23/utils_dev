@@ -1,8 +1,12 @@
 # ----------------------------------------
-#   sudo chmod +x util_linux.sh
+#  export DEBIAN_FRONTEND=noninteractive
+#  sudo apt-get -y install curl && curl -sL https://gitlab.com/perucaos/utils_dev/raw/master/scripts/ubuntu/util_linux.sh | bash /dev/stdin
+
 # ----------------------------------------
 
 
+
+export DEBIAN_FRONTEND=noninteractive
 sudo apt-get -y update
 sudo apt -y  dist-upgrade
 #Ahora instalamos el paquete que nos instala paquetes esenciales:
