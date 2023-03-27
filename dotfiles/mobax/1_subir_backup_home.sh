@@ -24,11 +24,13 @@ cd $scriptPathDir
 # :: eliminamos el anterio backup
 echo " -- -------------------------------------"
 echo " 1. Eliminamos el fichero: home.tar.gz"
+echo ""
 rm -rf home.tar.gz
 sleep 2
 
 echo " -- -------------------------------------"
 echo " 2. Generamos el fichero: home.tar.gz"
+echo ""
 sleep 2
 
 tar -czvf home.tar.gz * \
@@ -39,6 +41,7 @@ tar -czvf home.tar.gz * \
 
 echo " -- -------------------------------------"
 echo " 2.1 Validamos existencia de Repositorio"
+echo ""
 sleep 2
 # ------------- start :: validamos el repositorio para  subir nuestros cambios
 DIR_REPO='/d/repos/utils_dev/dotfiles/mobax'
@@ -59,6 +62,7 @@ fi
 
 echo " -- -------------------------------------"
 echo " 3. Movemos el fichero: home.tar.gz, al repositorio utils_dev ubicado en: ${DIR_REPO}"
+echo ""
 cp home.tar.gz $DIR_REPO/home.tar.gz
 cp 1_subir_backup_home.sh $DIR_REPO/1_subir_backup_home.sh
 cp 2_descarga_home.sh $DIR_REPO/2_descarga_home.sh
@@ -66,11 +70,13 @@ cp 2_descarga_home.sh $DIR_REPO/2_descarga_home.sh
 
 echo " -- -------------------------------------"
 echo " 4. Actualizamos el repositorio: ${DIR_REPO}"
+echo ""
 cd $DIR_REPO
 
 # --------------------- gitUp
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
+echo ""
 git pull origin $CURRENT_BRANCH
 git add -A
 git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
