@@ -8,6 +8,24 @@ MY_INFO="${CURRENT_USER}@${CURRENT_PC_NAME}"
 scriptPathDir=$(dirname $0)
 scriptPathFile=$(realpath $0)
 scriptPathFileName="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
+# cargamos los colores
+if [ -f "${CURRENT_DIR}/libs/mobax/colors.sh" ]; then
+  source "${CURRENT_DIR}/libs/mobax/colors.sh"
+fi
+
+
+
+
+function gitup() {
+    # git pull
+    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
+    git pull origin $CURRENT_BRANCH
+    git add -A
+    git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
+    git push origin $CURRENT_BRANCH
+}
+
 # echo "scriptPathDir: $scriptPathDir"
 # echo "scriptPathFile: $scriptPathFile"
 # echo "scriptPathFileName: $scriptPathFileName"
@@ -44,15 +62,19 @@ fi
 echo " -- -------------------------------------"
 echo " 3. Movemos el fichero: home.tar.gz, al repositorio utils_dev ubicado en: ${DIR_REPO}"
 cp home.tar.gz $DIR_REPO/home.tar.gz
-cp backup_home.sh $DIR_REPO/backup_home.sh
-cp descarga_home.sh $DIR_REPO/descarga_home.sh
+cp 1_subir_backup_home.sh $DIR_REPO/1_subir_backup_home.sh
+cp 2_descarga_home.sh $DIR_REPO/2_descarga_home.sh
 
 
 echo " -- -------------------------------------"
 echo " 4. Actualizamos el repositorio: ${DIR_REPO}"
 cd $DIR_REPO
-git add . && git commit  -m "${MY_INFO} se actualizo :${DATE_HOUR_GIT}" && git push origin master
 
-sleep 6
+  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
+    git pull origin $CURRENT_BRANCH
+    git add -A
+    git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
+    git push origin $CURRENT_BRANCH
 
-
+gitup()
