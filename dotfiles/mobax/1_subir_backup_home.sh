@@ -16,15 +16,6 @@ fi
 
 
 
-function gitup() {
-    # git pull
-    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-    echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
-    git pull origin $CURRENT_BRANCH
-    git add -A
-    git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
-    git push origin $CURRENT_BRANCH
-}
 
 # echo "scriptPathDir: $scriptPathDir"
 # echo "scriptPathFile: $scriptPathFile"
@@ -70,11 +61,10 @@ echo " -- -------------------------------------"
 echo " 4. Actualizamos el repositorio: ${DIR_REPO}"
 cd $DIR_REPO
 
-  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-    echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
-    git pull origin $CURRENT_BRANCH
-    git add -A
-    git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
-    git push origin $CURRENT_BRANCH
-
-gitup()
+# --------------------- gitUp
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+echo -en "Actualizando rama actual: [${BGreen}${CURRENT_BRANCH}${Color_Off}] \n" && sleep 3
+git pull origin $CURRENT_BRANCH
+git add -A
+git commit -m "${MY_INFO} se actualizo rama ${CURRENT_BRANCH} :${DATE_HOUR_GIT}"
+git push origin $CURRENT_BRANCH
