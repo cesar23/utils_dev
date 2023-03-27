@@ -22,6 +22,7 @@ fi
 # ::: entramo al directorio
 cd $scriptPathDir
 # :: eliminamos el anterio backup
+echo -en "No se encontro repositorio: [${BRed}iniciando${Color_Off}] \n"
 echo " -- -------------------------------------"
 echo " 1. Eliminamos el fichero: home.tar.gz"
 rm -rf home.tar.gz
@@ -38,6 +39,7 @@ tar -czvf home.tar.gz * \
  --exclude="*.ssh"
 
 
+# ------------- start :: validamos el repositorio para  subir nuestros cambios
 DIR_REPO='/d/repos/utils_dev/dotfiles/mobax'
 SHELL_MOBAX=0
 if [ -n "$PUTTYHOME" ]; then
@@ -47,6 +49,12 @@ else
   SHELL_MOBAX=0
 fi
 
+if [ -f "${DIR_REPO}" ]; then
+  echo -en "No se encontro repositorio: [${BRed}${DIR_REPO}${Color_Off}] \n"
+  exit
+fi
+
+# ------------- end :: validamos el repositorio para  subir nuestros cambios
 
 echo " -- -------------------------------------"
 echo " 3. Movemos el fichero: home.tar.gz, al repositorio utils_dev ubicado en: ${DIR_REPO}"
