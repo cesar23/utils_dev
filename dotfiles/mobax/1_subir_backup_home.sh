@@ -22,7 +22,6 @@ fi
 # ::: entramo al directorio
 cd $scriptPathDir
 # :: eliminamos el anterio backup
-echo -en "No se encontro repositorio: [${BRed}iniciando${Color_Off}] \n"
 echo " -- -------------------------------------"
 echo " 1. Eliminamos el fichero: home.tar.gz"
 rm -rf home.tar.gz
@@ -38,7 +37,9 @@ tar -czvf home.tar.gz * \
  --exclude="*.tar.gz" \
  --exclude="*.ssh"
 
-
+echo " -- -------------------------------------"
+echo " 2.1 Validamos existencia de Repositorio"
+sleep 2
 # ------------- start :: validamos el repositorio para  subir nuestros cambios
 DIR_REPO='/d/repos/utils_dev/dotfiles/mobax'
 SHELL_MOBAX=0
