@@ -1,14 +1,25 @@
+DATE_HOUR_GIT="`date +%Y`-`date +%m`-`date +%d`_`date +%H`:`date +%M`:`date +%S`"
+CURRENT_USER=$(id -un)
+CURRENT_PC_NAME=$(exec /usr/bin/hostname)
+MY_INFO="${CURRENT_USER}@${CURRENT_PC_NAME}"
+
+PATH_SCRIPT=`readlink -f "${BASH_SOURCE:-$0}"`
+CURRENT_DIR=`dirname $PATH_SCRIPT`
+
 scriptPathDir=$(dirname $0)
 scriptPathFile=$(realpath $0)
+scriptPathFileTemp=$(echo "$scriptPathFile" | sed 's/.sh/.tmp/g')
 scriptPathFileName="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
-# echo "scriptPathDir: $scriptPathDir"
-# echo "scriptPathFile: $scriptPathFile"
-# echo "scriptPathFileName: $scriptPathFileName"
+# cargamos los colores
+if [ -f "${CURRENT_DIR}/libs/mobax/colors.sh" ]; then
+  source "${CURRENT_DIR}/libs/mobax/colors.sh"
+fi
+
 
 # ::: entramo al directorio
 cd $scriptPathDir
 echo " --------------------------------------------"
-echo " --- Descargar backup del repo DEV ----------"
+echo -en " --- ${BGreen}Descargar backup del repo DEV${Color_Off}]  ---------- \n"
 echo " --------------------------------------------"
 sleep 2
 
