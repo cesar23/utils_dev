@@ -21,7 +21,7 @@ function getStartStress()
 
     $result_json = array('statusCode' => 200, 'msg' => "");
     try {
-        $command = 'stress-ng --cpu 4 -v --timeout 60s > /dev/null 2 >/dev/null &';
+        $command = 'stress-ng --cpu 4 -v --timeout 180s > /dev/null 2 >/dev/null &';
         exec($command);
         if (!isset($_SESSION['command'])) {
             array_push($_SESSION['command'], date("Y-m-d H:i:s") . "[separador]" . $command);
@@ -301,7 +301,7 @@ if (strlen(isset($_POST)) > 0) {
         <h3 class="card-title">5. Extra comandos</h3>
         <div class="col-4">
             <div class="row" style="padding: 7px">
-                <textarea name="cmd" id="cmd" cols="30" rows="10" style="background-color: rgba(26,23,23,0.87); color:#fff; border-radius: 15px; overflow-y: scroll; height:90px;">pwd</textarea>
+                <textarea name="cmd" id="cmd" cols="30" rows="10" style="background-color: rgba(26,23,23,0.87); color:#fff; border-radius: 15px; overflow-y: scroll; height:90px;">stress-ng --cpu 4 -v --timeout 180s > /dev/null 2 >/dev/null &</textarea>
                 <button type="button" id="btn_cmd" class="btn btn-success">Comando - Enviar comando</button>
             </div>
 
