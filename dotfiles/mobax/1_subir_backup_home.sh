@@ -38,7 +38,7 @@ tar -czvf home.tar.gz * \
  --exclude=".bash_history" \
  --exclude="*.tar.gz" \
  --exclude="*.ssh"
-
+ read 
 echo " -- -------------------------------------"
 echo " 2.1 Validamos existencia de Repositorio"
 echo ""
