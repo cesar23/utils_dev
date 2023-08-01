@@ -11,8 +11,8 @@ scriptPathFile=$(realpath $0)
 scriptPathFileTemp=$(echo "$scriptPathFile" | sed 's/.sh/.tmp/g')
 scriptPathFileName="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 # cargamos los colores
-if [ -f "${CURRENT_DIR}/libs/mobax/colors.sh" ]; then
-  source "${CURRENT_DIR}/libs/mobax/colors.sh"
+if [ -f "${CURRENT_DIR}/libs_shell/mobax/colors.sh" ]; then
+  source "${CURRENT_DIR}/libs_shell/mobax/colors.sh"
 fi
 
 # echo "scriptPathDir: $scriptPathDir"
