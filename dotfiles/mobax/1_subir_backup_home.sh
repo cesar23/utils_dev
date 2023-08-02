@@ -15,6 +15,12 @@ if [ -f "${CURRENT_DIR}/libs_shell/mobax/colors.sh" ]; then
   source "${CURRENT_DIR}/libs_shell/mobax/colors.sh"
 fi
 
+# ---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
+# -------------------- Abrirlo con Mobax para qeu funcione tar --------------------
+# ---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
+
 # echo "scriptPathDir: $scriptPathDir"
 # echo "scriptPathFile: $scriptPathFile"
 # echo "scriptPathFileName: $scriptPathFileName"
@@ -33,12 +39,14 @@ echo " 2. Generamos el fichero: home.tar.gz"
 echo ""
 sleep 2
 
+# find . -type f -not -path '\./debian/*'
+
 tar -czvf home.tar.gz * \
  --exclude=".ssh" \
  --exclude=".bash_history" \
  --exclude="*.tar.gz" \
  --exclude="*.ssh"
- read 
+
 echo " -- -------------------------------------"
 echo " 2.1 Validamos existencia de Repositorio"
 echo ""
