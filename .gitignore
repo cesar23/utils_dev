@@ -26,9 +26,8 @@
 
 # Ignora los ficheros *.o y *.a *.zip
 *.iso
-*.[ao]
 *.zip
 *.rar
 *.mp4
-*.exe
+
 
