@@ -74,7 +74,7 @@ Default|Phrase files
 0•ccc•calc•0•0•1•0•0•0•0••Calculator•Run•0•0•0
 0•hre•<a href="%Clipboard%"></a>{left 6}•0•1•0•0•0•1•0••Clipboard example <a href></a>•Send•0•0•0
 0•rte•{\rtf1\ansi\ansicpg1250\deff0\nouicompat\deflang1060{\fonttbl{\f0\fnil\fcharset238 Arial CE;}{\f1\fnil\fcharset0 Segoe Script;}{\f2\fnil Arial;}}¶{\colortbl ;\red0\green0\blue0;\red128\green0\blue0;}¶{\*\generator Riched20 10.0.17763}\viewkind4\uc1 ¶\pard\sl240\slmult1\f0\fs20 Kind regards,\fs18\par¶\par¶\cf1\f1\fs36 John Smith\cf0\f0\fs18\par¶\fs20 John Smith\par¶\cf2\b\i Global Support Inc.\par¶\cf0\b0\i0\f2\fs18\par¶}¶•1•0•0•0•0•1•0••Rich Text Example•Send•0•2•0
-1•fkimg•<img src="%INPUT_Customer▬▬▬▬▬▬▬2%" >¶-- --------------------------•1•0•0•0•0•1•0••agregar img a  md•Send•0•0•0
+1•fkimg•<img src="%INPUT_Customer▬▬▬▬▬▬▬2%" >¶¶-- --------------------------•1•0•0•0•0•1•0••agregar img a  md•Send•0•0•0
 1•fkimg2•<img src="%INPUT_Customer▬▬▬▬▬▬▬2%" ><br><br>•1•0•0•0•0•1•0••agregar img a  md•Send•0•0•0
 0•htm•The HTML formatted text can be <b>bold</b>, <i>italic</i> or <u>underlined</u>. ¶¶Check this <a href="http://www.w3schools.com/html/html_formatting.asp" >HTML tutorial</a> ¶ for many other possibilities.•1•0•0•0•0•1•0••HTML Example•Send•0•1•0
 →
