@@ -1,0 +1,499 @@
+23:41:24.613: CPU Name: Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+23:41:24.613: CPU Speed: 3600MHz
+23:41:24.613: Physical Cores: 8, Logical Cores: 8
+23:41:24.613: Physical Memory: 65470MB Total, 51488MB Free
+23:41:24.613: Windows Version: 10.0 Build 19045 (release: 22H2; revision: 3930; 64-bit)
+23:41:24.613: Running as administrator: false
+23:41:24.614: Windows 10/11 Gaming Features:
+23:41:24.614: 	Game DVR: On
+23:41:24.614: 	Game Mode: Probably On (no reg key set)
+23:41:24.615: Sec. Software Status:
+23:41:24.616: 	Antivirus de Microsoft Defender: enabled (AV)
+23:41:24.616: 	Firewall de Windows: enabled (FW)
+23:41:24.616: Current Date/Time: 2024-02-03, 23:41:24
+23:41:24.616: Browser Hardware Acceleration: true
+23:41:24.616: Hide OBS windows from screen capture: false
+23:41:24.616: Qt Version: 6.5.3 (runtime), 6.5.3 (compiled)
+23:41:24.617: Portable mode: false
+23:41:25.250: OBS 30.0.2 (64-bit, windows)
+23:41:25.250: ---------------------------------
+23:41:25.250: ---------------------------------
+23:41:25.250: audio settings reset:
+23:41:25.250: 	samples per sec: 48000
+23:41:25.250: 	speakers:        2
+23:41:25.250: 	max buffering:   960 milliseconds
+23:41:25.250: 	buffering type:  dynamically increasing
+23:41:25.251: ---------------------------------
+23:41:25.252: Initializing D3D11...
+23:41:25.252: Available Video Adapters: 
+23:41:25.253: 	Adapter 0: NVIDIA GeForce GTX 1650
+23:41:25.253: 	  Dedicated VRAM: 4139778048 (3.9 GiB)
+23:41:25.253: 	  Shared VRAM:    34325383168 (32.0 GiB)
+23:41:25.253: 	  PCI ID:         10de:1f0a
+23:41:25.253: 	  HAGS Status:    Disabled (Default: No, Driver status: Supported)
+23:41:25.254: 	  Driver Version: 31.0.15.3623
+23:41:25.254: 	  output 0:
+23:41:25.254: 	    name=ZOWIE XL LCD
+23:41:25.254: 	    pos={0, 0}
+23:41:25.254: 	    size={1920, 1080}
+23:41:25.254: 	    attached=true
+23:41:25.254: 	    refresh=60
+23:41:25.254: 	    bits_per_color=8
+23:41:25.254: 	    space=RGB_FULL_G22_NONE_P709
+23:41:25.254: 	    sdr_white_nits=80
+23:41:25.254: 	    nit_range=[min=0.500000, max=270.000000, max_full_frame=270.000000]
+23:41:25.254: 	    dpi=96 (100%)
+23:41:25.254: 	    id=\\?\DISPLAY#BNQ7F80#5&27b2557&0&UID4353#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:41:25.254: 	    alt_id=\\.\DISPLAY1
+23:41:25.255: 	  output 1:
+23:41:25.255: 	    name=DELL U2520D
+23:41:25.255: 	    pos={1920, -275}
+23:41:25.255: 	    size={1920, 1080}
+23:41:25.255: 	    attached=true
+23:41:25.255: 	    refresh=59
+23:41:25.255: 	    bits_per_color=8
+23:41:25.255: 	    space=RGB_FULL_G22_NONE_P709
+23:41:25.255: 	    sdr_white_nits=80
+23:41:25.255: 	    nit_range=[min=0.500000, max=270.000000, max_full_frame=270.000000]
+23:41:25.255: 	    dpi=96 (100%)
+23:41:25.255: 	    id=\\?\DISPLAY#DELA14E#5&27b2557&0&UID4354#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:41:25.255: 	    alt_id=\\.\DISPLAY2
+23:41:25.258: Loading up D3D11 on adapter NVIDIA GeForce GTX 1650 (0)
+23:41:25.352: D3D11 loaded successfully, feature level used: b000
+23:41:25.352: DXGI increase maximum frame latency success
+23:41:25.352: D3D11 GPU priority setup failed (not admin?)
+23:41:26.036: ---------------------------------
+23:41:26.036: video settings reset:
+23:41:26.036: 	base resolution:   1920x1080
+23:41:26.036: 	output resolution: 1920x1080
+23:41:26.036: 	downscale filter:  Bicubic
+23:41:26.036: 	fps:               30/1
+23:41:26.036: 	format:            NV12
+23:41:26.036: 	YUV mode:          Rec. 709/Partial
+23:41:26.036: NV12 texture support enabled
+23:41:26.036: P010 texture support not available
+23:41:26.037: Audio monitoring device:
+23:41:26.037: 	name: Por defecto
+23:41:26.037: 	id: default
+23:41:26.037: ---------------------------------
+23:41:26.048: No AJA devices found, skipping loading AJA UI plugin
+23:41:26.048: Failed to initialize module 'aja-output-ui.dll'
+23:41:26.056: No AJA devices found, skipping loading AJA plugin
+23:41:26.056: Failed to initialize module 'aja.dll'
+23:41:26.056: Skipping module '../../obs-plugins/64bit/chrome_elf.dll', not an OBS plugin
+23:41:26.066: [CoreAudio encoder]: CoreAudio AAC encoder not installed on the system or couldn't be loaded
+23:41:26.067: Failed to load 'en-US' text for module: 'decklink-captions.dll'
+23:41:26.068: Failed to load 'en-US' text for module: 'decklink-output-ui.dll'
+23:41:26.079: A DeckLink iterator could not be created.  The DeckLink drivers may not be installed
+23:41:26.079: Failed to initialize module 'decklink.dll'
+23:41:26.111: [AMF] Unable to load 'amfrt64.dll', error code 126.
+23:41:26.112: [AMF] AMF Test failed due to one or more errors.
+23:41:26.112: Failed to initialize module 'enc-amf.dll'
+23:41:26.183: Skipping module '../../obs-plugins/64bit/libcef.dll', not an OBS plugin
+23:41:26.184: Skipping module '../../obs-plugins/64bit/libEGL.dll', not an OBS plugin
+23:41:26.184: Skipping module '../../obs-plugins/64bit/libGLESv2.dll', not an OBS plugin
+23:41:26.229: [obs-browser]: Version 2.22.2
+23:41:26.229: [obs-browser]: CEF Version 103.0.5060.134 (runtime), 103.0.0-5060-shared-textures.2594+gc69ad37+chromium-103.0.5060.134 (compiled)
+23:41:26.244: NVENC supported
+23:41:26.897: [NVENC] AV1 is not supported
+23:41:26.915: [noise suppress]: NVIDIA denoiser disabled, redistributable not found or could not be loaded.
+23:41:26.916: Failed to get NVVideoEffects.dll version info size
+23:41:26.918: [NVIDIA VIDEO FX]: FX disabled, redistributable not found or could not be loaded.
+23:41:27.057: [obs-websocket] [obs_module_load] you can haz websockets (Version: 5.3.4 | RPC Version: 1)
+23:41:27.057: [obs-websocket] [obs_module_load] Qt version (compile-time): 6.5.3 | Qt version (run-time): 6.5.3
+23:41:27.057: [obs-websocket] [obs_module_load] Linked ASIO Version: 102800
+23:41:27.078: [obs-websocket] [obs_module_load] Module loaded.
+23:41:27.150: [vlc-video]: VLC 3.0.18 Vetinari found, VLC video source enabled
+23:41:27.200: ---------------------------------
+23:41:27.200:   Loaded Modules:
+23:41:27.200:     win-wasapi.dll
+23:41:27.200:     win-dshow.dll
+23:41:27.200:     win-capture.dll
+23:41:27.200:     vlc-video.dll
+23:41:27.200:     text-freetype2.dll
+23:41:27.200:     rtmp-services.dll
+23:41:27.200:     obs-x264.dll
+23:41:27.200:     obs-websocket.dll
+23:41:27.200:     obs-webrtc.dll
+23:41:27.200:     obs-vst.dll
+23:41:27.200:     obs-transitions.dll
+23:41:27.200:     obs-text.dll
+23:41:27.200:     obs-qsv11.dll
+23:41:27.200:     obs-outputs.dll
+23:41:27.200:     obs-filters.dll
+23:41:27.200:     obs-ffmpeg.dll
+23:41:27.200:     obs-browser.dll
+23:41:27.200:     logi_obs_plugin_x64.dll
+23:41:27.200:     image-source.dll
+23:41:27.200:     frontend-tools.dll
+23:41:27.200:     decklink-output-ui.dll
+23:41:27.200:     decklink-captions.dll
+23:41:27.200:     coreaudio-encoder.dll
+23:41:27.200: ---------------------------------
+23:41:27.205: QWidget::setTabOrder: 'first' and 'second' must be in the same window
+23:41:27.205: ==== Startup complete ===============================================
+23:41:27.385: All scene data cleared
+23:41:27.385: ------------------------------------------------
+23:41:27.411: [win-wasapi: 'Audio del escritorio'] update settings:
+23:41:27.411: 	device id: default
+23:41:27.411: 	use device timing: 1
+23:41:27.415: [Loaded global audio device]: 'Audio del escritorio'
+23:41:27.415: [win-wasapi: 'Mic/Aux'] update settings:
+23:41:27.415: 	device id: default
+23:41:27.415: 	use device timing: 0
+23:41:27.416: [Loaded global audio device]: 'Mic/Aux'
+23:41:27.418: [duplicator-monitor-capture: 'Captura de pantalla'] update settings:
+23:41:27.418: 	display:  (0x0)
+23:41:27.418: 	cursor: true
+23:41:27.418: 	method: WGC
+23:41:27.418: 	id: 
+23:41:27.418: 	alt_id: 
+23:41:27.418: 	setting_id: \\?\DISPLAY#BNQ7F80#5&8bfefd6&0&UID4353#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:41:27.418: 	force SDR: false
+23:41:27.418: [win-wasapi: 'Captura de entrada audio'] update settings:
+23:41:27.418: 	device id: {0.0.1.00000000}.{d242cf2f-2a63-4ae0-ba55-afb523df0c08}
+23:41:27.418: 	use device timing: 1
+23:41:27.419: [WASAPISource::TryInitialize]:[Microphone (AT2020USB+)] Failed to activate client context: 88890004
+23:41:27.419: WASAPI: Device '{0.0.1.00000000}.{d242cf2f-2a63-4ae0-ba55-afb523df0c08}' failed to start (source: Captura de entrada audio)
+23:41:27.419: [Media Source 'Fuente multimedia']: settings:
+23:41:27.419: 	input:                   
+23:41:27.419: 	input_format:            (null)
+23:41:27.419: 	speed:                   100
+23:41:27.419: 	is_looping:              no
+23:41:27.419: 	is_linear_alpha:         no
+23:41:27.419: 	is_hw_decoding:          no
+23:41:27.419: 	is_clear_on_media_end:   yes
+23:41:27.419: 	restart_on_activate:     yes
+23:41:27.419: 	close_when_inactive:     no
+23:41:27.419: 	full_decode:             no
+23:41:27.419: 	ffmpeg_options:          
+23:41:27.461: WASAPI: Device 'Auriculares (2- AT2020USB+)' [48000 Hz] initialized (source: Audio del escritorio)
+23:41:27.475: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Mic/Aux)
+23:41:27.536: adding 42 milliseconds of audio buffering, total audio buffering is now 42 milliseconds (source: Mic/Aux)
+23:41:27.536: 
+23:41:29.967: [duplicator-monitor-capture: 'Captura de pantalla 2'] update settings:
+23:41:29.967: 	display:  (0x0)
+23:41:29.967: 	cursor: true
+23:41:29.967: 	method: WGC
+23:41:29.967: 	id: 
+23:41:29.967: 	alt_id: 
+23:41:29.967: 	setting_id: \\?\DISPLAY#DELA14E#5&8bfefd6&0&UID4354#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:41:29.967: 	force SDR: false
+23:41:29.967: [win-wasapi: 'Captura de salida de audio'] update settings:
+23:41:29.967: 	device id: {0.0.0.00000000}.{e6f838df-474d-4ca9-a826-2f12710b945d}
+23:41:29.967: 	use device timing: 1
+23:41:29.968: [WASAPISource::TryInitialize]:[{0.0.0.00000000}.{e6f838df-474d-4ca9-a826-2f12710b945d}] Failed to enumerate device: 80070490
+23:41:29.968: WASAPI: Device '{0.0.0.00000000}.{e6f838df-474d-4ca9-a826-2f12710b945d}' failed to start (source: Captura de salida de audio)
+23:41:29.969: [duplicator-monitor-capture: 'Captura de pantalla 3'] update settings:
+23:41:29.969: 	display:  (0x0)
+23:41:29.969: 	cursor: true
+23:41:29.969: 	method: WGC
+23:41:29.969: 	id: 
+23:41:29.969: 	alt_id: 
+23:41:29.969: 	setting_id: \\?\DISPLAY#DELA14E#5&8bfefd6&0&UID4354#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:41:29.969: 	force SDR: false
+23:41:29.969: [win-wasapi: 'Captura de entrada audio 2'] update settings:
+23:41:29.969: 	device id: {0.0.1.00000000}.{7a8b09b7-8b81-42be-8953-6c6383be13dc}
+23:41:29.969: 	use device timing: 0
+23:41:29.971: Switched to scene 'Escena 2'
+23:41:29.971: ------------------------------------------------
+23:41:29.971: Loaded scenes:
+23:41:29.971: - scene 'Principal':
+23:41:29.971:     - source: 'Captura de pantalla' (monitor_capture)
+23:41:29.971:     - source: 'Captura de entrada audio' (wasapi_input_capture)
+23:41:29.971:     - source: 'Captura de ventana' (window_capture)
+23:41:29.971:     - source: 'Fuente multimedia' (ffmpeg_source)
+23:41:29.971:     - source: 'Captura de juego' (game_capture)
+23:41:29.971: - scene 'Escena 2':
+23:41:29.971:     - source: 'Captura de pantalla 2' (monitor_capture)
+23:41:29.971:     - source: 'Captura de salida de audio' (wasapi_output_capture)
+23:41:29.971:     - source: 'Mic/Aux' (wasapi_input_capture)
+23:41:29.971: - scene 'monitor dell':
+23:41:29.971:     - source: 'Captura de pantalla 3' (monitor_capture)
+23:41:29.971:     - source: 'Captura de entrada audio 2' (wasapi_input_capture)
+23:41:29.971: ------------------------------------------------
+23:41:30.041: WASAPI: Device 'Microphone (Logitech Webcam C925e)' [16000 Hz] initialized (source: Captura de entrada audio 2)
+23:41:37.338:   OpenType support missing for "Open Sans", script 11
+23:41:37.338:   OpenType support missing for "Arial", script 11
+23:41:37.340:   OpenType support missing for "Tahoma", script 11
+23:41:37.342:   OpenType support missing for "MS UI Gothic", script 11
+23:41:37.344:   OpenType support missing for "SimSun", script 11
+23:41:37.349:   OpenType support missing for "Segoe UI Emoji", script 11
+23:41:37.354:   OpenType support missing for "Segoe UI Symbol", script 11
+23:41:37.359:   OpenType support missing for "Open Sans", script 12
+23:41:37.359:   OpenType support missing for "Arial", script 12
+23:41:37.360:   OpenType support missing for "Tahoma", script 12
+23:41:37.360:   OpenType support missing for "MS UI Gothic", script 12
+23:41:37.360:   OpenType support missing for "SimSun", script 12
+23:41:37.360:   OpenType support missing for "Segoe UI Emoji", script 12
+23:41:37.361:   OpenType support missing for "Segoe UI Symbol", script 12
+23:41:37.364:   OpenType support missing for "Open Sans", script 16
+23:41:37.365:   OpenType support missing for "Arial", script 16
+23:41:37.365:   OpenType support missing for "Tahoma", script 16
+23:41:37.366:   OpenType support missing for "MS UI Gothic", script 16
+23:41:37.366:   OpenType support missing for "SimSun", script 16
+23:41:37.366:   OpenType support missing for "Segoe UI Emoji", script 16
+23:41:37.366:   OpenType support missing for "Segoe UI Symbol", script 16
+23:41:37.368:   OpenType support missing for "Open Sans", script 20
+23:41:37.368:   OpenType support missing for "Arial", script 20
+23:41:37.368:   OpenType support missing for "Tahoma", script 20
+23:41:37.369:   OpenType support missing for "MS UI Gothic", script 20
+23:41:37.369:   OpenType support missing for "SimSun", script 20
+23:41:37.369:   OpenType support missing for "Segoe UI Emoji", script 20
+23:41:37.370:   OpenType support missing for "Segoe UI Symbol", script 20
+23:42:50.539: Number of remaining views: 1
+23:42:50.539: ---------------------------------
+23:42:50.539: video settings reset:
+23:42:50.539: 	base resolution:   1920x1080
+23:42:50.539: 	output resolution: 1920x1080
+23:42:50.539: 	downscale filter:  Bicubic
+23:42:50.539: 	fps:               30/1
+23:42:50.539: 	format:            NV12
+23:42:50.539: 	YUV mode:          Rec. 709/Partial
+23:42:50.540: NV12 texture support enabled
+23:42:50.540: P010 texture support not available
+23:42:50.565: Settings changed (hotkeys, advanced)
+23:42:50.565: ------------------------------------------------
+23:44:02.737: Settings changed (general, outputs)
+23:44:02.737: ------------------------------------------------
+23:44:19.118: User switched to scene 'Principal'
+23:44:52.468: WASAPI: Default output device changed
+23:44:52.470: Device 'Auriculares (2- AT2020USB+)' invalidated.  Retrying (source: Audio del escritorio)
+23:44:52.611: WASAPI: Device 'Realtek Digital Output (Realtek(R) Audio)' [48000 Hz] initialized (source: Audio del escritorio)
+23:45:10.189: WASAPI: Default output device changed
+23:45:10.191: Device 'Realtek Digital Output (Realtek(R) Audio)' invalidated.  Retrying (source: Audio del escritorio)
+23:45:10.289: WASAPI: Device 'Altavoces (Realtek(R) Audio)' [48000 Hz] initialized (source: Audio del escritorio)
+23:45:28.842: [duplicator-monitor-capture: 'Captura de pantalla'] update settings:
+23:45:28.842: 	display: ZOWIE XL LCD (1920x1080)
+23:45:28.842: 	cursor: true
+23:45:28.842: 	method: DXGI
+23:45:28.842: 	id: \\?\DISPLAY#BNQ7F80#5&27b2557&0&UID4353#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:45:28.842: 	alt_id: \\.\DISPLAY1
+23:45:28.842: 	setting_id: \\?\DISPLAY#BNQ7F80#5&27b2557&0&UID4353#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+23:45:28.842: 	force SDR: false
+23:45:34.495: [win-wasapi: 'Captura de entrada audio'] update settings:
+23:45:34.495: 	device id: default
+23:45:34.495: 	use device timing: 1
+23:45:37.163: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Captura de entrada audio)
+23:45:37.164: Device 'Micrófono (2- AT2020USB+)' invalidated.  Retrying (source: Captura de entrada audio)
+23:45:37.169: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Captura de entrada audio)
+23:45:42.055: [win-wasapi: 'Captura de entrada audio'] update settings:
+23:45:42.055: 	device id: {0.0.1.00000000}.{0867f7b4-f752-4636-95b0-de83e06d78d9}
+23:45:42.055: 	use device timing: 1
+23:45:42.056: Device 'Micrófono (2- AT2020USB+)' invalidated.  Retrying (source: Captura de entrada audio)
+23:45:42.062: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Captura de entrada audio)
+23:46:04.607: Starting recording due to hotkey
+23:46:04.612: ---------------------------------
+23:46:04.612: [x264 encoder: 'advanced_video_stream'] preset: veryfast
+23:46:04.612: [x264 encoder: 'advanced_video_stream'] settings:
+23:46:04.612: 	rate_control: CBR
+23:46:04.612: 	bitrate:      2500
+23:46:04.612: 	buffer size:  2500
+23:46:04.612: 	crf:          23
+23:46:04.612: 	fps_num:      30
+23:46:04.612: 	fps_den:      1
+23:46:04.612: 	width:        1920
+23:46:04.612: 	height:       1080
+23:46:04.612: 	keyint:       250
+23:46:04.612: 
+23:46:04.623: ---------------------------------
+23:46:04.624: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+23:46:04.624: 
+23:46:04.640: ==== Recording Start ===============================================
+23:46:04.640: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-03 23-46-04.mkv'...
+23:46:15.607: Stopping recording due to hotkey
+23:46:16.507: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-03 23-46-04.mkv' stopped
+23:46:16.507: Output 'adv_file_output': stopping
+23:46:16.507: Output 'adv_file_output': Total frames output: 330
+23:46:16.507: Output 'adv_file_output': Total drawn frames: 356
+23:46:16.507: ==== Recording Stop ================================================
+23:46:55.785: ---------------------------------
+23:46:55.785: [x264 encoder: 'advanced_video_stream'] preset: veryfast
+23:46:55.785: [x264 encoder: 'advanced_video_stream'] settings:
+23:46:55.785: 	rate_control: CBR
+23:46:55.785: 	bitrate:      2500
+23:46:55.785: 	buffer size:  2500
+23:46:55.785: 	crf:          23
+23:46:55.785: 	fps_num:      30
+23:46:55.785: 	fps_den:      1
+23:46:55.785: 	width:        1920
+23:46:55.785: 	height:       1080
+23:46:55.785: 	keyint:       250
+23:46:55.785: 
+23:46:55.787: ---------------------------------
+23:46:55.787: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+23:46:55.787: 
+23:46:55.792: ==== Recording Start ===============================================
+23:46:55.792: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-03 23-46-55.mkv'...
+23:46:59.246: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-03 23-46-55.mkv' stopped
+23:46:59.246: Output 'adv_file_output': stopping
+23:46:59.246: Output 'adv_file_output': Total frames output: 77
+23:46:59.246: Output 'adv_file_output': Total drawn frames: 104
+23:46:59.247: ==== Recording Stop ================================================
+23:47:27.029: [win-wasapi: 'Captura de entrada audio'] update settings:
+23:47:27.029: 	device id: default
+23:47:27.029: 	use device timing: 1
+23:47:27.030: Device 'Micrófono (2- AT2020USB+)' invalidated.  Retrying (source: Captura de entrada audio)
+23:47:27.037: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Captura de entrada audio)
+23:47:29.785: ---------------------------------
+23:47:29.785: [x264 encoder: 'advanced_video_stream'] preset: veryfast
+23:47:29.785: [x264 encoder: 'advanced_video_stream'] settings:
+23:47:29.785: 	rate_control: CBR
+23:47:29.785: 	bitrate:      2500
+23:47:29.785: 	buffer size:  2500
+23:47:29.785: 	crf:          23
+23:47:29.785: 	fps_num:      30
+23:47:29.785: 	fps_den:      1
+23:47:29.785: 	width:        1920
+23:47:29.785: 	height:       1080
+23:47:29.785: 	keyint:       250
+23:47:29.785: 
+23:47:29.787: ---------------------------------
+23:47:29.787: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+23:47:29.787: 
+23:47:29.792: ==== Recording Start ===============================================
+23:47:29.792: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-03 23-47-29.mkv'...
+23:47:33.299: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-03 23-47-29.mkv' stopped
+23:47:33.299: Output 'adv_file_output': stopping
+23:47:33.299: Output 'adv_file_output': Total frames output: 79
+23:47:33.299: Output 'adv_file_output': Total drawn frames: 105
+23:47:33.300: ==== Recording Stop ================================================
+23:47:59.853: User Removed source 'Captura de entrada audio' (wasapi_input_capture) from scene 'Principal'
+23:47:59.876: WASAPI: Device 'Micrófono (2- AT2020USB+)' Terminated
+23:48:21.913: ---------------------------------
+23:48:21.913: [x264 encoder: 'advanced_video_stream'] preset: veryfast
+23:48:21.913: [x264 encoder: 'advanced_video_stream'] settings:
+23:48:21.913: 	rate_control: CBR
+23:48:21.913: 	bitrate:      2500
+23:48:21.913: 	buffer size:  2500
+23:48:21.913: 	crf:          23
+23:48:21.913: 	fps_num:      30
+23:48:21.913: 	fps_den:      1
+23:48:21.913: 	width:        1920
+23:48:21.913: 	height:       1080
+23:48:21.913: 	keyint:       250
+23:48:21.913: 
+23:48:21.915: ---------------------------------
+23:48:21.915: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+23:48:21.915: 
+23:48:21.920: ==== Recording Start ===============================================
+23:48:21.920: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-03 23-48-21.mkv'...
+23:48:25.713: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-03 23-48-21.mkv' stopped
+23:48:25.713: Output 'adv_file_output': stopping
+23:48:25.713: Output 'adv_file_output': Total frames output: 87
+23:48:25.713: Output 'adv_file_output': Total drawn frames: 114
+23:48:25.713: ==== Recording Stop ================================================
+23:48:28.633: Max audio buffering reached!
+23:48:28.633: adding 917 milliseconds of audio buffering, total audio buffering is now 960 milliseconds (source: Audio del escritorio)
+23:48:28.633: 
+23:48:28.655: Source Audio del escritorio audio is lagging (over by 48509.91 ms) at max audio buffering. Restarting source audio.
+23:49:02.525: [win-wasapi: 'Mic/Aux'] update settings:
+23:49:02.525: 	device id: {0.0.1.00000000}.{0867f7b4-f752-4636-95b0-de83e06d78d9}
+23:49:02.525: 	use device timing: 0
+23:49:02.527: Device 'Micrófono (2- AT2020USB+)' invalidated.  Retrying (source: Mic/Aux)
+23:49:02.538: WASAPI: Device 'Micrófono (2- AT2020USB+)' [48000 Hz] initialized (source: Mic/Aux)
+23:49:06.165: ---------------------------------
+23:49:06.165: [x264 encoder: 'advanced_video_stream'] preset: veryfast
+23:49:06.165: [x264 encoder: 'advanced_video_stream'] settings:
+23:49:06.165: 	rate_control: CBR
+23:49:06.165: 	bitrate:      2500
+23:49:06.165: 	buffer size:  2500
+23:49:06.165: 	crf:          23
+23:49:06.165: 	fps_num:      30
+23:49:06.165: 	fps_den:      1
+23:49:06.165: 	width:        1920
+23:49:06.165: 	height:       1080
+23:49:06.165: 	keyint:       250
+23:49:06.165: 
+23:49:06.167: ---------------------------------
+23:49:06.167: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+23:49:06.167: 
+23:49:06.171: ==== Recording Start ===============================================
+23:49:06.171: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-03 23-49-06.mkv'...
+23:49:11.369: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-03 23-49-06.mkv' stopped
+23:49:11.369: Output 'adv_file_output': stopping
+23:49:11.369: Output 'adv_file_output': Total frames output: 127
+23:49:11.369: Output 'adv_file_output': Total drawn frames: 156
+23:49:11.369: ==== Recording Stop ================================================
+23:49:59.556: Source Audio del escritorio audio is lagging (over by 39993.01 ms) at max audio buffering. Restarting source audio.
+23:51:39.944: User added filter 'Compresor' (compressor_filter) to source 'Mic/Aux'
+23:55:49.226: User added filter 'Expansor' (expander_filter) to source 'Mic/Aux'
+00:00:10.832: User added filter 'Extensión VST 2.x' (vst_filter) to source 'Mic/Aux'
+00:00:10.835: QFSFileEngine::open: No file name specified
+00:02:51.273: QFSFileEngine::open: No file name specified
+00:02:51.274: User removed filter 'Extensión VST 2.x' (vst_filter) from source 'Mic/Aux'
+00:02:55.497: User added filter 'Extensión VST 2.x' (vst_filter) to source 'Mic/Aux'
+00:02:55.499: QFSFileEngine::open: No file name specified
+00:02:58.071: User selected new VST plugin: 'C:/Program Files/Common Files/VST2/Voxengo/Marvel GEQ.dll'
+00:03:48.015: Source Audio del escritorio audio is lagging (over by 68424.87 ms) at max audio buffering. Restarting source audio.
+00:06:36.950: [noise suppress: 'Eliminación de ruido'] NVAFX redist is not installed.
+00:06:36.952: User added filter 'Eliminación de ruido' (noise_suppress_filter_v2) to source 'Mic/Aux'
+00:12:10.179: User added filter 'Limitador' (limiter_filter) to source 'Mic/Aux'
+00:13:30.248: Switched to Preview/Program mode
+00:13:30.248: ------------------------------------------------
+00:15:42.432: Settings changed (outputs)
+00:15:42.432: ------------------------------------------------
+00:16:03.478: Settings changed (outputs)
+00:16:03.478: ------------------------------------------------
+00:16:26.700: Settings changed (outputs)
+00:16:26.700: ------------------------------------------------
+00:17:33.439: Settings changed (outputs)
+00:17:33.439: ------------------------------------------------
+00:19:09.065: Settings changed (outputs)
+00:19:09.065: ------------------------------------------------
+00:19:12.100: ---------------------------------
+00:19:12.100: [x264 encoder: 'advanced_video_recording'] preset: veryfast
+00:19:12.100: [x264 encoder: 'advanced_video_recording'] settings:
+00:19:12.100: 	rate_control: CBR
+00:19:12.100: 	bitrate:      2500
+00:19:12.100: 	buffer size:  2500
+00:19:12.100: 	crf:          23
+00:19:12.100: 	fps_num:      30
+00:19:12.100: 	fps_den:      1
+00:19:12.100: 	width:        1920
+00:19:12.100: 	height:       1080
+00:19:12.100: 	keyint:       250
+00:19:12.100: 
+00:19:12.102: ---------------------------------
+00:19:12.102: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+00:19:12.102: 
+00:19:12.108: ==== Recording Start ===============================================
+00:19:12.108: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-04 00-19-12.mkv'...
+00:19:13.946: output adv_file_output paused
+00:19:18.257: output adv_file_output unpaused
+00:19:19.748: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-04 00-19-12.mkv' stopped
+00:19:19.748: Output 'adv_file_output': stopping
+00:19:19.748: Output 'adv_file_output': Total frames output: 57
+00:19:19.748: Output 'adv_file_output': Total drawn frames: 230
+00:19:19.748: ==== Recording Stop ================================================
+00:19:27.588: ---------------------------------
+00:19:27.588: [x264 encoder: 'advanced_video_recording'] preset: veryfast
+00:19:27.588: [x264 encoder: 'advanced_video_recording'] settings:
+00:19:27.588: 	rate_control: CBR
+00:19:27.588: 	bitrate:      2500
+00:19:27.588: 	buffer size:  2500
+00:19:27.588: 	crf:          23
+00:19:27.588: 	fps_num:      30
+00:19:27.588: 	fps_den:      1
+00:19:27.588: 	width:        1920
+00:19:27.588: 	height:       1080
+00:19:27.588: 	keyint:       250
+00:19:27.588: 
+00:19:27.590: ---------------------------------
+00:19:27.590: [FFmpeg aac encoder: 'Track1'] bitrate: 160, channels: 2, channel_layout: stereo
+00:19:27.590: 
+00:19:27.596: ==== Recording Start ===============================================
+00:19:27.596: [ffmpeg muxer: 'adv_file_output'] Writing file 'C:/Users/cesar/Videos/2024-02-04 00-19-27.mkv'...
+00:19:30.678: output adv_file_output paused
+00:19:34.602: output adv_file_output unpaused
+00:19:39.032: output adv_file_output paused
+00:19:41.280: output adv_file_output unpaused
+00:20:58.714: [ffmpeg muxer: 'adv_file_output'] Output of file 'C:/Users/cesar/Videos/2024-02-04 00-19-27.mkv' stopped
+00:20:58.714: Output 'adv_file_output': stopping
+00:20:58.714: Output 'adv_file_output': Total frames output: 2505
+00:20:58.714: Output 'adv_file_output': Total drawn frames: 2734
+00:20:58.714: ==== Recording Stop ================================================
+00:21:22.308: Source Audio del escritorio audio is lagging (over by 25075.17 ms) at max audio buffering. Restarting source audio.
+00:21:56.129: Switched to scene 'Principal'
+00:21:56.132: Switched to regular Preview mode
+00:21:56.132: ------------------------------------------------
