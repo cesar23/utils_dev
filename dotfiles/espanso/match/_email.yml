@@ -1,0 +1,4 @@
+matches:
+  - trigger: ":mail"
+    form: |
+      Hola [[name]] que tengas buen dia.Recuerda que el pago de [[servicio]] esta pendiente 😢.

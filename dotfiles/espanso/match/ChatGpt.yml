@@ -1,0 +1,6 @@
+
+enable: true
+matches:
+
+  - trigger: :cformat
+    replace: " formateame el codigo ponle comentarios y sus ejemplos de uso y que se vea lo mas entendible posible. que se vea  bonito."

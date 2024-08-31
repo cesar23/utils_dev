@@ -1,0 +1,33 @@
+enable: true
+matches:
+  - trigger: ":form"
+    form: |
+      Hey [[name]],
+      Happy Birthday[[name]]!
+
+  - trigger: ":2form"
+    form: |
+      Hey [[name]],
+      [[text]]
+      Happy Birthday!
+    form_fields:
+      text:
+        multiline: true
+
+  - trigger: ":3form"
+    form: |
+      [[choices]]
+    form_fields:
+      choices:
+        type: choice
+        values:
+          - First choice
+          - Second choice
+
+  - trigger: ":4form"
+    replace: "Hey {{form1.name}}, how are you?"
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: "Hey [[name]], how are you?"

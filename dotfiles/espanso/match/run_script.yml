@@ -1,0 +1,76 @@
+# espanso match file
+
+# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+
+# You can use this file to define the base matches (aka snippets)
+# that will be available in every application when using espanso.
+
+# Matches are substitution rules: when you type the "trigger" string
+# it gets replaced by the "replace" string.
+matches:
+
+  # :::::: ejecuta un script en python enviando un parametro : https://drive.google.com/file/d/1El-pu20cCYp3zFonLZ2cODgD7fRUSGXu/view?usp=drivesdk
+  - trigger: ":pyscript"
+    replace: "{{output}}"
+    vars:
+      - name: myvar
+        type: echo
+        params:
+          echo: "my variable"
+      - name: output
+        type: script
+        params:
+          args:
+            - python
+            - D:\repos\curso_python\Utilidades\Espanso_script\demo_espanso.py
+
+  - trigger: ":ip"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: "curl 'https://api.ipify.org'"
+# -------------------------------------------------------
+# ------------ ejecuta un script en una ventana
+# -------------------------------------------------------
+  - trigger: ":pp"
+    replace: "{{output}}"
+    vars:
+      - name: myvar
+        type: echo
+        params:
+          echo: "my variable"
+      - name: output
+        type: shell
+        params:
+          cmd: "D:/repos/curso_linux/utilidades/Espanso/espanso_script.sh"
+# -------------------------------------------------------
+# ------------ ejecuta comando en shell
+# -------------------------------------------------------
+  - trigger: ":1date"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: "bash -c 'date +%Y-%m-%d -d +1day'"
+# -------------------------------------------------------
+# ------------ ejecuta script ruta
+# -------------------------------------------------------
+  - trigger: ":sc"
+    replace: "{{output}}"
+    vars:
+      - name: myvar
+        type: echo
+        params:
+          echo: "my variable"
+
+      - name: var_comilla
+        type: echo
+        params:
+          echo: "\u0022"
+      - name: output
+        type: shell
+        params:
+          cmd: "bash -c 'source /mnt/d/repos/curso_linux/utilidades/Espanso/espanso2.sh {{var_comilla}}param1{{var_comilla}} {{var_comilla}}param2{{var_comilla}} '"

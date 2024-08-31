@@ -1,0 +1,6 @@
+# se activara  solo en el navegador chrome por que  busca  el chrome.exe
+filter_exec: "chrome"
+#:::::: habilita la conficguracion
+
+extra_includes:
+  - "../match/_email.yml"

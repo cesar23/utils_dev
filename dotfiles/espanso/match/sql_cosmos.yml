@@ -1,0 +1,30 @@
+# espanso match file
+
+# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+
+# You can use this file to define the base matches (aka snippets)
+# that will be available in every application when using espanso.
+
+# Matches are substitution rules: when you type the "trigger" string
+# it gets replaced by the "replace" string.
+matches:
+  # Simple text replacement
+  - trigger: ":sql_order"
+    form: |
+      SELECT * FROM table_orders AS t where t.data.orderId='[[name]]' order by t.created_at DESC
+
+  - trigger: ":otro"
+    replace: "salida"
+
+
+  - trigger: ":sql_2order"
+    replace: "SELECT * FROM table_orders AS t where t.data.orderId='{{form1.name}}' order by t.created_at DESC "
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: "Ingresar orderId [[name]]?"
+
+  - regex: ":greet\\((?P<person>.*)\\)"
+    replace: "Hi {{person}}!"
+

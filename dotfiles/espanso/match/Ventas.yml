@@ -1,0 +1,13 @@
+enable: true
+matches:
+  - trigger: ":ofer1"
+    form: |
+      Hola amigo [[name]] si esta disponible 🙂
+
+  - trigger: ":ofer2"
+    form: |
+      Cuentame que tipo de pagina buscas. o que tipo de negocio cuentas amigo [[name]].
+
+  - trigger: ":ofer3"
+    form: |
+      Te puedo mandar algunos modelos amigo [[name]].
