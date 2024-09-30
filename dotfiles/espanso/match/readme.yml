@@ -1,0 +1,7 @@
+enable: true
+matches:
+  - trigger: ":fkimg"
+    form: |
+      <img width="100%" src="[[ruta_img]]" alt="My cool logo"/>
+  
+      -- --

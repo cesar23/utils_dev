@@ -22,6 +22,8 @@ echo "####### Copiando ficheros de configuracion espanso #########"
 echo "############################################################"
 echo ""
 
+# Solo en mi pc por que la carpeta home es diferente del nmombre de usuario
+USERNAME='cesarPc'
 
 DIR_OUTPUT="/c/Users/$USERNAME/AppData/Roaming/espanso"
 mkdir -p $DIR_OUTPUT  # Crea la carpeta destino si no existe
