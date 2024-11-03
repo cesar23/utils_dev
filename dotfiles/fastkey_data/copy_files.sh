@@ -184,7 +184,12 @@ echo "############################################################"
 echo ""
 
 
+
+USERNAME='cesarPc'
 DIR_OUTPUT="/c/Users/$USERNAME/Documents/FastKeys"
+
+
+IFS=$'\n'
 mkdir -p $DIR_OUTPUT  # Crea la carpeta destino si no existe
 
 if [ -d $DIR_OUTPUT ]; then
@@ -195,3 +200,9 @@ if [ -d $DIR_OUTPUT ]; then
 else
     echo "El directorio no existe :${DIR_OUTPUT}"
 fi
+
+
+# :::: corremos el ejecutable
+FASTKEY_PATH='/c/Program Files (x86)/FastKeys 5'
+FASTKEY_EXE='FastKeys.exe'
+cd $FASTKEY_PATH && start $FASTKEY_EXE

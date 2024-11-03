@@ -36,3 +36,9 @@ if [ -d $DIR_OUTPUT ]; then
 else
     echo "El directorio no existe :${DIR_OUTPUT}"
 fi
+
+# :::: corremos el ejecutable
+ESPANSO_PATH="/c/Users/$USERNAME/AppData/Local/Programs/Espanso"
+ESPANSO_EXE='espansod.exe'
+cd $ESPANSO_PATH && start $ESPANSO_EXE
+

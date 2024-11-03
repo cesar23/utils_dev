@@ -1,0 +1,9 @@
+# Ignorar todos los archivos y carpetas
+*
+
+# Exceptuar el archivo .gitignore para que el propio archivo no sea ignorado
+!.gitignore
+!.htaccess
+!.*.7z
+!.*.zip
+!.1_copy_files.sh
