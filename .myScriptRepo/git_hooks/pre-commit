@@ -251,7 +251,7 @@ path_file_weight_human() {
 # =============================================================================
 
 # Establece el límite de tamaño máximo en bytes (5 MB)
-MAX_SIZE=$((5 * 1024 * 1024))
+MAX_SIZE=$((20 * 1024 * 1024))
 MAX_SIZE_HUMAN=$(convert_bytes_to_human "$MAX_SIZE")
 
 # Ruta del log temporal
