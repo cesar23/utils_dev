@@ -17,6 +17,7 @@ CURRENT_DIR=$(dirname "$PATH_SCRIPT")            # Ruta del directorio donde se 
 NAME_DIR=$(basename "$CURRENT_DIR")              # Nombre del directorio actual.
 TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal basado en el nombre del script.
 TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal en /tmp.
+ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 
 # =============================================================================
 # 🎨 SECTION: Colores para su uso7z
@@ -51,34 +52,7 @@ BGray='\e[1;90m'        # Gris (negrita).
 # ⚙️ SECTION: Core Function
 # =============================================================================
 
-# ----------------------------------------------------------------------
-# 🗂️ get_rootPath
-# ----------------------------------------------------------------------
-# Descripción:
-#   Obtiene la ruta raíz del proyecto eliminando el nombre del directorio
-#   actual de la ruta completa del script.
-#
-# Uso:
-#   root_path=$(get_rootPath)
-#
-# Ejemplo:
-#   Si la ruta completa del script es:
-#     /home/usuario/proyectos/mi_proyecto/scripts/mis_script.sh
-#   y el directorio actual es:
-#     /home/usuario/proyectos/mi_proyecto/scripts
-#   entonces:
-#     root_path=$(get_rootPath)
-#   resultará en:
-#     /home/usuario/proyectos/mi_proyecto
-#
-# Retorna:
-#   La ruta raíz del proyecto como una cadena de texto.
-# ----------------------------------------------------------------------
-get_rootPath() {
-  local regex="s/\/${NAME_DIR}//"  # Expresión regular para eliminar el nombre del directorio actual.
-  local root_path=$(echo "$CURRENT_DIR" | sed -e "$regex")  # Aplica la expresión regular a la ruta actual.
-  echo "$root_path"  # Imprime la ruta raíz.
-}
+
 
 # ----------------------------------------------------------------------
 # 📋 view_vars_config
@@ -90,6 +64,8 @@ get_rootPath() {
 #   view_vars_config
 # ----------------------------------------------------------------------
 view_vars_config() {
+
+
   echo -e "${Gray}"
   echo -e "╔═══════════════════════════════════════════════════════════"
   echo -e "║             🛠️  CONFIGURACIÓN ACTUAL 🛠️"
@@ -104,9 +80,6 @@ view_vars_config() {
   echo -e "║ 🗂️ NAME_DIR:                 ${NAME_DIR}"
   echo -e "║ 🗃️ TEMP_PATH_SCRIPT:        ${TEMP_PATH_SCRIPT}"
   echo -e "║ 📂 TEMP_PATH_SCRIPT_SYSTEM:  ${TEMP_PATH_SCRIPT_SYSTEM}"
-
-  # Si ROOT_PATH está definido, lo muestra.
-  local ROOT_PATH=$(get_rootPath)
   if [ -n "$ROOT_PATH" ]; then
     echo -e "║ 🏡 ROOT_PATH:                ${ROOT_PATH}"
   fi
@@ -114,7 +87,6 @@ view_vars_config() {
   echo -e "╚═══════════════════════════════════════════════════════════"
   echo -e "${Color_Off}"
 }
-
 
 
 
