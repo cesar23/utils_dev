@@ -1,0 +1,25 @@
+#-------laravel
+/vendor/*
+*/vendor/*
+**/vendor/*
+*vendor/*
+/vendor
+/log/*
+
+
+#--------node
+/node_modules
+/*/node_modules
+/*/*/node_modules
+/*/*/*/node_modules
+/*/*/*/*/node_modules
+*node_modules
+
+
+
+
+# Ignora los ficheros *.o y *.a *.zip
+*.iso
+*.mp4
+
+

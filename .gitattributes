@@ -1,0 +1,2 @@
+binarios/linux/sonarqube/sonarqube-9.6.1.59531.zip filter=lfs diff=lfs merge=lfs -text
+binarios/utilitarios/AcroRdrDC1500720033_MUI.exe filter=lfs diff=lfs merge=lfs -text

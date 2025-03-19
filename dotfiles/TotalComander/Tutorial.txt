@@ -1,0 +1,11 @@
+#######################################
+## Ubicacion de configuracion
+#######################################
+C:\Users\cesar\AppData\Roaming\GHISLER
+
+
+#######################################
+## Componer modo Oscuro
+#######################################
+Configuracion/Pantalla/Color
+    https://drive.google.com/file/d/1mqGptD_MDeBRmd_-RzUtR37LinGgtls-/view?usp=drivesdk

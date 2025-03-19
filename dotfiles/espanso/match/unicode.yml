@@ -1,0 +1,13 @@
+matches:
+
+# -----------------------------------------------------
+# -------valores unicode
+# -----------------------------------------------------
+  - trigger: :unicode
+    replace: "comilla:\u0022 \ncomillaSimple:\u0027  \npunto: \u002e"
+#        comilla:\u0022
+#        comillaSimple:\u0027
+#        punto: \u002e
+
+  
+  

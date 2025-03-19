@@ -1,0 +1,3 @@
+ubicacion y restaurar:
+
+I:\cesar\AppData\Local\CosmosDbExplorer

@@ -1,0 +1,19 @@
+# Ignorar todos los archivos y carpetas
+*
+
+# Exceptuar el archivo .gitignore para que el propio archivo no sea ignorado
+!.gitignore
+!.htaccess
+# es  el backup qeu tenemos que  guardar
+!backup_termius.tar.gz
+
+
+# Excepto los archivos en la raíz
+!/*.zip
+!/*.7z
+!/1_restore_backup.sht
+!/2_backup_files.sh
+
+
+# Excepto también las carpetas en la raíz
+!/*/
