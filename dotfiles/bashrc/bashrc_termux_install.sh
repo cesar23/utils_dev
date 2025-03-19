@@ -9,7 +9,7 @@ if [ -f "$BASHRC_PATH" ]; then
     echo "Se ha creado un respaldo en $BASHRC_PATH.bak"
 fi
 
-
+echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
@@ -17,7 +17,7 @@ cat > "$BASHRC_PATH" << 'EOF'
 
 
 # ==========================================================================
-# START ~/.bashrc - Configuración de Bash por César
+# START ~/.bashrc - Configuración de Bash por César (version: 1.0.1)
 # ==========================================================================
 
 # Este archivo contiene configuraciones personalizadas, alias, funciones,
