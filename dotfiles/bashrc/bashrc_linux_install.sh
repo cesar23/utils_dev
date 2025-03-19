@@ -16,7 +16,7 @@ cat > "$BASHRC_PATH" << 'EOF'
 
 
 # ==========================================================================
-# START ~/.bashrc - Configuración de Bash por César (version: 1.0.1)
+# START ~/.bashrc - Configuración de Bash por César (version: 1.0.2)
 # ==========================================================================
 
 # Este archivo contiene configuraciones personalizadas, alias, funciones,

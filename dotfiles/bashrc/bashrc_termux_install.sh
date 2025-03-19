@@ -17,7 +17,7 @@ cat > "$BASHRC_PATH" << 'EOF'
 
 
 # ==========================================================================
-# START ~/.bashrc - Configuración de Bash por César (version: 1.0.1)
+# START ~/.bashrc - Configuración de Bash por César (version: 1.0.2)
 # ==========================================================================
 
 # Este archivo contiene configuraciones personalizadas, alias, funciones,
@@ -97,7 +97,7 @@ alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
 alias update='pkg update && sudo apt upgrade -y' # Actualizar sistema
-alias reload='source ~/.bashrc'             # Recargar configuraciones de Bash
+alias reload='source ~/.bash_profile'             # Recargar configuraciones de Bash
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
 
