@@ -352,6 +352,7 @@ system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
 check_and_install fzf fzf
+check_and_install tree tree
 check_and_install bat fzf
 check_and_install neovim nvim
 check_and_install net-tools netstat
