@@ -14,10 +14,8 @@ echo "" > $BASHRC_PATH
 cat > "$BASHRC_PATH" << 'EOF'
 
 
-
-
 # ==========================================================================
-# START ~/.bashrc - Configuración de Bash por César (version: 1.0.2)
+# START ~/.bashrc - Configuración de Bash por César (version: 1.0.3)
 # ==========================================================================
 
 # Este archivo contiene configuraciones personalizadas, alias, funciones,
@@ -97,7 +95,7 @@ alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
 alias update='pkg update && sudo apt upgrade -y' # Actualizar sistema
-alias reload='source ~/.bash_profile'             # Recargar configuraciones de Bash
+alias reload='source ~/.profile'             # Recargar configuraciones de Bash
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
 
@@ -283,7 +281,7 @@ install_package() {
             ;;
         termux)
             echo "📱 Installing $package on Termux..."
-            pkg update -y && pkg install -y "$package"
+            pkg update -y && pkg install -y $package
             ;;
         gitbash)
             if [ "$package" == "fzf" ]; then
@@ -307,15 +305,17 @@ install_package() {
 #
 # Parameters:
 #   $1 -> Name of the package to check and install
+#   $2 -> Comando en la terminal
 #
 # Example usage:
 #   check_and_install fzf
 # ----------------------------------------
 check_and_install() {
     package=$1  # Package name
+    command_terminal=$2  # Comando Terminal
 
-    if ! command -v "$package" &> /dev/null; then
-        echo "⚠️ $package is not installed. Installing now..."
+    if ! command -v "$command_terminal" &> /dev/null; then
+        echo "⚠️ Comando:${command_terminal} , Paquete: ${package} is not installed. Installing now..."
         install_package "$package"
     fi
 }
@@ -351,10 +351,10 @@ vi() {
 system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
-check_and_install fzf
-check_and_install bat
-check_and_install neovim
-check_and_install net-tools
+check_and_install fzf fzf
+check_and_install bat fzf
+check_and_install neovim nvim
+check_and_install net-tools netstat
 
 # ========================
 # 7. Menú interactivo
@@ -732,6 +732,7 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
 
 EOF
 
