@@ -95,7 +95,7 @@ alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
 alias update='pkg update && sudo apt upgrade -y' # Actualizar sistema
-alias reload='source ~/.profile'             # Recargar configuraciones de Bash
+alias reload='source ~/.bash_profile'             # Recargar configuraciones de Bash
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
 
@@ -353,7 +353,7 @@ system=$(detect_system)
 # Check and install fzf if not installed (no message if already installed)
 check_and_install fzf fzf
 check_and_install tree tree
-check_and_install bat fzf
+check_and_install bat bat
 check_and_install neovim nvim
 check_and_install net-tools netstat
 
@@ -733,7 +733,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 
 EOF
 
