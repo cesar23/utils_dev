@@ -14,9 +14,17 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
+VERSION_BASHRC=1.0.4
+VERSION_PLATFORM='(linux, gitbash)'
 
+# ::::::::::::: START CONSTANT ::::::::::::::
+DATE_HOUR=$(date -u "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
+DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en Perú (UTC -5)
+PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
+# ::::::::::::: END CONSTANT ::::::::::::::
 
 # ==========================================================================
+# VERSION: (linux, gitbash)
 # START ~/.bashrc - Configuración de Bash por César (version: 1.0.3)
 # ==========================================================================
 
@@ -97,7 +105,8 @@ alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
 alias update='sudo apt update && sudo apt upgrade -y' # Actualizar sistema
-alias reload='source ~/.bashrc'             # Recargar configuraciones de Bash
+alias reload="source $PATH_BASHRC"             # Recargar configuraciones de Bash
+alias reload_cat="cat $PATH_BASHRC | less"           #
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
 
@@ -290,8 +299,6 @@ install_package() {
                 echo "🪟 Installing fzf on Git Bash..."
                 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
                 ~/.fzf/install --all
-            else
-                echo "❌ Cannot install $package automatically on Git Bash."
             fi
             ;;
         *)
@@ -345,6 +352,32 @@ vi() {
     fi
 }
 
+# -----------------------------------------------------------------------------
+# Function: show_date
+# Description: Displays the current date and time in three formats:
+#              - Readable format in Spanish (local system time)
+#              - UTC time
+#              - Peru time (calculated as UTC -5)
+# Usage: Call the function without arguments: show_date
+# -----------------------------------------------------------------------------
+show_date() {
+    # Readable date in Spanish
+    readable_date=$(LC_TIME=es_ES.UTF-8 date "+%A %d de %B de %Y, %H:%M:%S")
+
+    # Date in UTC
+    utc_date=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
+
+    # Date in Peru (UTC -5)
+    peru_date=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S UTC-5")
+
+    # Display results
+    echo "Fecha actual (formato legible): $readable_date"
+    echo "Fecha actual en UTC:            $utc_date"
+    echo "Fecha actual en Perú (UTC-5):   $peru_date"
+}
+
+
+
 # ========================
 # 6. Verificar y instalar paquetes necesarios
 # ========================
@@ -354,7 +387,7 @@ system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
 check_and_install fzf fzf
-
+check_and_install tree tree
 
 # ========================
 # 7. Menú interactivo
@@ -376,6 +409,14 @@ fi
 
 
 menu(){
+  echo -e "${Gray}========================${Color_Off}"
+  echo -e "${Gray}VERSION_BASHRC: ${VERSION_BASHRC}${Color_Off}"
+  echo -e "${Gray}VERSION_PLATFORM: ${VERSION_PLATFORM}${Color_Off}"
+  echo -e "${Gray}------------------------${Color_Off}"
+  echo -e "${Gray}Fecha UTC:        $DATE_HOUR${Color_Off}"
+  echo -e "${Gray}Fecha UTC-5 (PE): $DATE_HOUR_PE${Color_Off}"
+  echo -e "${Gray}========================${Color_Off}"
+  echo -e ""
   echo -e "${Gray}Seleccione una opción:${Color_Off}"
   echo -e "${Gray}1) Opciones Generales${Color_Off}"
   echo -e "${Gray}2) Docker${Color_Off}"
@@ -384,7 +425,7 @@ menu(){
   echo -e "${Gray}5) Script Python${Color_Off}"
   echo -e "${Gray}6) Ficheros de configuración${Color_Off}"
   echo -e "${Gray}7) Salir${Color_Off}"
-  read -p "Seleccione una opción: " opt
+  read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
     1) submenu_generales ;;
     2) submenu_docker ;;
@@ -392,8 +433,9 @@ menu(){
     4) submenu_fzf ;;
     5) submenu_python_utils ;;
     6) submenu_ficheros_configuracion ;;
-    7) exit ;;
-    *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
+    7) return ;;
+    "") return ;;  # Si se presiona Enter sin escribir nada, salir
+  *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
 }
 
@@ -734,7 +776,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
