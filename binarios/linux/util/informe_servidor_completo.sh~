@@ -1,63 +1,54 @@
 #!/bin/bash
 
-# === COLORES ===
-Color_Off='\e[0m'       # Reset de color
-BGreen='\e[1;32m'       # Verde negrita
-BYellow='\e[1;33m'      # Amarillo negrita
-BBlue='\e[1;34m'        # Azul negrita
-BRed='\e[1;31m'         # Rojo negrita
-BWhite='\e[1;37m'       # Blanco negrita
+# =======================================
+# 🕒 Fechas y horas
+# =======================================
 
-informe="informe_servidor.txt"
+# Fecha y hora local del sistema
+DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
 
-# Función para imprimir título
-function titulo {
-  echo -e "${BBlue}[*] $1${Color_Off}"
-  echo "=== $1 ===" >> "$informe"
+# Fecha y hora actual en Perú (UTC -5)
+DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S")
+
+# Ruta del archivo de salida
+informe="informe_sistema_${DATE_HOUR_PE}.log"
+
+# =======================================
+# 🎨 Colores para consola
+# =======================================
+
+BGreen='\033[1;32m'
+BYellow='\033[1;33m'
+BWhite='\033[1;37m'
+Color_Off='\033[0m'
+
+# =======================================
+# 🔧 Funciones auxiliares
+# =======================================
+
+# Título bonito en el log
+titulo() {
+  echo -e "\n========== [$1] ==========\n" >> "$informe"
 }
 
-# Función para separador visual
-function separador {
-  echo "" >> "$informe"
+# Separador visual
+separador() {
+  echo -e "\n----------------------------------------\n" >> "$informe"
 }
 
-echo -e "${BGreen}Generando informe del sistema...${Color_Off}"
-echo "=== INFORME DEL SERVIDOR ===" > "$informe"
+# =======================================
+# 📝 Inicio del informe
+# =======================================
 
-titulo "INFORMACIÓN DEL SISTEMA"
-lsb_release -a >> "$informe"
-separador
+echo -e "${BYellow}Generando informe del sistema...${Color_Off}"
+echo -e "INFORME DE SISTEMA - Fecha local: $DATE_HOUR | Fecha Perú: $DATE_HOUR_PE\n" > "$informe"
 
-titulo "INFORMACIÓN DEL HARDWARE"
-sudo lshw -short >> "$informe"
-separador
-
-titulo "INFORMACIÓN DE LA CPU"
-lscpu >> "$informe"
-separador
-
-titulo "INFORMACIÓN DE LA MEMORIA"
-free -h >> "$informe"
-separador
-
-titulo "INFORMACIÓN DEL DISCO"
-df -h >> "$informe"
-lsblk >> "$informe"
-separador
-
-titulo "ESTADO DE LOS DISCOS (SMART)"
-if command -v smartctl > /dev/null; then
-  for disk in $(lsblk -nd --output NAME); do
-    echo "=== /dev/$disk ===" >> "$informe"
-    sudo smartctl -a /dev/$disk >> "$informe"
-  done
-else
-  echo "smartctl no disponible" >> "$informe"
-fi
-separador
+# =======================================
+# 🌐 Información de red
+# =======================================
 
 titulo "INFORMACIÓN DE LA RED"
-if command -v ifconfig > /dev/null; then
+if which ifconfig > /dev/null; then
   ifconfig >> "$informe"
 else
   echo "ifconfig no disponible, usando 'ip addr show'" >> "$informe"
@@ -65,22 +56,113 @@ else
 fi
 separador
 
-titulo "INFORMACIÓN DE SERVICIOS"
+# =======================================
+# 🛠️ Información de servicios
+# =======================================
+
+titulo "INFORMACIÓN DE SERVICIOS (Todos)"
 systemctl list-units --type=service --all >> "$informe"
 separador
 
-titulo "LOGS DEL SISTEMA"
-journalctl -xe >> "$informe"
+titulo "SERVICIOS ACTIVOS"
+systemctl list-units --type=service --state=running >> "$informe"
 separador
 
-titulo "INFORMACIÓN DEL KERNEL"
-dmesg >> "$informe"
+# =======================================
+# 📜 Logs del sistema
+# =======================================
+
+titulo "ÚLTIMOS LOGS DEL SISTEMA"
+journalctl -xe | tail -n 20 >> "$informe"
 separador
 
+titulo "ÚLTIMOS INICIOS DE SESIÓN SSH (Aceptados)"
+journalctl _COMM=sshd | grep "Accepted" | tail -n 20 >> "$informe"
+separador
 
-## logs de cyberpanel informacion
-sudo tail -n 100 /home/cyberpanel/error-logs.txt >> "$informe"
+# =======================================
+# 🔒 Seguridad
+# =======================================
 
-# Mensaje final
+titulo "ESTADO DE FAIL2BAN (sshd)"
+if which fail2ban-client > /dev/null; then
+  if sudo -n true 2>/dev/null; then
+    sudo fail2ban-client status sshd >> "$informe"
+  else
+    echo "⚠️  No se pudo obtener estado de fail2ban (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "Fail2Ban no está instalado." >> "$informe"
+fi
+separador
+
+titulo "ÚLTIMOS EVENTOS DEL FIREWALL (syslog)"
+if [ -f /var/log/syslog ]; then
+  if sudo -n true 2>/dev/null; then
+    sudo grep 'Firewall' /var/log/syslog | tail -n 20 >> "$informe"
+  else
+    echo "⚠️  No se pudo acceder a /var/log/syslog (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "/var/log/syslog no disponible en este sistema." >> "$informe"
+fi
+separador
+
+titulo "LOGS DE CSF (ConfigServer Security & Firewall)"
+if which csf > /dev/null; then
+  if sudo -n true 2>/dev/null; then
+    sudo csf -l >> "$informe"
+  else
+    echo "⚠️  No se pudo ejecutar csf -l (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "CSF no está instalado." >> "$informe"
+fi
+separador
+
+# =======================================
+# 🔧 Información del servidor
+# =======================================
+
+titulo "INFORMACIÓN DEL SERVIDOR (hostnamectl)"
+hostnamectl >> "$informe"
+separador
+
+titulo "ARCHIVO /etc/hosts"
+if [ -f /etc/hosts ]; then
+  cat /etc/hosts >> "$informe"
+else
+  echo "/etc/hosts no encontrado." >> "$informe"
+fi
+separador
+
+# =======================================
+# 📦 Logs de CyberPanel
+# =======================================
+
+titulo "LOGS DE CYBERPANEL (últimos 100)"
+if [ -f /home/cyberpanel/error-logs.txt ]; then
+  if sudo -n true 2>/dev/null; then
+    sudo tail -n 100 /home/cyberpanel/error-logs.txt >> "$informe"
+  else
+    echo "⚠️  No se pudo acceder a los logs de CyberPanel (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "El archivo /home/cyberpanel/error-logs.txt no existe." >> "$informe"
+fi
+separador
+
+# =======================================
+# 🧠 Información del kernel
+# =======================================
+
+titulo "INFORMACIÓN DEL KERNEL (dmesg)"
+dmesg | tail -n 100 >> "$informe"
+separador
+
+# =======================================
+# ✅ Finalización
+# =======================================
+
 echo -e "${BGreen}[✔] Informe generado exitosamente.${Color_Off}"
-echo -e "${BYellow}Ruta del informe: ${BWhite}$(realpath $informe)${Color_Off}"
+echo -e "${BYellow}Ruta del informe: ${BWhite}$(realpath "$informe")${Color_Off}"
