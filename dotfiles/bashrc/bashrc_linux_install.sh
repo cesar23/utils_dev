@@ -14,7 +14,7 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=1.0.4
+VERSION_BASHRC=1.0.5
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -156,12 +156,32 @@ search_text() {
 }
 # Ejemplo de uso: search_text "palabra_clave"
 
-# Mostrar uso de espacio en subdirectorios
-# Lista el uso de disco en los subdirectorios del directorio actual.
+# Función: directory_space
+# Descripción:
+#   Muestra el tamaño ocupado por cada subdirectorio dentro de una ruta dada,
+#   ordenado de mayor a menor. Si no se proporciona una ruta como argumento,
+#   usa el directorio actual por defecto.
+#
+# Uso:
+#   directory_space [ruta]
+#
+# Parámetros:
+#   ruta (opcional): Ruta del directorio a analizar. Si no se proporciona,
+#                    se usará el directorio actual.
+#
+# Ejemplos:
+#   directory_space            # Analiza el directorio actual
+#   directory_space /var/log   # Analiza el directorio /var/log
+#
+# Notas:
+#   - Usa 'du' con --max-depth=1 para listar solo el tamaño de cada subdirectorio.
+#   - Ordena los resultados en orden descendente por tamaño.
+#   - El tamaño total del directorio también se muestra al final.
 directory_space() {
-    du -h --max-depth=1 | sort -rh
+    local path="${1:-.}"
+    echo "Analizando: $path"
+    du -h --max-depth=1 "$path" | sort -rh
 }
-# Ejemplo de uso: directory_space
 
 # Listar los archivos más pesados
 # Muestra los archivos más pesados en un directorio.
@@ -445,7 +465,7 @@ submenu_generales(){
   echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
   echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
   echo -e "${Gray}   - search_text : ${Cyan}Buscar texto en múltiples archivos del directorio actual. Ejemplo: search_text 'texto_a_buscar'${Color_Off}"
-  echo -e "${Gray}   - directory_space : ${Cyan}Mostrar el uso de espacio en subdirectorios del directorio actual. Ejemplo: directory_space${Color_Off}"
+  echo -e "${Gray}   - directory_space : ${Cyan}Ver peso de sus directorios pasar el path opcional . Ejemplo: directory_space '/var/www'${Color_Off}"
   echo -e "${Gray}   - find_files_by_size : ${Cyan}Archivos por tamaño. Ejemplo: find_files_by_size . 5M${Color_Off}"
   echo -e "${Gray}   - find_heaviest_files : ${Cyan}Listar los archivos más pesados en un directorio. Ejemplo: find_heaviest_files /ruta/al/directorio 10${Color_Off}"
   echo -e "${Gray}   - simple_server : ${Cyan}Iniciar un servidor HTTP simple en el puerto especificado (por defecto 8000). Ejemplo: simple_server 8080${Color_Off}"
@@ -776,6 +796,7 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"

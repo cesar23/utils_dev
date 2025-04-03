@@ -14,17 +14,16 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=1.0.4
-VERSION_PLATFORM='(linux, gitbash)'
+VERSION_BASHRC=1.0.5
+VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
 DATE_HOUR=$(date -u "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en Perú (UTC -5)
 PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
 # ::::::::::::: END CONSTANT ::::::::::::::
-
 # ==========================================================================
-# VERSION: (linux, gitbash)
+# VERSION: (CPanel)
 # START ~/.bashrc - Configuración de Bash por César (version: 1.0.3)
 # ==========================================================================
 
@@ -105,8 +104,8 @@ alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
 alias update='sudo apt update && sudo apt upgrade -y' # Actualizar sistema
-alias reload="source $PATH_BASHRC"             # Recargar configuraciones de Bash
-alias reload_cat="cat $PATH_BASHRC | less"           #
+alias reload="source $PATH_BASHRC"           # Recargar configuraciones de Bash
+alias reload_cat="cat $PATH_BASHRC | less"
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
 
@@ -156,12 +155,32 @@ search_text() {
 }
 # Ejemplo de uso: search_text "palabra_clave"
 
-# Mostrar uso de espacio en subdirectorios
-# Lista el uso de disco en los subdirectorios del directorio actual.
+# Función: directory_space
+# Descripción:
+#   Muestra el tamaño ocupado por cada subdirectorio dentro de una ruta dada,
+#   ordenado de mayor a menor. Si no se proporciona una ruta como argumento,
+#   usa el directorio actual por defecto.
+#
+# Uso:
+#   directory_space [ruta]
+#
+# Parámetros:
+#   ruta (opcional): Ruta del directorio a analizar. Si no se proporciona,
+#                    se usará el directorio actual.
+#
+# Ejemplos:
+#   directory_space            # Analiza el directorio actual
+#   directory_space /var/log   # Analiza el directorio /var/log
+#
+# Notas:
+#   - Usa 'du' con --max-depth=1 para listar solo el tamaño de cada subdirectorio.
+#   - Ordena los resultados en orden descendente por tamaño.
+#   - El tamaño total del directorio también se muestra al final.
 directory_space() {
-    du -h --max-depth=1 | sort -rh
+    local path="${1:-.}"
+    echo "Analizando: $path"
+    du -h --max-depth=1 "$path" | sort -rh
 }
-# Ejemplo de uso: directory_space
 
 # Listar los archivos más pesados
 # Muestra los archivos más pesados en un directorio.
@@ -377,7 +396,6 @@ show_date() {
 }
 
 
-
 # ========================
 # 6. Verificar y instalar paquetes necesarios
 # ========================
@@ -386,8 +404,8 @@ show_date() {
 system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
-check_and_install fzf fzf
-check_and_install tree tree
+# check_and_install fzf fzf
+# check_and_install tree tree
 
 # ========================
 # 7. Menú interactivo
@@ -445,7 +463,7 @@ submenu_generales(){
   echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
   echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
   echo -e "${Gray}   - search_text : ${Cyan}Buscar texto en múltiples archivos del directorio actual. Ejemplo: search_text 'texto_a_buscar'${Color_Off}"
-  echo -e "${Gray}   - directory_space : ${Cyan}Mostrar el uso de espacio en subdirectorios del directorio actual. Ejemplo: directory_space${Color_Off}"
+  echo -e "${Gray}   - directory_space : ${Cyan}Ver peso de sus directorios pasar el path opcional . Ejemplo: directory_space '/var/www'${Color_Off}"
   echo -e "${Gray}   - find_files_by_size : ${Cyan}Archivos por tamaño. Ejemplo: find_files_by_size . 5M${Color_Off}"
   echo -e "${Gray}   - find_heaviest_files : ${Cyan}Listar los archivos más pesados en un directorio. Ejemplo: find_heaviest_files /ruta/al/directorio 10${Color_Off}"
   echo -e "${Gray}   - simple_server : ${Cyan}Iniciar un servidor HTTP simple en el puerto especificado (por defecto 8000). Ejemplo: simple_server 8080${Color_Off}"
@@ -776,6 +794,7 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
