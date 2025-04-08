@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=1.0.5
+VERSION_BASHRC=1.0.6
 VERSION_PLATFORM='(TERMUX)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -439,20 +439,22 @@ menu(){
   echo -e "${Gray}Seleccione una opción:${Color_Off}"
   echo -e "${Gray}1) Opciones Generales${Color_Off}"
   echo -e "${Gray}2) Docker${Color_Off}"
-  echo -e "${Gray}3) CyberPanel${Color_Off}"
-  echo -e "${Gray}4) FZF${Color_Off}"
-  echo -e "${Gray}5) Script Python${Color_Off}"
-  echo -e "${Gray}6) Ficheros de configuración${Color_Off}"
-  echo -e "${Gray}7) Salir${Color_Off}"
+  echo -e "${Gray}3) Docker Comandos${Color_Off}"
+  echo -e "${Gray}4) CyberPanel${Color_Off}"
+  echo -e "${Gray}5) FZF${Color_Off}"
+  echo -e "${Gray}6) Script Python${Color_Off}"
+  echo -e "${Gray}7) Ficheros de configuración${Color_Off}"
+  echo -e "${Gray}8) Salir${Color_Off}"
   read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
     1) submenu_generales ;;
     2) submenu_docker ;;
-    3) submenu_cyberpanel ;;
-    4) submenu_fzf ;;
-    5) submenu_python_utils ;;
-    6) submenu_ficheros_configuracion ;;
-    7) return ;;
+    3) submenu_docker_comandos ;;
+    4) submenu_cyberpanel ;;
+    5) submenu_fzf ;;
+    6) submenu_python_utils ;;
+    7) submenu_ficheros_configuracion ;;
+    8) return ;;
     "") return ;;  # Si se presiona Enter sin escribir nada, salir
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
@@ -509,6 +511,13 @@ submenu_docker(){
   echo -e "${Gray}   - droot : ${Cyan}Listar e Ingresar a contenedor MODO : ROOT- Uso: dit ${Color_Off}"
   echo -e "${Gray}   - dcrestart : ${Cyan}docker-compose down && docker-compose up -d ${Color_Off}"
 }
+
+submenu_docker_comandos(){
+  cls
+  curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/docker_info.sh | bash
+
+}
+
 
 submenu_cyberpanel(){
   cls

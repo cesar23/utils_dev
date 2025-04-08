@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Ruta del archivo de configuración en Termux
-BASHRC_PATH="$HOME/.bash_profile"
+# Ruta del archivo .bashrc
+BASHRC_PATH="$HOME/.bashrc"
 
 # Respaldo del archivo original si existe
 if [ -f "$BASHRC_PATH" ]; then
@@ -10,10 +10,15 @@ if [ -f "$BASHRC_PATH" ]; then
 fi
 
 echo "" > $BASHRC_PATH
+
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
+submenu_docker_comandos(){
+  cls
+  curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/docker_info.sh | bash
 
+}
 
 EOF
 
