@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+
+# :::::: comando para ejecutar
+#     curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/docker_info.sh | bash
+
+
+
+
 # =============================================================================
 # 🎬 CONFIGURACIÓN INICIAL
 # =============================================================================
