@@ -11,7 +11,7 @@
 # Excepto los archivos en la raíz
 !/*.zip
 !/*.7z
-!/1_restore_backup.sht
+!/1_restore_backup.sh
 !/2_backup_files.sh
 
 
