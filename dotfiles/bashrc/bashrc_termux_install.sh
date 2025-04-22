@@ -31,6 +31,11 @@ PATH_BASHRC='~/.bash_profile'  # Ruta del archivo .bashrc
 # Para aplicar cambios después de editar, usa: `source ~/.bashrc`.
 # ==========================================================================
 
+# 🧯 Desactiva el cierre automático de la sesión Bash por inactividad.
+# TMOUT es una variable especial que cierra la sesión si está inactiva por X segundos.
+# Al ponerla en 0, desactivamos ese mecanismo.
+export TMOUT=0
+
 # ========================
 # 1. Personalización del prompt (PS1)
 # ========================
