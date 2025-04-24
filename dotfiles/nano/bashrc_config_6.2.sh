@@ -17,7 +17,6 @@ cat > "$NANO_CONFIG_PATH" << 'EOF'
 # 🎨 INCLUYE COLOREADO DE SINTAXIS
 ###############################################################################
 include /usr/share/nano/*.nanorc
-#include ~/.nano-syntax/*.nanorc
 
 ###############################################################################
 # ⚙ CONFIGURACIÓN COMPATIBLE CON NANO 6.2
@@ -42,7 +41,7 @@ set tabsize 2
 set whitespace "»·"     # "»" para tab, "·" para espacio
 
 # 📌 Resalta paréntesis y llaves coincidentes
-set matchbrackets "()[]{}"
+set matchbrackets "()[]{}<>"
 
 # 📌 Evita guardar archivos temporales o backups
 set noconvert

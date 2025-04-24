@@ -13,33 +13,41 @@ echo "" > $NANO_CONFIG_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$NANO_CONFIG_PATH" << 'EOF'
-
 ###############################################################################
 # 🎨 INCLUYE COLOREADO DE SINTAXIS
 ###############################################################################
 include /usr/share/nano/*.nanorc
+#include ~/.nano-syntax/*.nanorc
 
 ###############################################################################
-# ⚙ CONFIGURACIONES COMPATIBLES CON NANO 2.9.8
+# ⚙ CONFIGURACIÓN COMPATIBLE CON NANO 6.2
 ###############################################################################
 
-# 📌 Mostrar números de línea
+# 📌 Muestra números de línea
 set linenumbers
 
-# 📌 Mostrar siempre la posición del cursor (línea y columna)
+# 📌 Muestra posición constante del cursor (línea, columna)
 set constantshow
 
-# 📌 Usar espacios en lugar de tabs
+# 📌 Usa colores suaves del terminal para textos largos
+set softwrap
+
+# 📌 Usa espacios en lugar de tabs
 set tabstospaces
 
-# 📌 Tamaño de tabulación: 2 espacios
+# 📌 Tamaño de tabulación de 2 espacios
 set tabsize 2
 
-# 📌 Resaltar llaves y paréntesis coincidentes
+# 📌 Muestra tabuladores y espacios como caracteres visibles
+set whitespace "»·"     # "»" para tab, "·" para espacio
+
+# 📌 Resalta paréntesis y llaves coincidentes
 set matchbrackets "()[]{}"
 
-# 📌 No guardar archivos temporales (como .save)
+# 📌 Evita guardar archivos temporales o backups
+set noconvert
 set tempfile
+
 
 EOF
 
