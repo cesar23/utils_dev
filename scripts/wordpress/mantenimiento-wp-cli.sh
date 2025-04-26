@@ -180,14 +180,15 @@ msg "Limpiar transients y caché"
 $WP transient delete --all
 $WP cache flush
 
+
 msg "Elimina todos los comentarios marcados como spam"
-$WP comment delete $(WP comment list --status=spam --format=ids)
+$WP comment delete $($WP comment list --status=spam --format=ids)
 
 msg "Elimina todos los comentarios en papelera."
-$WP comment delete $(WP comment list --status=trash --format=ids)
+$WP comment delete $($WP comment list --status=trash --format=ids)
 
 msg "Elimina todas las entradas y páginas en papelera."
-$WP post delete $(WP post list --post_status=trash --format=ids)
+$WP post delete $($WP post list --post_status=trash --format=ids)
 
 msg "(Si tienes algún plugin compatible) Limpia residuos en la base de datos."
 $WP db clean
