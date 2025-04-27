@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Detener script al primer error
+
 
 # =============================================================================
 # 🏆 SECTION: Configuración Inicial
@@ -207,7 +207,7 @@ $WP db repair
 
 msg "🧹 Eliminando transients y limpiando caché..."
 $WP transient delete --all
-$WP cache flush
+
 
 # ============================
 # Limpieza de base de datos avanzada (si disponible)

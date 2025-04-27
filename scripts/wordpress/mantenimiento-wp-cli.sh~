@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Detener script al primer error
+
 
 # =============================================================================
 # 🏆 SECTION: Configuración Inicial
@@ -154,59 +154,81 @@ cd $CURRENT_DIR
 # Alias rápido
 WP="php wp-cli.phar"
 
-
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
 
-# Actualizar núcleo de WordPress
-# msg "Actualizar núcleo de WordPress"
+# ============================
+# Actualizaciones básicas (opcional descomentar si quieres)
+# ============================
 # $WP core update
-
-# Actualizar plugins y temas
-#msg "🛠️ Actualizar plugins y temas"
 # $WP plugin update --all
-#$WP theme update --all
+# $WP theme update --all
+# $WP language core update
 
-# Actualizar traducciones
-msg "Actualizar traducciones"
-$WP language core update
+# ============================
+# Limpieza de comentarios
+# ============================
 
-# Optimizar y reparar base de datos
-msg "Optimizar y reparar base de datos"
+SPAM_IDS=$($WP comment list --status=spam --format=ids)
+if [ ! -z "$SPAM_IDS" ]; then
+  msg "🧹 Eliminando comentarios SPAM..."
+  $WP comment delete $SPAM_IDS
+fi
+
+TRASH_COMMENT_IDS=$($WP comment list --status=trash --format=ids)
+if [ ! -z "$TRASH_COMMENT_IDS" ]; then
+  msg "🧹 Eliminando comentarios en papelera..."
+  $WP comment delete $TRASH_COMMENT_IDS
+fi
+
+# ============================
+# Limpieza de entradas/páginas
+# ============================
+
+TRASH_POST_IDS=$($WP post list --post_status=trash --format=ids)
+if [ ! -z "$TRASH_POST_IDS" ]; then
+  msg "🧹 Eliminando entradas y páginas en papelera..."
+  $WP post delete $TRASH_POST_IDS
+fi
+
+# ============================
+# Limpieza de medios en papelera
+# ============================
+
+msg "🧹 Buscando y eliminando archivos basura en uploads (si existen)..."
+find wp-content/uploads/ -type f -name "*.trash*" -delete 2>/dev/null || true
+
+# ============================
+# Limpieza y optimización base de datos
+# ============================
+
+msg "🛠️ Optimizando y reparando base de datos..."
 $WP db optimize
 $WP db repair
 
-# Limpiar transients y caché
-msg "Limpiar transients y caché"
+msg "🧹 Eliminando transients y limpiando caché..."
 $WP transient delete --all
 $WP cache flush
 
+# ============================
+# Limpieza de base de datos avanzada (si disponible)
+# ============================
 
-msg "Elimina todos los comentarios marcados como spam"
-$WP comment delete $($WP comment list --status=spam --format=ids)
+if $WP db clean 2>/dev/null; then
+  msg "🧹 Limpieza avanzada de base de datos realizada."
+else
+  msg "⚠️ db clean no disponible. Saltando..."
+fi
 
-msg "Elimina todos los comentarios en papelera."
-$WP comment delete $($WP comment list --status=trash --format=ids)
+# ============================
+# Verificaciones finales
+# ============================
 
-msg "Elimina todas las entradas y páginas en papelera."
-$WP post delete $($WP post list --post_status=trash --format=ids)
-
-msg "(Si tienes algún plugin compatible) Limpia residuos en la base de datos."
-$WP db clean
-
-msg "Borra archivos multimedia que están en la papelera"
-$WP media delete
-
-
-# Verificar integridad de archivos
-msg "Verificar integridad de archivos"
+msg "🔍 Verificando integridad de archivos de WordPress..."
 $WP core verify-checksums
 
-# Regenerar reglas de enlaces permanentes
-msg "Regenerar reglas de enlaces permanentes"
+msg "🔁 Regenerando enlaces permanentes..."
 $WP rewrite flush --hard
 
-msg "✅ Mantenimiento completado exitosamente."
+msg "✅ Mantenimiento completo terminado."
+
 confirm_continue
-
-
-
