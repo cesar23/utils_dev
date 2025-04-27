@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e  # Detener script al primer error
 
 # =============================================================================
 # 🏆 SECTION: Configuración Inicial
@@ -212,12 +212,8 @@ $WP transient delete --all
 # ============================
 # Limpieza de base de datos avanzada (si disponible)
 # ============================
-
-if $WP db clean 2>/dev/null; then
-  msg "🧹 Limpieza avanzada de base de datos realizada."
-else
-  msg "⚠️ db clean no disponible. Saltando..."
-fi
+msg "🧹 Limpieza de base de datos avanzada (si disponible)"
+$WP db clean
 
 # ============================
 # Verificaciones finales
