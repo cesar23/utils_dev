@@ -116,31 +116,35 @@ esac
 #   confirm_continue || exit 1
 #   confirm_continue "¿Deseas sobrescribirlo? [s/n]" || exit 0
 #   confirm_continue "¿Deseas sobrescribir el archivo?" || return
+#   if confirm_continue "¿Deseas actualizar el core de WordPress? [s/n]"; then
+#     $WP core update
+#     echo "yes-----"
+#   fi
 # =============================================================================
 confirm_continue() {
-local mensaje="${1:-¿Deseas continuar? [s/n]}"
-read -rp "$mensaje " respuesta
+  local mensaje="${1:-¿Deseas continuar? [s/n]}"
+  read -rp "$mensaje " respuesta
 
-case "$respuesta" in
-[sS])
-msg "${Gray}✅ Continuando...${Color_Off}"
-return 0
-;;
-[nN])
-msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
-return 1
-;;
-*)
-msg "${Gray}⚠️ Entrada inválida. Usa 's' o 'n'.${Color_Off}"
-return 1
-;;
-esac
+  case "$respuesta" in
+  [sS])
+  msg "${Gray}✅ Continuando...${Color_Off}"
+  return 0
+  ;;
+  [nN])
+  msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
+  return 1
+  ;;
+  *)
+  msg "${Gray}⚠️ Entrada inválida. Usa 's' o 'n'.${Color_Off}"
+  return 1
+  ;;
+  esac
 }
 
 
 # Verificamos si el archivo ya existe
 if [ ! -f "wp-cli.phar" ]; then
-msg "📦 Descargando WP-CLI en ${PATH_DOMAIN}..."
+msg "📦 Descargando WP-CLI en ${CURRENT_DIR}..."
 curl -sSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
 fi
 
@@ -154,26 +158,36 @@ cd $CURRENT_DIR
 # Alias rápido
 WP="php wp-cli.phar"
 
+msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
+msg "===================================================="
+msg ""
 
-# ============================
-# Actualizaciones básicas (opcional descomentar si quieres)
-# ============================
-# $WP core update
-# $WP plugin update --all
-# $WP theme update --all
-# $WP language core update
+
+msg "Actualizando core de WordPress..."
+if confirm_continue "¿Deseas actualizar? [s/n]"; then
+  $WP core update
+fi
+
+msg "Actualizando todos los plugins..."
+if confirm_continue "¿Deseas actualizar? [s/n]"; then
+  $WP plugin update --all
+fi
+
 
 # ============================
 # Limpieza de comentarios
 # ============================
 
+msg "🔎 Buscando comentarios SPAM..."
 SPAM_IDS=$($WP comment list --status=spam --format=ids)
 if [ ! -z "$SPAM_IDS" ]; then
   msg "🧹 Eliminando comentarios SPAM..."
   $WP comment delete $SPAM_IDS
 fi
 
+
+msg "🔎 Buscando comentarios en papelera"
 TRASH_COMMENT_IDS=$($WP comment list --status=trash --format=ids)
 if [ ! -z "$TRASH_COMMENT_IDS" ]; then
   msg "🧹 Eliminando comentarios en papelera..."
@@ -183,19 +197,60 @@ fi
 # ============================
 # Limpieza de entradas/páginas
 # ============================
-
+msg "🔎 Buscando entradas y páginas en papelera"
 TRASH_POST_IDS=$($WP post list --post_status=trash --format=ids)
 if [ ! -z "$TRASH_POST_IDS" ]; then
   msg "🧹 Eliminando entradas y páginas en papelera..."
   $WP post delete $TRASH_POST_IDS
 fi
 
+
+# ============================
+# Limpieza de Usuarios no confirmados
+# ============================
+msg "🔎 Buscando usuarios pendientes o no confirmados"
+USERS_PENDING_NOT_CONFIRMED=$($WP user list --role='pending' --format=ids)
+if [ ! -z "$USERS_PENDING_NOT_CONFIRMED" ]; then
+  msg "🧹 Eliminar usuarios pendientes o no confirmados"
+  $WP user delete $USERS_PENDING_NOT_CONFIRMED --reassign=1 --yes
+fi
+
+# ============================
+# Plugins
+# ============================
+
+msg "🔎 Buscando instalacion de WOOCOMERCE..."
+plugin_name="woocommerce"
+if $WP plugin is-installed "$plugin_name"; then
+  msg "WordPress tiene WOOCOMERCE instalado [limpiando trasiends]"
+  $WP option delete _transient_wc_attribute_taxonomies
+fi
+
+
+msg "🔎 Buscando instalacion de Elementor..."
+plugin_name="elementor"
+if $WP plugin is-installed "$plugin_name"; then
+  msg "WordPress tiene Elementor instalado [tuneando y limpiando]"
+  $WP option delete _elementor_css_cache
+  $WP elementor update db
+  $WP elementor flush-css
+fi
+
+
+
 # ============================
 # Limpieza de medios en papelera
 # ============================
 
-msg "🧹 Buscando y eliminando archivos basura en uploads (si existen)..."
-find wp-content/uploads/ -type f -name "*.trash*" -delete 2>/dev/null || true
+msg "🔎 Buscando archivos basura en uploads..."
+if find wp-content/uploads/ -type f -name "*.trash*" | grep -q .; then
+  msg "🧹 Eliminando archivos basura encontrados..."
+  find wp-content/uploads/ -type f -name "*.trash*" -delete
+else
+  msg "🧹 No se encontraron archivos basura en uploads."
+fi
+
+
 
 # ============================
 # Limpieza y optimización base de datos
@@ -209,11 +264,6 @@ msg "🧹 Eliminando transients y limpiando caché..."
 $WP transient delete --all
 
 
-# ============================
-# Limpieza de base de datos avanzada (si disponible)
-# ============================
-msg "🧹 Limpieza de base de datos avanzada (si disponible)"
-$WP db clean
 
 # ============================
 # Verificaciones finales
@@ -227,4 +277,3 @@ $WP rewrite flush --hard
 
 msg "✅ Mantenimiento completo terminado."
 
-confirm_continue
