@@ -124,16 +124,21 @@ esac
 confirm_continue() {
   local mensaje="${1:-¿Deseas continuar? [s/n]}"
   read -rp "$mensaje " respuesta
-  respuesta="${respuesta,,}"  # Pasar a minúsculas
 
-   if [[ "$respuesta" == "s" ]]; then
-      msg "${Gray}✅ Continuando...${Color_Off}"
-      return 0
-   else
-      msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
-      return 1
-   fi
-
+  case "$respuesta" in
+  [sS])
+  msg "${Gray}✅ Continuando...${Color_Off}"
+  return 0
+  ;;
+  [nN])
+  msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
+  return 1
+  ;;
+  *)
+  msg "${Gray}⚠️ Entrada inválida. Usa 's' o 'n'.${Color_Off}"
+  return 1
+  ;;
+  esac
 }
 
 
