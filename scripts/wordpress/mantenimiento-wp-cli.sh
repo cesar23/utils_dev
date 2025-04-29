@@ -172,14 +172,14 @@ check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
-msg "   Version:1.0.2"
+msg "   Version:1.0.3"
 msg "===================================================="
 msg ""
 
 
 
 msg "Actualizando core de WordPress..."
-if confirm_continue "¿Deseas actualizar? [s/n]"; then
+if confirm_continue "¿Deseas actualizar el core de WordPress? [s/n] (por defecto: Sí)" && [[ "${respuesta:-s}" == "s" ]]; then
   $WP_CLI core update
 fi
 
