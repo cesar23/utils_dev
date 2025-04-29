@@ -124,29 +124,26 @@ esac
 confirm_continue() {
   local mensaje="${1:-¿Deseas continuar? [s/n]}"
   read -rp "$mensaje " respuesta
+  respuesta="${respuesta,,}"  # Pasar a minúsculas
 
-  case "$respuesta" in
-  [sS])
-  msg "${Gray}✅ Continuando...${Color_Off}"
-  return 0
-  ;;
-  [nN])
-  msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
-  return 1
-  ;;
-  *)
-  msg "${Gray}⚠️ Entrada inválida. Usa 's' o 'n'.${Color_Off}"
-  return 1
-  ;;
-  esac
+   if [[ "$respuesta" == "s" ]]; then
+      msg "${Gray}✅ Continuando...${Color_Off}"
+      return 0
+   else
+      msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
+      return 1
+   fi
+
 }
 
 
-# Verificamos si el archivo ya existe
-if [ ! -f "wp-cli.phar" ]; then
-msg "📦 Descargando WP-CLI en ${CURRENT_DIR}..."
-curl -sSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
-fi
+check_install_wp_cli() {
+  # Verificamos si el archivo ya existe
+  if [ ! -f "wp-cli.phar" ]; then
+  msg "📦 Descargando WP-CLI en ${CURRENT_DIR}..."
+  curl -sSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
+  fi
+}
 
 
 # =============================================================================

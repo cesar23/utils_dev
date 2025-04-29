@@ -137,11 +137,13 @@ confirm_continue() {
 }
 
 
-# Verificamos si el archivo ya existe
-if [ ! -f "wp-cli.phar" ]; then
-msg "📦 Descargando WP-CLI en ${CURRENT_DIR}..."
-curl -sSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
-fi
+check_install_wp_cli() {
+  # Verificamos si el archivo ya existe
+  if [ ! -f "wp-cli.phar" ]; then
+  msg "📦 Descargando WP-CLI en ${CURRENT_DIR}..."
+  curl -sSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
+  fi
+}
 
 
 # =============================================================================
@@ -152,6 +154,7 @@ cd $CURRENT_DIR
 
 # Alias rápido
 WP="php wp-cli.phar"
+check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
