@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e  # Detener script al primer error
 
+
+
 # =============================================================================
 # 🏆 SECTION: Configuración Inicial
 # =============================================================================
@@ -160,20 +162,36 @@ check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
-msg "   Version:1.0.5"
+msg "   Version:1.0.6"
 msg "===================================================="
 msg ""
 
 
 
-msg "Actualizando core de WordPress..."
-read -p "¿Deseas actualizar el core? [s/n]: " respuesta
+# En la sección de configuración inicial
+RUNNING_INTERACTIVE="false"
+[[ -t 0 ]] && RUNNING_INTERACTIVE="true"  # Verifica si hay terminal interactiva
 
-if [[ "$respuesta" =~ ^[sS]$ ]]; then
+# Función de confirmación mejorada
+confirm_action() {
+    local message="$1"
+    local default_action="${2:-skip}"  # skip o proceed
+
+    if [[ "$RUNNING_INTERACTIVE" == "false" ]]; then
+        # Modo no interactivo: registrar y proceder según default_action
+        msg "Modo no interactivo: $message" "INFO"
+        [[ "$default_action" == "proceed" ]] && return 0 || return 1
+    else
+        # Modo interactivo: preguntar al usuario
+        read -rp "$message [s/n] " respuesta
+        [[ "${respuesta,,}" == "s" ]] && return 0 || return 1
+    fi
+}
+
+# Uso en las actualizaciones
+msg "Actualizando core de WordPress..."
+if confirm_action "¿Deseas actualizar el core?" "proceed"; then
     $WP_CLI core update
-    msg "Core actualizado correctamente" "INFO"
-else
-    msg "Actualización cancelada" "WARNING"
 fi
 
 msg "Actualizando todos los plugins..."
