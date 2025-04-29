@@ -158,6 +158,7 @@ check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
+msg "   Version:1.0.1"
 msg "===================================================="
 msg ""
 
