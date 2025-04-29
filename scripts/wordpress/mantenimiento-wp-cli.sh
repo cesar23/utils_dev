@@ -153,7 +153,7 @@ check_install_wp_cli() {
 cd $CURRENT_DIR
 
 # Alias rápido
-WP="php wp-cli.phar"
+WP_CLI="php wp-cli.phar"
 check_install_wp_cli
 
 msg "===================================================="
