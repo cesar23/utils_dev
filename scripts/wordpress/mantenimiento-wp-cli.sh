@@ -161,6 +161,7 @@ msg "🚀 Iniciando mantenimiento completo de WordPress..."
 msg "===================================================="
 msg ""
 
+IFS=$'\n'
 
 msg "Actualizando core de WordPress..."
 if confirm_continue "¿Deseas actualizar? [s/n]"; then
