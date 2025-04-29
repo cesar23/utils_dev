@@ -154,6 +154,7 @@ cd $CURRENT_DIR
 
 # Alias rápido
 WP="php wp-cli.phar"
+check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."

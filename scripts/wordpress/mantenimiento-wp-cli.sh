@@ -117,7 +117,7 @@ esac
 #   confirm_continue "¿Deseas sobrescribirlo? [s/n]" || exit 0
 #   confirm_continue "¿Deseas sobrescribir el archivo?" || return
 #   if confirm_continue "¿Deseas actualizar el core de WordPress? [s/n]"; then
-#     $WP core update
+#     $WP_CLI core update
 #     echo "yes-----"
 #   fi
 # =============================================================================
@@ -164,12 +164,12 @@ msg ""
 
 msg "Actualizando core de WordPress..."
 if confirm_continue "¿Deseas actualizar? [s/n]"; then
-  $WP core update
+  $WP_CLI core update
 fi
 
 msg "Actualizando todos los plugins..."
 if confirm_continue "¿Deseas actualizar? [s/n]"; then
-  $WP plugin update --all
+  $WP_CLI plugin update --all
 fi
 
 
@@ -178,28 +178,28 @@ fi
 # ============================
 
 msg "🔎 Buscando comentarios SPAM..."
-SPAM_IDS=$($WP comment list --status=spam --format=ids)
+SPAM_IDS=$($WP_CLI comment list --status=spam --format=ids)
 if [ ! -z "$SPAM_IDS" ]; then
   msg "🧹 Eliminando comentarios SPAM..."
-  $WP comment delete $SPAM_IDS
+  $WP_CLI comment delete $SPAM_IDS
 fi
 
 
 msg "🔎 Buscando comentarios en papelera"
-TRASH_COMMENT_IDS=$($WP comment list --status=trash --format=ids)
+TRASH_COMMENT_IDS=$($WP_CLI comment list --status=trash --format=ids)
 if [ ! -z "$TRASH_COMMENT_IDS" ]; then
   msg "🧹 Eliminando comentarios en papelera..."
-  $WP comment delete $TRASH_COMMENT_IDS
+  $WP_CLI comment delete $TRASH_COMMENT_IDS
 fi
 
 # ============================
 # Limpieza de entradas/páginas
 # ============================
 msg "🔎 Buscando entradas y páginas en papelera"
-TRASH_POST_IDS=$($WP post list --post_status=trash --format=ids)
+TRASH_POST_IDS=$($WP_CLI post list --post_status=trash --format=ids)
 if [ ! -z "$TRASH_POST_IDS" ]; then
   msg "🧹 Eliminando entradas y páginas en papelera..."
-  $WP post delete $TRASH_POST_IDS
+  $WP_CLI post delete $TRASH_POST_IDS
 fi
 
 
@@ -207,10 +207,10 @@ fi
 # Limpieza de Usuarios no confirmados
 # ============================
 msg "🔎 Buscando usuarios pendientes o no confirmados"
-USERS_PENDING_NOT_CONFIRMED=$($WP user list --role='pending' --format=ids)
+USERS_PENDING_NOT_CONFIRMED=$($WP_CLI user list --role='pending' --format=ids)
 if [ ! -z "$USERS_PENDING_NOT_CONFIRMED" ]; then
   msg "🧹 Eliminar usuarios pendientes o no confirmados"
-  $WP user delete $USERS_PENDING_NOT_CONFIRMED --reassign=1 --yes
+  $WP_CLI user delete $USERS_PENDING_NOT_CONFIRMED --reassign=1 --yes
 fi
 
 # ============================
@@ -219,19 +219,19 @@ fi
 
 msg "🔎 Buscando instalacion de WOOCOMERCE..."
 plugin_name="woocommerce"
-if $WP plugin is-installed "$plugin_name"; then
+if $WP_CLI plugin is-installed "$plugin_name"; then
   msg "WordPress tiene WOOCOMERCE instalado [limpiando trasiends]"
-  $WP option delete _transient_wc_attribute_taxonomies
+  $WP_CLI option delete _transient_wc_attribute_taxonomies
 fi
 
 
 msg "🔎 Buscando instalacion de Elementor..."
 plugin_name="elementor"
-if $WP plugin is-installed "$plugin_name"; then
+if $WP_CLI plugin is-installed "$plugin_name"; then
   msg "WordPress tiene Elementor instalado [tuneando y limpiando]"
-  $WP option delete _elementor_css_cache
-  $WP elementor update db
-  $WP elementor flush-css
+  $WP_CLI option delete _elementor_css_cache
+  $WP_CLI elementor update db
+  $WP_CLI elementor flush-css
 fi
 
 
@@ -255,11 +255,11 @@ fi
 # ============================
 
 msg "🛠️ Optimizando y reparando base de datos..."
-$WP db optimize
-$WP db repair
+$WP_CLI db optimize
+$WP_CLI db repair
 
 msg "🧹 Eliminando transients y limpiando caché..."
-$WP transient delete --all
+$WP_CLI transient delete --all
 
 
 
@@ -268,10 +268,10 @@ $WP transient delete --all
 # ============================
 
 msg "🔍 Verificando integridad de archivos de WordPress..."
-$WP core verify-checksums
+$WP_CLI core verify-checksums
 
 msg "🔁 Regenerando enlaces permanentes..."
-$WP rewrite flush --hard
+$WP_CLI rewrite flush --hard
 
 msg "✅ Mantenimiento completo terminado."
 
