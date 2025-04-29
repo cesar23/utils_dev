@@ -168,36 +168,17 @@ msg ""
 
 
 
-# En la sección de configuración inicial
-RUNNING_INTERACTIVE="false"
-[[ -t 0 ]] && RUNNING_INTERACTIVE="true"  # Verifica si hay terminal interactiva
 
-# Función de confirmación mejorada
-confirm_action() {
-    local message="$1"
-    local default_action="${2:-skip}"  # skip o proceed
-
-    if [[ "$RUNNING_INTERACTIVE" == "false" ]]; then
-        # Modo no interactivo: registrar y proceder según default_action
-        msg "Modo no interactivo: $message" "INFO"
-        [[ "$default_action" == "proceed" ]] && return 0 || return 1
-    else
-        # Modo interactivo: preguntar al usuario
-        read -rp "$message [s/n] " respuesta
-        [[ "${respuesta,,}" == "s" ]] && return 0 || return 1
-    fi
-}
-
-# Uso en las actualizaciones
-msg "Actualizando core de WordPress..."
-if confirm_action "¿Deseas actualizar el core?" "proceed"; then
-    $WP_CLI core update
-fi
-
-msg "Actualizando todos los plugins..."
-if confirm_continue "¿Deseas actualizar? [s/n]"; then
-  $WP_CLI plugin update --all
-fi
+#
+#msg "Actualizando core de WordPress..."
+#if confirm_continue "¿Deseas actualizar? [s/n]"; then
+#  $WP_CLI core update
+#fi
+#
+#msg "Actualizando todos los plugins..."
+#if confirm_continue "¿Deseas actualizar? [s/n]"; then
+#  $WP_CLI plugin update --all
+#fi
 
 
 # ============================
