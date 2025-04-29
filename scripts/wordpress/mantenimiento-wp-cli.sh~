@@ -162,23 +162,23 @@ check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
-msg "   Version:1.0.7"
+msg "   Version:1.0.6"
 msg "===================================================="
 msg ""
 
 
 
 
-
-msg "Actualizando core de WordPress..."
-if confirm_continue "¿Deseas actualizar? [s/n]"; then
-  $WP_CLI core update
-fi
-
-msg "Actualizando todos los plugins..."
-if confirm_continue "¿Deseas actualizar? [s/n]"; then
-  $WP_CLI plugin update --all
-fi
+#
+#msg "Actualizando core de WordPress..."
+#if confirm_continue "¿Deseas actualizar? [s/n]"; then
+#  $WP_CLI core update
+#fi
+#
+#msg "Actualizando todos los plugins..."
+#if confirm_continue "¿Deseas actualizar? [s/n]"; then
+#  $WP_CLI plugin update --all
+#fi
 
 
 # ============================
