@@ -154,25 +154,13 @@ cd $CURRENT_DIR
 
 
 
-# Verificar si estamos ejecutando desde pipe curl
-if [[ $- == *i* ]]; then
-  # Modo interactivo (terminal normal)
-  cd "$CURRENT_DIR" || { msg "No se pudo cambiar al directorio $CURRENT_DIR" "ERROR"; exit 1; }
-else
-  # Modo no interactivo (curl | bash)
-  msg "Ejecutando en modo no interactivo" "WARNING"
-  # Crear directorio temporal para WP-CLI
-  TEMP_DIR=$(mktemp -d)
-  cd "$TEMP_DIR" || exit 1
-fi
-
 # Alias rápido
 WP_CLI="php wp-cli.phar"
 check_install_wp_cli
 
 msg "===================================================="
 msg "🚀 Iniciando mantenimiento completo de WordPress..."
-msg "   Version:1.0.3"
+msg "   Version:1.0.4"
 msg "===================================================="
 msg ""
 
