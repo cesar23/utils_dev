@@ -14,7 +14,7 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=1.0.6
+VERSION_BASHRC=1.0.7
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -55,6 +55,17 @@ Purple='\e[0;35m'       # Púrpura.
 Cyan='\e[0;36m'         # Cian.
 White='\e[0;37m'        # Blanco.
 Gray='\e[0;90m'         # Gris.
+
+# Colores en Negrita
+BBlack='\e[1;30m'       # Negro (negrita).
+BRed='\e[1;31m'         # Rojo (negrita).
+BGreen='\e[1;32m'       # Verde (negrita).
+BYellow='\e[1;33m'      # Amarillo (negrita).
+BBlue='\e[1;34m'        # Azul (negrita).
+BPurple='\e[1;35m'      # Púrpura (negrita).
+BCyan='\e[1;36m'        # Cian (negrita).
+BWhite='\e[1;37m'       # Blanco (negrita).
+BGray='\e[1;90m'        # Gris (negrita).
 
 
 
@@ -401,6 +412,49 @@ show_date() {
     echo "Fecha actual en Perú (UTC-5):   $peru_date"
 }
 
+# ==============================================================================
+# 📦 Función: create_file
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Solicita al usuario el nombre de un archivo y permite ingresar contenido
+#   en múltiples líneas desde la terminal (finalizando con Ctrl+D).
+#   Guarda el contenido en el archivo indicado y lo marca como ejecutable.
+#
+# 💡 Uso:
+#   create_file
+#
+# 🎨 Requiere:
+#   - Permiso de escritura en el directorio actual
+#   - Variables de color definidas previamente
+# ==============================================================================
+create_file() {
+  local FILE_NAME
+
+  echo -e "${BBlue}✏️️  Nombre del archivo a crear (ej. mi_script.sh):${Color_Off}"
+  read -rp "> " FILE_NAME
+
+  if [ -z "$FILE_NAME" ]; then
+    echo -e "${BRed}❌ Error: Debes ingresar un nombre de archivo válido.${Color_Off}"
+    return 1
+  fi
+
+  if [ -f "$FILE_NAME" ]; then
+    echo -e "${BYellow}⚠️  El archivo ya existe. ¿Deseas sobrescribirlo? [s/n]${Color_Off}"
+    read -rp "> " RESP
+    [[ "$RESP" != [sS] ]] && echo -e "${BRed}❌ Cancelado.${Color_Off}" && return 1
+  fi
+
+  echo ""
+  echo -e "${BPurple}✏️  Escribe el contenido del archivo (Ctrl+D para finalizar):${Color_Off}"
+  CONTENT=$(cat)
+
+  echo "$CONTENT" > "$FILE_NAME"
+  chmod +x "$FILE_NAME"
+
+  echo ""
+  echo -e "${BGreen}✅ Archivo '$FILE_NAME' creado correctamente y marcado como ejecutable.${Color_Off}"
+}
+
 
 
 # ========================
@@ -469,6 +523,7 @@ menu(){
 submenu_generales(){
   cls
   echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
+  echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
   echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
   echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
   echo -e "${Gray}   - search_text : ${Cyan}Buscar texto en múltiples archivos del directorio actual. Ejemplo: search_text 'texto_a_buscar'${Color_Off}"

@@ -168,8 +168,6 @@ msg ""
 
 
 
-
-
 msg "Actualizando core de WordPress..."
 if confirm_continue "¿Deseas actualizar? [s/n]"; then
   $WP_CLI core update
