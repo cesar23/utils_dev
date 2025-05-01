@@ -415,22 +415,28 @@ show_date() {
 # 📦 Función: create_file
 # ------------------------------------------------------------------------------
 # ✅ Descripción:
-#   Solicita al usuario el nombre de un archivo y permite ingresar contenido
-#   en múltiples líneas desde la terminal (finalizando con Ctrl+D).
-#   Guarda el contenido en el archivo indicado y lo marca como ejecutable.
+#   Crea un archivo con contenido ingresado en múltiples líneas desde la terminal
+#   (finalizando con Ctrl+D). Si no se pasa un nombre de archivo como parámetro,
+#   lo solicita interactivamente. Luego marca el archivo como ejecutable.
 #
 # 💡 Uso:
-#   create_file
+#   create_file              # Solicita nombre interactivo
+#   create_file fichero.txt  # Usa nombre pasado como parámetro
 #
 # 🎨 Requiere:
 #   - Permiso de escritura en el directorio actual
 #   - Variables de color definidas previamente
 # ==============================================================================
 create_file() {
-  local FILE_NAME
+  local FILE_NAME="$1"
 
-  echo -e "${BBlue}✏️️  Nombre del archivo a crear (ej. mi_script.sh):${Color_Off}"
-  read -rp "> " FILE_NAME
+  echo ""
+
+  # Si no se pasa como parámetro, pedirlo al usuario
+  if [ -z "$FILE_NAME" ]; then
+    echo -e "${BBlue}✏️️  Nombre del archivo a crear (ej. mi_script.sh):${Color_Off}"
+    read -rp "> " FILE_NAME
+  fi
 
   if [ -z "$FILE_NAME" ]; then
     echo -e "${BRed}❌ Error: Debes ingresar un nombre de archivo válido.${Color_Off}"

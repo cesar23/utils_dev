@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Ruta del archivo de configuración en Termux
-BASHRC_PATH="$HOME/.bash_profile"
+# Ruta del archivo .bashrc
+BASHRC_PATH="$HOME/.bashrc"
 
 # Respaldo del archivo original si existe
 if [ -f "$BASHRC_PATH" ]; then
@@ -10,19 +10,20 @@ if [ -f "$BASHRC_PATH" ]; then
 fi
 
 echo "" > $BASHRC_PATH
+
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
 VERSION_BASHRC=1.0.7
-VERSION_PLATFORM='(TERMUX)'
+VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
 DATE_HOUR=$(date -u "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en Perú (UTC -5)
-PATH_BASHRC='~/.bash_profile'  # Ruta del archivo .bashrc
+PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
 # ::::::::::::: END CONSTANT ::::::::::::::
 # ==========================================================================
-# VERSION: TERMUX
+# VERSION: (CPanel)
 # START ~/.bashrc - Configuración de Bash por César (version: 1.0.3)
 # ==========================================================================
 
@@ -66,8 +67,10 @@ BWhite='\e[1;37m'       # Blanco (negrita).
 BGray='\e[1;90m'        # Gris (negrita).
 
 
+
 # Fondo gris oscuro,fondo gris claro
 Code_background='\e[7;90;47m'   # Black
+
 
 # Prompt básico con colores
 export PS1='\[\e[32m\]\u@\h:\[\e[34m\]\w\[\e[0m\]\$ '
@@ -96,8 +99,6 @@ if [ -n "$SSH_CONNECTION" ]; then
 #    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SOCIEDAD):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 fi
 
-
-
 # ========================
 # 2. Alias útiles
 # ========================
@@ -118,8 +119,8 @@ alias search='find . -iname'          # Buscar archivos por nombre
 alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
-alias update='pkg update && sudo apt upgrade -y' # Actualizar sistema
-alias reload="source $PATH_BASHRC"            # Recargar configuraciones de Bash
+alias update='sudo apt update && sudo apt upgrade -y' # Actualizar sistema
+alias reload="source $PATH_BASHRC"           # Recargar configuraciones de Bash
 alias reload_cat="cat $PATH_BASHRC | less"
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
@@ -326,7 +327,7 @@ install_package() {
             ;;
         termux)
             echo "📱 Installing $package on Termux..."
-            pkg update -y && pkg install -y $package
+            pkg update -y && pkg install -y "$package"
             ;;
         gitbash)
             if [ "$package" == "fzf" ]; then
@@ -341,6 +342,7 @@ install_package() {
             ;;
     esac
 }
+
 
 # ----------------------------------------
 # Function: check_and_install
@@ -408,7 +410,6 @@ show_date() {
     echo "Fecha actual en UTC:            $utc_date"
     echo "Fecha actual en Perú (UTC-5):   $peru_date"
 }
-
 # ==============================================================================
 # 📦 Función: create_file
 # ------------------------------------------------------------------------------
@@ -460,7 +461,6 @@ create_file() {
 
 
 
-
 # ========================
 # 6. Verificar y instalar paquetes necesarios
 # ========================
@@ -469,11 +469,8 @@ create_file() {
 system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
-check_and_install fzf fzf
-check_and_install tree tree
-check_and_install bat bat
-check_and_install neovim nvim
-check_and_install net-tools netstat
+# check_and_install fzf fzf
+# check_and_install tree tree
 
 # ========================
 # 7. Menú interactivo
@@ -492,7 +489,6 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     # echo "El sistema operativo es Linux. Configurando ulimit..."
     ulimit -n 4096
 fi
-
 
 
 menu(){
@@ -631,12 +627,14 @@ submenu_ficheros_configuracion(){
 }
 
 
+#--------------------------------------------
+
 #    ./conf_funciones_level_2.sh
 #    ./conf_funciones_level_2.sh 9090
 #    ./conf_funciones_level_2.sh 9090 /E/deysi^
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# :: (Optional)Cargar Script si queremos poner adicionales
+# :: 8. (Optional)Cargar Script si queremos poner adicionales
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 scriptPath2=${0%/*}
@@ -654,6 +652,7 @@ fi
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # :: (Optional) FZF
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 
 
 
@@ -870,7 +869,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
