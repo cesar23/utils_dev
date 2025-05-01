@@ -55,6 +55,17 @@ Cyan='\e[0;36m'         # Cian.
 White='\e[0;37m'        # Blanco.
 Gray='\e[0;90m'         # Gris.
 
+# Colores en Negrita
+BBlack='\e[1;30m'       # Negro (negrita).
+BRed='\e[1;31m'         # Rojo (negrita).
+BGreen='\e[1;32m'       # Verde (negrita).
+BYellow='\e[1;33m'      # Amarillo (negrita).
+BBlue='\e[1;34m'        # Azul (negrita).
+BPurple='\e[1;35m'      # Púrpura (negrita).
+BCyan='\e[1;36m'        # Cian (negrita).
+BWhite='\e[1;37m'       # Blanco (negrita).
+BGray='\e[1;90m'        # Gris (negrita).
+
 
 
 # Fondo gris oscuro,fondo gris claro
