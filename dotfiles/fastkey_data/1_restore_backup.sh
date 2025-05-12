@@ -17,6 +17,7 @@ CURRENT_DIR=$(dirname "$PATH_SCRIPT")            # Ruta del directorio donde se 
 NAME_DIR=$(basename "$CURRENT_DIR")              # Nombre del directorio actual.
 TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal basado en el nombre del script.
 TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal en /tmp.
+ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 
 # =============================================================================
 # 🎨 SECTION: Colores para su uso7z
@@ -51,33 +52,42 @@ BGray='\e[1;90m'        # Gris (negrita).
 # ⚙️ SECTION: Core Function
 # =============================================================================
 
-# ----------------------------------------------------------------------
-# 🗂️ get_rootPath
-# ----------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+# path_windows_to_path_shell
+# -----------------------------------------------------------------------------
 # Descripción:
-#   Obtiene la ruta raíz del proyecto eliminando el nombre del directorio
-#   actual de la ruta completa del script.
+#   Convierte una ruta en formato Windows a formato Unix.
 #
 # Uso:
-#   root_path=$(get_rootPath)
+#   path_windows_to_path_shell "C:\ruta\al\archivo"
+#
+# Parámetros:
+#   PATH_REPO: Ruta en formato Windows que se quiere convertir.
 #
 # Ejemplo:
-#   Si la ruta completa del script es:
-#     /home/usuario/proyectos/mi_proyecto/scripts/mis_script.sh
-#   y el directorio actual es:
-#     /home/usuario/proyectos/mi_proyecto/scripts
-#   entonces:
-#     root_path=$(get_rootPath)
-#   resultará en:
-#     /home/usuario/proyectos/mi_proyecto
-#
-# Retorna:
-#   La ruta raíz del proyecto como una cadena de texto.
-# ----------------------------------------------------------------------
-get_rootPath() {
-  local regex="s/\/${NAME_DIR}//"  # Expresión regular para eliminar el nombre del directorio actual.
-  local root_path=$(echo "$CURRENT_DIR" | sed -e "$regex")  # Aplica la expresión regular a la ruta actual.
-  echo "$root_path"  # Imprime la ruta raíz.
+#   path_windows_to_path_shell "C:\laragon"
+#   # Salida: /mnt/c/laragon
+function path_windows_to_path_shell (){
+    local PATH_REPO=$1
+
+    if [[ -z "$PATH_REPO" ]]; then
+        echo "Error: Debes proporcionar una ruta en formato Windows." >&2
+        return 1
+    fi
+
+    # Convertir letra de unidad y backslashes a formato Unix
+    local path_unix=$(echo "${PATH_REPO}" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
+
+    if [[ -d "/mnt/c" ]]; then
+      #  aqui convertir ejemplo: C:\laragon
+      # a /mnt/c/laragon
+        path_unix=$(echo "$PATH_REPO" | sed 's|^\([A-Za-z]\):|/mnt/\L\1|;s|\\|/|g')
+        echo "$path_unix"
+    else
+        echo "$path_unix"
+    fi
 }
 
 # ----------------------------------------------------------------------
@@ -90,6 +100,8 @@ get_rootPath() {
 #   view_vars_config
 # ----------------------------------------------------------------------
 view_vars_config() {
+
+
   echo -e "${Gray}"
   echo -e "╔═══════════════════════════════════════════════════════════"
   echo -e "║             🛠️  CONFIGURACIÓN ACTUAL 🛠️"
@@ -104,9 +116,6 @@ view_vars_config() {
   echo -e "║ 🗂️ NAME_DIR:                 ${NAME_DIR}"
   echo -e "║ 🗃️ TEMP_PATH_SCRIPT:        ${TEMP_PATH_SCRIPT}"
   echo -e "║ 📂 TEMP_PATH_SCRIPT_SYSTEM:  ${TEMP_PATH_SCRIPT_SYSTEM}"
-
-  # Si ROOT_PATH está definido, lo muestra.
-  local ROOT_PATH=$(get_rootPath)
   if [ -n "$ROOT_PATH" ]; then
     echo -e "║ 🏡 ROOT_PATH:                ${ROOT_PATH}"
   fi
@@ -116,11 +125,236 @@ view_vars_config() {
 }
 
 
+# ==============================================================================
+# 📝 Función: msg
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Imprime un mensaje con formato estándar, incluyendo:
+#   - Marca de tiempo en UTC-5 (Perú)
+#   - Tipo de mensaje (INFO, WARNING, ERROR, o personalizado)
+#   - Colores para terminal (si están definidos previamente)
+#
+# 🔧 Parámetros:
+#   $1 - Mensaje a mostrar (texto)
+#   $2 - Tipo de mensaje (INFO | WARNING | ERROR | otro) [opcional, por defecto: INFO]
+#
+# 💡 Uso:
+#   msg "Inicio del proceso"               # Por defecto: INFO
+#   msg "Plugin no instalado" "WARNING"
+#   msg "Error de conexión" "ERROR"
+#   msg "Mensaje personalizado" "DEBUG"
+#
+# 🎨 Requiere:
+#   Variables de color: BBlue, BYellow, BRed, BWhite, BGray, Color_Off
+# ==============================================================================
+
+msg() {
+  local message="$1"
+  local level="${2:-INFO}"  # INFO por defecto si no se especifica
+  local timestamp
+  timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
+
+  case "$level" in
+    INFO)
+      echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}"
+      ;;
+    WARNING)
+      echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}"
+      ;;
+    ERROR)
+      echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}"
+      ;;
+    DEBUG)
+      echo -e "${BYellow}${timestamp} ${BWhite}- [DEBUG]${Color_Off} ${Yellow}${message}"
+      ;;
+    *)
+      echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}"
+      ;;
+  esac
+}
+
+
+
+pause_continue() {
+  # Descripción:
+  #   Muestra un mensaje de pausa. Si se pasa un argumento, lo usa como descripción del evento.
+  #   Si no se pasa nada, se muestra un mensaje por defecto.
+  #
+  # Uso:
+  #   pause_continue                         # Usa mensaje por defecto
+  #   pause_continue "Se instaló MySQL"      # Muestra "Se instaló MySQL. Presiona..."
+
+  if [ -n "$1" ]; then
+    local mensaje="🔹 $1. Presiona [ENTER] para continuar..."
+  else
+    local mensaje="✅ Comando ejecutado. Presiona [ENTER] para continuar..."
+  fi
+
+  msg  "${Gray}"
+  read -p "$mensaje"
+  msg  "${Color_Off}"
+}
+
+
+# =============================================================================
+# 📦 FUNCION: confirm_continue
+# =============================================================================
+# 🧾 DESCRIPCIÓN:
+#   Pregunta al usuario si desea continuar y retorna 0 (sí) o 1 (no).
+#
+# 🧠 USO:
+#   confirm_continue                # Muestra mensaje por defecto: ¿Deseas continuar? [s/n]
+#   confirm_continue "¿Borrar todo?" # Muestra mensaje personalizado
+#
+# ✅ EJEMPLOS:
+#   confirm_continue || continue
+#   confirm_continue || exit 1
+#   confirm_continue "¿Deseas sobrescribirlo? [s/n]" || exit 0
+#   confirm_continue "¿Deseas sobrescribir el archivo?" || return
+#   if confirm_continue "¿Deseas actualizar el core de WordPress? [s/n]"; then
+#     $WP core update
+#     echo "yes-----"
+#   fi
+# =============================================================================
+confirm_continue() {
+  local mensaje="${1:-¿Deseas continuar? [s/n]}"
+  read -rp "$mensaje " respuesta
+
+  case "$respuesta" in
+    [sS])
+      msg "${Gray}✅ Continuando...${Color_Off}"
+      return 0
+      ;;
+    [nN])
+      msg "${Gray}❌ Operación cancelada por el usuario.${Color_Off}"
+      return 1
+      ;;
+    *)
+      msg "${Gray}⚠️ Entrada inválida. Usa 's' o 'n'.${Color_Off}"
+      return 1
+      ;;
+  esac
+}
+
+
+
+
+# ==============================================================================
+# 📦 FUNCION: restaurar_backup
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Restaura un backup desde un archivo TAR.GZ a una carpeta especificada.
+#
+# 🔧 Parámetros:
+#   $1 - Ruta del archivo de backup (obligatorio)
+#   $2 - Ruta de la carpeta destino (obligatorio)
+#
+# 💡 Uso:
+#   restaurar_backup "ruta/al/backup.tar.gz" "ruta/destino"
+#
+# 🎯 Devuelve:
+#   0 - Restauración exitosa
+#   1 - Error al restaurar el backup
+#
+# 📝 Notas:
+#   La carpeta destino se crea si no existe.
+#   El backup se extrae en la carpeta destino especificada.
+#   Si hay un error durante la restauración, se muestra un mensaje de error.
+# ==============================================================================
+restaurar_backup() {
+  local BACKUP_FILE="$1"
+  local DEST_DIR="$2"
+
+  if [[ ! -f "$BACKUP_FILE" ]]; then
+    msg "${BRed}❌ Error: El archivo '$BACKUP_FILE' no existe.${Color_Off}"
+    return 1
+  fi
+
+  if [[ -z "$DEST_DIR" ]]; then
+    msg "${BRed}❌ Error: Debes indicar la ruta de destino.${Color_Off}"
+    return 1
+  fi
+
+  mkdir -p "$DEST_DIR"
+
+  msg "${BBlue}📦 Restaurando backup desde '${BACKUP_FILE}' a '${DEST_DIR}'...${Color_Off}"
+  tar -xzvf "$BACKUP_FILE" -C "$DEST_DIR"
+
+  if [[ $? -eq 0 ]]; then
+    msg "${BGreen}✅ Restauración completada correctamente.${Color_Off}"
+  else
+    msg "${BRed}❌ Error durante la restauración.${Color_Off}"
+    return 1
+  fi
+}
+
+# ==============================================================================
+# 📦 Función: realizar_backup
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Comprime los archivos `.fdb` de un directorio fuente en un archivo `.tar.gz`
+#   de respaldo en un directorio destino.
+#
+# 🔧 Parámetros:
+#   $1 - Ruta del directorio fuente (con los archivos .fdb)
+#   $2 - Ruta del directorio donde guardar el backup (opcional)
+#
+# 💡 Uso:
+#   realizar_backup "/C/Users/cesarPc/Documents/FastKeys"
+#   realizar_backup "/C/Users/cesarPc/Documents/FastKeys" "./mis_backups"
+#
+# 🎨 Requiere:
+#   - Herramienta `tar`
+#   - Función msg() definida previamente
+# ==============================================================================
+realizar_backup() {
+  local SOURCE_DIR="$1"
+  local BACKUP_DIR="${2:-${CURRENT_DIR}/backup}"  # Si no se pasa $2, usa ./backup
+  local BACKUP_NAME="FastKeys.tar.gz"
+
+  if [[ -z "$SOURCE_DIR" || ! -d "$SOURCE_DIR" ]]; then
+    msg "❌ Directorio fuente inválido o no existe: '$SOURCE_DIR'" "ERROR"
+    return 1
+  fi
+
+  # Convertir ruta de backup a formato shell (si es Windows)
+  BACKUP_DIR=$(path_windows_to_path_shell "$BACKUP_DIR")
+  mkdir -p "$BACKUP_DIR"
+
+  msg "📁 Fuente: $SOURCE_DIR"
+  msg "📦 Destino: ${BACKUP_DIR}/${BACKUP_NAME}"
+
+  local FILES=$(cd "$SOURCE_DIR" && ls *.fdb 2>/dev/null)
+  if [[ -z "$FILES" ]]; then
+    msg "⚠️ No se encontraron archivos .fdb en $SOURCE_DIR" "WARNING"
+    return 1
+  fi
+
+
+  msg "tar -czvf \"${BACKUP_DIR}/${BACKUP_NAME}\" \
+         -C \"${SOURCE_DIR}\" \
+          \$(cd \"${SOURCE_DIR}\" && ls *.fdb)" "DEBUG"
+
+  tar -czvf "${BACKUP_DIR}/${BACKUP_NAME}" -C "${SOURCE_DIR}" $FILES
+
+  if [[ $? -eq 0 ]]; then
+    msg "✅ Backup realizado exitosamente: ${BACKUP_DIR}/${BACKUP_NAME}" "INFO"
+  else
+    msg "❌ Error al crear el backup." "ERROR"
+    return 1
+  fi
+}
+
 
 
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
+
+
+
+
+
 
 # Limpia la terminal
 clear
@@ -128,40 +362,18 @@ clear
 # Muestra las variables de configuración actuales
 view_vars_config
 
-
 # Buscar el proceso y eliminarlo
-taskkill //IM "Termius.exe" //F  >nul 2>&1
+taskkill //IM "FastKeys.exe" //F  >/tmp/nul 2>&1
 
 
-# Rutas de origen y destino
+# C:\Users\cesarPc\Documents\FastKeys
+# Definir rutas
+SOURCE_DIR="/C/Users/cesarPc/Documents/FastKeys"
 BACKUP_DIR="${CURRENT_DIR}/backup"
-BACKUP_FILE="${BACKUP_DIR}/backup_termius.tar.gz"
-TARGET_DIR="/c/Users/cesarPc/AppData/Roaming/Termius"
-# format unix
-BACKUP_FILE=$(echo "$BACKUP_FILE" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
+BACKUP_DIR=$(path_windows_to_path_shell "$BACKUP_DIR")
 
-# Verificar si el archivo de backup existe
-if [ ! -f "$BACKUP_FILE" ]; then
-  echo "El archivo de backup no existe: $BACKUP_FILE"
-  exit 1
-fi
 
-# Eliminar el contenido del directorio de destino
-echo -e "${Blue}Eliminando contenido existente en $TARGET_DIR..."
-cd "${TARGET_DIR}" && rm -rf *  # Elimina de forma segura todo el contenido dentro de TARGET_DIR
 
-sleep 3
-# Crear el directorio de destino si no existe
-mkdir -p "$TARGET_DIR"
+restaurar_backup "${BACKUP_DIR}/FastKeys.tar.gz" "${SOURCE_DIR}"
 
-# Extraer el contenido del archivo de backup en el directorio de destino
-echo -e "${Blue}Descomprimiendo backup en $TARGET_DIR..."
-echo -e "${Gray}"
-tar -xvzf "$BACKUP_FILE" -C "$TARGET_DIR" --strip-components=1
 
-# Verificar si la descompresión fue exitosa
-if [ $? -eq 0 ]; then
-  echo -e "${Green}El contenido de $BACKUP_FILE ha sido restaurado exitosamente en $TARGET_DIR"
-else
-  echo -e "${Red}Hubo un error al descomprimir el archivo de backup."
-fi

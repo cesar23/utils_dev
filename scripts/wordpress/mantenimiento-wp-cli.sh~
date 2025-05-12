@@ -168,8 +168,6 @@ msg ""
 
 
 
-
-
 msg "Actualizando core de WordPress..."
 if confirm_continue "¿Deseas actualizar? [s/n]"; then
   $WP_CLI core update
@@ -255,6 +253,18 @@ if find wp-content/uploads/ -type f -name "*.trash*" | grep -q .; then
 else
   msg "🧹 No se encontraron archivos basura en uploads."
 fi
+
+
+
+# ============================
+# Limipar las url permanentes
+# ============================
+
+msg "Actualizando core de WordPress..."
+if confirm_continue "¿Deseas actualizar? [s/n]"; then
+  $WP_CLI rewrite flush --hard
+fi
+
 
 
 

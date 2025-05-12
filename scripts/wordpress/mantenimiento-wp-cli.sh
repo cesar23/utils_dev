@@ -255,6 +255,14 @@ else
 fi
 
 
+# ============================
+# Limpiar las URL permanentes
+# ============================
+
+msg "🔁 Regenerando URLs permanentes..."
+if confirm_continue "¿Deseas regenerar las URLs permanentes? [s/n]"; then
+  $WP_CLI rewrite flush --hard
+fi
 
 # ============================
 # Limpieza y optimización base de datos

@@ -54,6 +54,42 @@ BGray='\e[1;90m'        # Gris (negrita).
 
 
 
+# -----------------------------------------------------------------------------
+# path_windows_to_path_shell
+# -----------------------------------------------------------------------------
+# Descripción:
+#   Convierte una ruta en formato Windows a formato Unix.
+#
+# Uso:
+#   path_windows_to_path_shell "C:\ruta\al\archivo"
+#
+# Parámetros:
+#   PATH_REPO: Ruta en formato Windows que se quiere convertir.
+#
+# Ejemplo:
+#   path_windows_to_path_shell "C:\laragon"
+#   # Salida: /mnt/c/laragon
+function path_windows_to_path_shell (){
+    local PATH_REPO=$1
+
+    if [[ -z "$PATH_REPO" ]]; then
+        echo "Error: Debes proporcionar una ruta en formato Windows." >&2
+        return 1
+    fi
+
+    # Convertir letra de unidad y backslashes a formato Unix
+    local path_unix=$(echo "${PATH_REPO}" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
+
+    if [[ -d "/mnt/c" ]]; then
+      #  aqui convertir ejemplo: C:\laragon
+      # a /mnt/c/laragon
+        path_unix=$(echo "$PATH_REPO" | sed 's|^\([A-Za-z]\):|/mnt/\L\1|;s|\\|/|g')
+        echo "$path_unix"
+    else
+        echo "$path_unix"
+    fi
+}
+
 # ----------------------------------------------------------------------
 # 📋 view_vars_config
 # ----------------------------------------------------------------------
@@ -90,9 +126,121 @@ view_vars_config() {
 
 
 
+
+
+# ==============================================================================
+# 📦 FUNCION: restaurar_backup
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Restaura un backup desde un archivo TAR.GZ a una carpeta especificada.
+#
+# 🔧 Parámetros:
+#   $1 - Ruta del archivo de backup (obligatorio)
+#   $2 - Ruta de la carpeta destino (obligatorio)
+#
+# 💡 Uso:
+#   restaurar_backup "ruta/al/backup.tar.gz" "ruta/destino"
+#
+# 🎯 Devuelve:
+#   0 - Restauración exitosa
+#   1 - Error al restaurar el backup
+#
+# 📝 Notas:
+#   La carpeta destino se crea si no existe.
+#   El backup se extrae en la carpeta destino especificada.
+#   Si hay un error durante la restauración, se muestra un mensaje de error.
+# ==============================================================================
+restaurar_backup() {
+  local BACKUP_FILE="$1"
+  local DEST_DIR="$2"
+
+  if [[ ! -f "$BACKUP_FILE" ]]; then
+    msg "${BRed}❌ Error: El archivo '$BACKUP_FILE' no existe.${Color_Off}"
+    return 1
+  fi
+
+  if [[ -z "$DEST_DIR" ]]; then
+    msg "${BRed}❌ Error: Debes indicar la ruta de destino.${Color_Off}"
+    return 1
+  fi
+
+  mkdir -p "$DEST_DIR"
+
+  msg "${BBlue}📦 Restaurando backup desde '${BACKUP_FILE}' a '${DEST_DIR}'...${Color_Off}"
+  tar -xzvf "$BACKUP_FILE" -C "$DEST_DIR"
+
+  if [[ $? -eq 0 ]]; then
+    msg "${BGreen}✅ Restauración completada correctamente.${Color_Off}"
+  else
+    msg "${BRed}❌ Error durante la restauración.${Color_Off}"
+    return 1
+  fi
+}
+
+# ==============================================================================
+# 📦 Función: realizar_backup
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Comprime los archivos `.fdb` de un directorio fuente en un archivo `.tar.gz`
+#   de respaldo en un directorio destino.
+#
+# 🔧 Parámetros:
+#   $1 - Ruta del directorio fuente (con los archivos .fdb)
+#   $2 - Ruta del directorio donde guardar el backup (opcional)
+#
+# 💡 Uso:
+#   realizar_backup "/C/Users/cesarPc/Documents/FastKeys"
+#   realizar_backup "/C/Users/cesarPc/Documents/FastKeys" "./mis_backups"
+#
+# 🎨 Requiere:
+#   - Herramienta `tar`
+#   - Función msg() definida previamente
+# ==============================================================================
+realizar_backup() {
+  local SOURCE_DIR="$1"
+  local BACKUP_DIR="${2:-${CURRENT_DIR}/backup}"  # Si no se pasa $2, usa ./backup
+  local BACKUP_NAME="FastKeys.tar.gz"
+
+  if [[ -z "$SOURCE_DIR" || ! -d "$SOURCE_DIR" ]]; then
+    msg "❌ Directorio fuente inválido o no existe: '$SOURCE_DIR'" "ERROR"
+    return 1
+  fi
+
+  # Convertir ruta de backup a formato shell (si es Windows)
+  BACKUP_DIR=$(path_windows_to_path_shell "$BACKUP_DIR")
+  mkdir -p "$BACKUP_DIR"
+
+  msg "📁 Fuente: $SOURCE_DIR"
+  msg "📦 Destino: ${BACKUP_DIR}/${BACKUP_NAME}"
+
+  local FILES=$(cd "$SOURCE_DIR" && ls *.fdb 2>/dev/null)
+  if [[ -z "$FILES" ]]; then
+    msg "⚠️ No se encontraron archivos .fdb en $SOURCE_DIR" "WARNING"
+    return 1
+  fi
+
+
+  msg "tar -czvf \"${BACKUP_DIR}/${BACKUP_NAME}\" \
+         -C \"${SOURCE_DIR}\" \
+          \$(cd \"${SOURCE_DIR}\" && ls *.fdb)" "DEBUG"
+
+  tar -czvf "${BACKUP_DIR}/${BACKUP_NAME}" -C "${SOURCE_DIR}" $FILES
+
+  if [[ $? -eq 0 ]]; then
+    msg "✅ Backup realizado exitosamente: ${BACKUP_DIR}/${BACKUP_NAME}" "INFO"
+  else
+    msg "❌ Error al crear el backup." "ERROR"
+    return 1
+  fi
+}
+
+
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
+
+
+
 
 # Limpia la terminal
 clear
@@ -101,29 +249,17 @@ clear
 view_vars_config
 
 # Buscar el proceso y eliminarlo
-taskkill //IM "Termius.exe" //F  >nul 2>&1
+taskkill //IM "FastKeys.exe" //F  >/tmp/nul 2>&1
 
+# C:\Users\cesarPc\Documents\FastKeys
 # Definir rutas
-SOURCE_DIR="/C/Users/cesarPc/AppData/Roaming/Termius"
+SOURCE_DIR="/C/Users/cesarPc/Documents/FastKeys"
 BACKUP_DIR="${CURRENT_DIR}/backup"
-BACKUP_FILE="${BACKUP_DIR}/backup_termius.tar.gz"
-# format unix
-BACKUP_FILE=$(echo "$BACKUP_FILE" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
 
-# Crear el directorio de destino si no existe
-mkdir -p "$BACKUP_DIR"
+
+
+BACKUP_DIR=$(path_windows_to_path_shell "$BACKUP_DIR")
 
 # Entrar al directorio de la fuente y regresar a su raíz
-cd "${SOURCE_DIR}" && cd ..
+realizar_backup "${SOURCE_DIR}" "${BACKUP_DIR}"
 
-echo -e "${Blue}Comprimiendo directorio [$SOURCE_DIR]"
-echo -e "${Gray}"
-# Comprimir la carpeta en un archivo TAR.GZ
-tar -cvzf "${BACKUP_FILE}" Termius
-
-# Verificar si el backup fue exitoso
-if [ $? -eq 0 ]; then
-  echo -e "${Green}Backup realizado exitosamente: $BACKUP_FILE${Color_Off}"
-else
-  echo -e "${Red}Hubo un error al realizar el backup."
-fi

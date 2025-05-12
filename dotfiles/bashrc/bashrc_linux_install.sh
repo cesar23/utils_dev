@@ -100,6 +100,7 @@ if [ -n "$SSH_CONNECTION" ]; then
 #    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SOCIEDAD):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 fi
 
+
 # ========================
 # 2. Alias útiles
 # ========================
