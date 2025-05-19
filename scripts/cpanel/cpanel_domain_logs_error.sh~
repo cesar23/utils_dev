@@ -227,7 +227,7 @@ tail -f "$LOG_FILE" |  awk '{ print strftime("[%Y-%m-%d %H:%M:%S]", systime() - 
 # ==================================================================
 #  Uso
 # ==================================================================
-#curl -sSL -o cpanel_domain_logs_error.sh  https://raw.githubusercontent.com/cesar23/utils_dev/refs/heads/master/scripts/cpanel/cpanel_domain_logs_error.sh && \
+#curl -sSL -o cpanel_domain_logs_error.sh  https://raw.githubusercontent.com/cesar23/utils_dev/refs/heads/master/scripts/wordpress/cpanel_domain_logs_error.sh && \
 #chmod +x cpanel_domain_logs_error.sh  && \
 #./cpanel_domain_logs_error.sh  && \
 #rm -rf cpanel_domain_logs_error.sh

@@ -461,7 +461,6 @@ create_file() {
 }
 
 
-
 # ========================
 # 6. Verificar y instalar paquetes necesarios
 # ========================

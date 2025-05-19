@@ -14,7 +14,8 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=1.0.7
+
+VERSION_BASHRC=1.0.9
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -65,7 +66,6 @@ BPurple='\e[1;35m'      # Púrpura (negrita).
 BCyan='\e[1;36m'        # Cian (negrita).
 BWhite='\e[1;37m'       # Blanco (negrita).
 BGray='\e[1;90m'        # Gris (negrita).
-
 
 
 # Fondo gris oscuro,fondo gris claro
@@ -266,6 +266,39 @@ start_cyber_panel() {
 # Ejemplo de uso: start_cyber_panel
 
 
+###############################################
+# 📄 FUNCTION: listar_archivos_recientes_modificados
+###############################################
+# Lists the most recently modified files in a given directory.
+#
+# @param $1 - Directory path to scan (default: .)
+# @param $2 - Number of files to display (default: 10)
+#
+# @return Prints the most recently modified files with their date and time.
+#
+# 🧪 Example usage:
+#   listar_archivos_recientes_modificados "/var/www/html" 15
+#   listar_archivos_recientes_modificados "/home/user"
+#   listar_archivos_recientes_modificados
+###############################################
+listar_archivos_recientes_modificados() {
+  local path="${1:-.}"         # Default path: current directory
+  local count="${2:-10}"       # Default count: 10 files
+
+  if [ ! -d "$path" ]; then
+    echo "❌ Error: '$path' is not a valid directory."
+    return 1
+  fi
+
+  echo "📁 Showing the last $count modified files in: $path"
+  echo "─────────────────────────────────────────────────────────────"
+
+  find "$path" -type f -printf '%TY-%Tm-%Td %TH:%TM:%TS %p\n' \
+    | sort \
+    | tail -n "$count"
+}
+
+
 
 # ----------------------------------------
 # Function: detect_system
@@ -338,7 +371,6 @@ install_package() {
             ;;
         *)
             echo "❌ Unrecognized system. Please install $package manually."
-            exit 1
             ;;
     esac
 }
@@ -410,6 +442,7 @@ show_date() {
     echo "Fecha actual en UTC:            $utc_date"
     echo "Fecha actual en Perú (UTC-5):   $peru_date"
 }
+
 
 # ==============================================================================
 # 📦 Función: create_file
@@ -528,6 +561,7 @@ submenu_generales(){
   cls
   echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
   echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
+  echo -e "${Gray}   - listar_archivos_recientes_modificados : ${Cyan} ficheros recientes y modificados  Ejemplo: listar_archivos_recientes_modificados '/var/www/html' 15${Color_Off}"
   echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
   echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
   echo -e "${Gray}   - search_text : ${Cyan}Buscar texto en múltiples archivos del directorio actual. Ejemplo: search_text 'texto_a_buscar'${Color_Off}"
@@ -869,6 +903,8 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
+
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
