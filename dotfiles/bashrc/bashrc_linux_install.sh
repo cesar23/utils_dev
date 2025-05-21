@@ -13,7 +13,8 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=2.0.1
+
+VERSION_BASHRC=2.0.5
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -524,8 +525,16 @@ create_file() {
 system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
-check_and_install fzf fzf
-check_and_install tree tree
+if [[ "$system" == "ubuntu" || "$system" == "wsl" ]]; then
+    # echo "🔄 verificaciones para  Debian/WSL..."
+    check_and_install fzf fzf
+    check_and_install tree tree
+elif [[ "$system" == "redhat" ]]; then
+    # echo "🔄 Instalando fzf en CentOS/RHEL..."
+    check_and_install tree tree
+fi
+
+
 
 # ========================
 # 7. Menú interactivo
@@ -924,6 +933,7 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"

@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
 
-VERSION_BASHRC=2.0.1
+VERSION_BASHRC=2.0.5
 VERSION_PLATFORM='(TERMUX)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
