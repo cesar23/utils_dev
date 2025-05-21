@@ -13,9 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
-
-VERSION_BASHRC=2.0.0
+VERSION_BASHRC=2.0.1
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -399,21 +397,29 @@ install_package() {
 #
 # Parameters:
 #   $1 -> Name of the package to check and install
-#   $2 -> Comando en la terminal
+#   $2 -> Command to check in terminal (optional, defaults to $1)
 #
 # Example usage:
 #   check_and_install fzf
+#   check_and_install bat batcat
 # ----------------------------------------
 check_and_install() {
-    package=$1  # Package name
-    command_terminal=$2  # Comando Terminal
+    local package="$1"  # Package name
+    local command_to_check="${2:-$1}"  # Command to check (defaults to package name)
 
-    if ! command -v "$command_terminal" &> /dev/null; then
-        echo "⚠️ Comando:${command_terminal} , Paquete: ${package} is not installed. Installing now..."
-        install_package "$package"
+    # Primero prueba con 'which' si está disponible, de lo contrario usa 'command -v'
+    if command -v which &> /dev/null; then
+        if ! which "$command_to_check" &> /dev/null; then
+            echo "⚠️ Command '${command_to_check}' (package: ${package}) is not installed. Installing now..."
+            install_package "$package"
+        fi
+    else
+        if ! command -v "$command_to_check" &> /dev/null; then
+            echo "⚠️ Command '${command_to_check}' (package: ${package}) is not installed. Installing now..."
+            install_package "$package"
+        fi
     fi
 }
-
 
 
 mostrar_uso() {
@@ -918,8 +924,8 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
 source "$BASHRC_PATH"
+

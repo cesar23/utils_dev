@@ -15,7 +15,7 @@ echo "" > $BASHRC_PATH
 cat > "$BASHRC_PATH" << 'EOF'
 
 
-VERSION_BASHRC=1.0.9
+VERSION_BASHRC=2.0.0
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -156,8 +156,12 @@ alias grep='grep --color=auto'
 
 # Configuración de `dircolors` si está disponible
 force_color_prompt=yes
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+# if [ -x /usr/bin/dircolors ]; then
+#    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#    alias ls='ls --color=auto'
+#fi
+if command -v dircolors &> /dev/null; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
 fi
 
@@ -320,10 +324,20 @@ detect_system() {
         echo "termux"
     elif grep -q Microsoft /proc/version; then
         echo "wsl"
-    elif grep -qE "ID=ubuntu|ID=debian" /etc/os-release 2>/dev/null; then
-        echo "ubuntu"
-    elif grep -qE "ID=rhel|ID=fedora|ID=centos|ID=rocky|ID=almalinux" /etc/os-release 2>/dev/null; then
-        echo "redhat"
+    elif [ -f /etc/os-release ]; then
+        # Lee el ID de /etc/os-release
+        source /etc/os-release
+        case $ID in
+            ubuntu|debian)
+                echo "ubuntu"
+                ;;
+            rhel|centos|fedora|rocky|almalinux)
+                echo "redhat"
+                ;;
+            *)
+                echo "unknown"
+                ;;
+        esac
     elif [ -n "$MSYSTEM" ]; then
         echo "gitbash"
     else
@@ -356,7 +370,12 @@ install_package() {
             ;;
         redhat)
             echo "🔵 Installing $package on Red Hat/CentOS/Fedora..."
-            sudo dnf install -y "$package"
+            # Usa dnf si está disponible, sino yum
+            if command -v dnf &> /dev/null; then
+                sudo dnf install -y "$package"
+            else
+                sudo yum install -y "$package"
+            fi
             ;;
         termux)
             echo "📱 Installing $package on Termux..."
@@ -374,7 +393,6 @@ install_package() {
             ;;
     esac
 }
-
 
 # ----------------------------------------
 # Function: check_and_install
@@ -511,10 +529,15 @@ system=$(detect_system)
 
 alias ls='ls --color=auto'
 
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#if [ -x /usr/bin/dircolors ]; then
+#    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#    alias ls='ls --color=auto'
+#fi
+if command -v dircolors &> /dev/null; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
 fi
+
 
 
 # Verificar si el sistema operativo es Linux
@@ -903,7 +926,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 
 EOF
 
