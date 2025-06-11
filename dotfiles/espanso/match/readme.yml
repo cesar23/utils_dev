@@ -8,13 +8,7 @@ matches:
 #    replace: |
 #      <img width="100%" src="[[ruta_img]]" alt="My cool logo"/>
   - trigger: ":fkimg"
-    replace: ' <img width="100%" src="{{form1.ruta_img}}" alt="My cool logo"/>
-    
-    
-    
-    
-    
-    
+    replace: '![imagen]([[ruta_img]])
     -- ------
     '
     vars:
