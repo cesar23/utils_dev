@@ -1,18 +1,13 @@
 enable: true
+
 matches:
-#  - trigger: ":fkimg"
-#    form: |
-#      ruta_img:
-#        type: text
-#        label: "Introduce la ruta de la imagen"
-#    replace: |
-#      <img width="100%" src="[[ruta_img]]" alt="My cool logo"/>
+
   - trigger: ":fkimg"
-    replace: '![imagen]([[ruta_img]])
-    -- ------
-    '
+    replace: | 
+      ![imagen]({{form1.ruta_img}})
+      -- -
     vars:
       - name: "form1"
         type: form
         params:
-          layout: "url imagen: [[ruta_img]]"
+          layout: "Ruta de imagen: [[ruta_img]]"
