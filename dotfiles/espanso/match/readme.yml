@@ -4,7 +4,7 @@ matches:
 
   - trigger: ":fkimg"
     replace: | 
-      ![imagen]({{form1.ruta_img}})
+      ![imagen](../assets/{{form1.ruta_img}})
       -- -
     vars:
       - name: "form1"
