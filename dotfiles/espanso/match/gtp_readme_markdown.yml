@@ -1,0 +1,36 @@
+matches:
+  - trigger: ":mk_menu1"
+    replace: |
+      Mejorame mi documentacion  y su estructura que se vea mas bonito y entendible mi markdown
+      para vista al usuario final. has mi markdown mas atractivo con iconos. y se vea mas bonito.
+      
+      Luego creame un menu indice para acceder a cada seccion . que este menu sea muy lindo y entendible con su icono correspondiente, 
+      ejemplo que se estrictamente asi:
+
+      ## Índice
+      ...
+
+
+      tambien creame un link que me pueda ayudar a regresar al menu en cada seccion.
+      el ancla para regresar se este seria asi:
+            
+      [⬆️ Volver al índice](#índice)
+      
+  - trigger: ":mk_menu2"
+    replace: |
+      adicional a esto cuando se crea el menu hay errores al crealo por que no se considera que hay un icono y ahi hay un problema. ejemplo tenemos un link interno:
+
+      ## 🔗 Paso 3: Conectar y Verificar
+
+
+      para este caso se beria respetar al crear  el menu asi de este modo:
+
+      [🔗 Paso 3: Conectar y Verificar](#🔗-paso-3-conectar-y-verificar)
+
+
+
+
+
+
+
+
