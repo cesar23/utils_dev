@@ -1,5 +1,5 @@
 matches:
-  - trigger: ":mk_menu1"
+  - trigger: ":md_menu1"
     replace: |
       Mejorame mi documentacion  y su estructura que se vea mas bonito y entendible mi markdown
       para vista al usuario final. has mi markdown mas atractivo con iconos. y se vea mas bonito.
@@ -16,7 +16,7 @@ matches:
             
       [⬆️ Volver al índice2](#📌-índice)
       
-  - trigger: ":mk_menu2"
+  - trigger: ":md_menu2"
     replace: |
       adicional a esto cuando se crea el menu hay errores al crealo por que no se considera que hay un icono y ahi hay un problema. ejemplo tenemos un link interno:
 
