@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="2.0.0"
+VERSION_SCRIPT="2.0.1"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -43,7 +43,8 @@ check_dependencies() {
   local missing_cmds=()
   local missing_pkgs=()
 
-  echo -en "${Cyan}Cheking depedencies...${Color_Off}" && sleep 1
+  echo -e "${Cyan}Cheking depedencies...${Color_Off}";
+  sleep 1
 
   # Verifica cada comando recibido
   for cmd in "$@"; do
