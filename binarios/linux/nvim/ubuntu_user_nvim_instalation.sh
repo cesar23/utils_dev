@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0.7"
+VERSION_SCRIPT="1.0.2"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -42,6 +42,8 @@ check_dependencies() {
   declare -A pkg_map=( [nvim]="neovim" )
   local missing_cmds=()
   local missing_pkgs=()
+
+  echo -en "${Cyan}Cheking depedencies...${Color_Off}" && sleep 1
 
   # Verifica cada comando recibido
   for cmd in "$@"; do
