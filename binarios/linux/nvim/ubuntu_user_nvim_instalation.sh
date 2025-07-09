@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0.6"
+VERSION_SCRIPT="1.0.7"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -56,7 +56,7 @@ check_dependencies() {
   if [ ${#missing_cmds[@]} -ne 0 ]; then
     echo -e "${Red}Error:${Color_Off} Los siguientes comandos no están instalados: ${missing_cmds[*]}"
     echo -e "${Red}Por favor, instálalos antes de continuar.${Color_Off}"
-    echo -e "${Yellow}Ejecuta el comando: sudo apt install ${missing_pkgs[*]} -y.${Color_Off}"
+    echo -e "${Yellow}Ejecuta el comando:${Color_Off} sudo apt install ${missing_pkgs[*]} -y${Color_Off}"
     exit 1
   fi
 }
