@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0.2"
+VERSION_SCRIPT="2.0.0"
 
 set -e  # Detiene el script si ocurre un error
 
