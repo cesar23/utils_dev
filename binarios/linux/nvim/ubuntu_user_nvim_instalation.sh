@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0"
+VERSION_SCRIPT="1.0.2"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -25,10 +25,17 @@ sleep 3
 
 # Verificar dependencias
 for cmd in nvim git curl unzip; do
+  local error=0
   if ! command -v $cmd >/dev/null 2>&1; then
     echo -e "${Red}Error:${Color_Off} El comando '$cmd' no está instalado. Instálalo antes de continuar."
-    exit 1
+    error=1
   fi
+
+  if [ $error -eq 1 ]; then
+    exit 1
+
+  fi
+
 done
 
 # Paso 2: Crear directorios de configuración de Neovim
