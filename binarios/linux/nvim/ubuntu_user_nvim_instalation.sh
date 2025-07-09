@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0.3"
+VERSION_SCRIPT="1.0.4"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -16,48 +16,113 @@ Cyan='\e[0;36m'         # Cyan
 White='\e[0;37m'        # White
 Gray='\e[1;30m'         # Gray
 
-echo -e "${Gray}=======================================================${Color_Off}"
-echo -e "${Gray}Ejecutando script para la configuración de Neovim...${Color_Off}"
-echo -e "${Gray}    Version: ${VERSION_SCRIPT}${Color_Off}"
-echo -e "${Gray}=======================================================${Color_Off}"
+
+# ==============================================================================
+# 📝 Función: check_dependencies
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Verifica si los comandos/dependencias pasados como argumentos están instalados
+#   en el sistema. Si falta alguno, muestra un mensaje de error y termina el script.
+#
+# 🔧 Parámetros:
+#   $@ - Lista de comandos/dependencias a verificar (ejemplo: nvim git curl unzip)
+#
+# 💡 Uso:
+#   check_dependencies nvim git curl unzip
+#
+# 📦 Ejemplo en el script:
+#   check_dependencies nvim git curl unzip
+# ==============================================================================
+check_dependencies() {
+  local missing=()
+
+  for cmd in "$@"; do
+    if ! command -v "$cmd" &> /dev/null; then
+      missing+=("$cmd")
+    fi
+  done
+
+  if [ ${#missing[@]} -ne 0 ]; then
+    echo -e "${Red}Error:${Color_Off} Los siguientes comandos no están instalados: ${missing[*]}"
+    echo -e "${Red}Por favor, instálalos antes de continuar.${Color_Off}"
+    exit 1
+  fi
+}
+
+
+
+# ==============================================================================
+# 📝 Función: msg
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Imprime un mensaje con formato estándar, incluyendo:
+#   - Marca de tiempo en UTC-5 (Perú)
+#   - Tipo de mensaje (INFO, WARNING, ERROR, o personalizado)
+#   - Colores para terminal (si están definidos previamente)
+#
+# 🔧 Parámetros:
+#   $1 - Mensaje a mostrar (texto)
+#   $2 - Tipo de mensaje (INFO | WARNING | ERROR | otro) [opcional, por defecto: INFO]
+#
+# 💡 Uso:
+#   msg "Inicio del proceso"               # Por defecto: INFO
+#   msg "Plugin no instalado" "WARNING"
+#   msg "Error de conexión" "ERROR"
+#   msg "Mensaje personalizado" "DEBUG"
+#
+# 🎨 Requiere:
+#   Variables de color: BBlue, BYellow, BRed, BWhite, BGray, Color_Off
+# ==============================================================================
+
+msg() {
+  local message="$1"
+  local level="${2:-INFO}"
+  local timestamp
+  timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
+
+  case "$level" in
+    INFO) echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}" ;;
+    WARNING) echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}" ;;
+    ERROR) echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}" ;;
+    SUCCESS) echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}" ;;
+    *) echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}" ;;
+  esac
+}
+
+
+# =============================================================================
+# 🔥 SECTION: Main Code
+# =============================================================================
+
+msg "${Gray}=======================================================${Color_Off}"
+msg "${Gray}Ejecutando script para la configuración de Neovim...${Color_Off}"
+msg "${Gray}    Version: ${VERSION_SCRIPT}${Color_Off}"
+msg "${Gray}=======================================================${Color_Off}"
 sleep 3
 
 
-# Verificar dependencias
-for cmd in nvim git curl unzip; do
-  error=0
-  if ! command -v $cmd >/dev/null 2>&1; then
-    echo -e "${Red}Error:${Color_Off} El comando '$cmd' no está instalado. Instálalo antes de continuar."
-    error=1
-  fi
-
-  if [ $error -eq 1 ]; then
-    exit 1
-
-  fi
-
-done
+check_dependencies nvim git curl unzip
 
 # Paso 2: Crear directorios de configuración de Neovim
-echo -e "${Cyan}Creando directorios de configuración...${Color_Off}"
+msg "${Cyan}Creando directorios de configuración...${Color_Off}"
 mkdir -p ~/.config/nvim
 mkdir -p ~/.config/nvim/colors
 
 
 # Paso 3: Instalar el esquema de color onedark.vim
-echo -e "${Cyan}Descargando esquema de color 'onedark.vim'...${Color_Off}"
+msg "${Cyan}Descargando esquema de color 'onedark.vim'...${Color_Off}"
 curl -fLo ~/.config/nvim/colors/onedark.vim --create-dirs \
     https://raw.githubusercontent.com/joshdick/onedark.vim/main/colors/onedark.vim
 
 # Paso 4: Instalar y configurar vim-plug
-echo -e "${Cyan}Instalando 'vim-plug' para la gestión de plugins...${Color_Off}"
+msg "${Cyan}Instalando 'vim-plug' para la gestión de plugins...${Color_Off}"
 curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 
 
 # Paso 5: Configurar init.vim
-echo -e "${Cyan}Agregando configuración inicial a 'init.vim'...${Color_Off}"
+msg "${Cyan}Agregando configuración inicial a 'init.vim'...${Color_Off}"
 cat > ~/.config/nvim/init.vim << 'EOF'
 " init.vim - Archivo de configuración de Neovim
 
@@ -266,10 +331,10 @@ autocmd BufRead,BufNewFile *.cnf,*.local,*.allow,*.deny set filetype=dosini
 EOF
 
 
-echo -e "${Cyan}Descargando e instalando la fuente FiraCode Nerd Font...${Color_Off}"
+msg "${Cyan}Descargando e instalando la fuente FiraCode Nerd Font...${Color_Off}"
 wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/FiraCode.zip -O /tmp/FiraCode.zip
 unzip -qo /tmp/FiraCode.zip -d ~/.local/share/fonts
-echo -e "${Green}Actualizando caché de fuentes...${Color_Off}"
+msg "${Green}Actualizando caché de fuentes...${Color_Off}"
 rm /tmp/FiraCode.zip
 
 
@@ -280,7 +345,7 @@ rm /tmp/FiraCode.zip
 #-----------------------------------------------------------
 # Crear el directorio si no existe
 mkdir -p ~/.local/bin
-echo -e "${Cyan}Creando el script auxiliar 'vi' para un acceso rápido a Neovim...${Color_Off}"
+msg "${Cyan}Creando el script auxiliar 'vi' para un acceso rápido a Neovim...${Color_Off}"
 
 # Crear el script auxiliar 'vi' en ~/.local/bin
 cat > ~/.local/bin/vi << 'EOF'
@@ -312,7 +377,7 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
 fi
 
 # Mensaje final
-echo "================================================================"
-echo -e "${Green}Configuración completada.${Color_Off}"
-echo -e "${Gray}- Puedes usar el comando vi para usar noevim.${Color_Off}"
-echo -e "${Yellow}- Abre Neovim y ejecuta ':PlugInstall' para instalar los plugins.${Color_Off}"
+msg "================================================================"
+msg "${Green}Configuración completada.${Color_Off}"
+msg "${Gray}- Puedes usar el comando vi para usar noevim.${Color_Off}"
+msg "${Yellow}- Abre Neovim y ejecuta ':PlugInstall' para instalar los plugins.${Color_Off}"
