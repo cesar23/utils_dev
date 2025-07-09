@@ -1,4 +1,5 @@
 #!/bin/bash
+VERSION_SCRIPT="1.0"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -15,9 +16,20 @@ Cyan='\e[0;36m'         # Cyan
 White='\e[0;37m'        # White
 Gray='\e[1;30m'         # Gray
 
+echo -e "${Gray}=======================================================${Color_Off}"
+echo -e "${Gray}Ejecutando script para la configuración de Neovim...${Color_Off}"
+echo -e "${Gray}    Version: ${VERSION_SCRIPT}${Color_Off}"
+echo -e "${Gray}=======================================================${Color_Off}"
+sleep 3
 
 
-
+# Verificar dependencias
+for cmd in nvim git curl unzip; do
+  if ! command -v $cmd >/dev/null 2>&1; then
+    echo -e "${Red}Error:${Color_Off} El comando '$cmd' no está instalado. Instálalo antes de continuar."
+    exit 1
+  fi
+done
 
 # Paso 2: Crear directorios de configuración de Neovim
 echo -e "${Cyan}Creando directorios de configuración...${Color_Off}"
@@ -259,11 +271,12 @@ rm /tmp/FiraCode.zip
 #-----------------------------------------------------------
 #------ creando fichero  nv para acceso rápido de nvim
 #-----------------------------------------------------------
-echo -e "${Cyan}Creando el script auxiliar 'nv' para un acceso rápido a Neovim...${Color_Off}"
+# Crear el directorio si no existe
+mkdir -p ~/.local/bin
+echo -e "${Cyan}Creando el script auxiliar 'vi' para un acceso rápido a Neovim...${Color_Off}"
 
-touch ~/vi && chmod +x ~/vi
-
-cat > ~/vi << 'EOF'
+# Crear el script auxiliar 'vi' en ~/.local/bin
+cat > ~/.local/bin/vi << 'EOF'
 # Función para mostrar el uso del script
 mostrar_uso() {
   echo "Uso: vi [archivo]"
@@ -276,13 +289,20 @@ else
   if [ -e "$1" ]; then
     nvim "$1"
   else
-    echo -en "--- ${Red}Error: El archivo '$1' no existe.${Color_Off} \n"
+    echo "Error: El archivo '$1' no existe."
     mostrar_uso
     exit 1
   fi
 fi
 EOF
-mv ~/vi /usr/bin/vi
+
+chmod +x ~/.local/bin/vi
+
+# Mensaje para recordar agregar ~/.local/bin al PATH si no está
+if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+  echo "Se agregó ~/.local/bin al PATH en ~/.bashrc. Reinicia la terminal para aplicar los cambios."
+fi
 
 # Mensaje final
 echo "================================================================"
