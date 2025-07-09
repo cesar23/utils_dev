@@ -1,0 +1,10 @@
+enable: true
+matches:
+
+  - trigger: :java_spring_run
+    replace: "./mvnw spring-boot:run"
+  - trigger: :java_spring_install
+    replace: "./mvnw clean install"
+  # Simple text replacement
+  - trigger: ":espanso"
+    replace: "Hi there! line1\nline2   {{firstname}}"
