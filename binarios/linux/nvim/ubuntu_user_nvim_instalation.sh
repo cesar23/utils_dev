@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION_SCRIPT="1.0.5"
+VERSION_SCRIPT="1.0.6"
 
 set -e  # Detiene el script si ocurre un error
 
@@ -25,32 +25,41 @@ Gray='\e[1;30m'         # Gray
 #   en el sistema. Si falta alguno, muestra un mensaje de error y termina el script.
 #
 # 🔧 Parámetros:
-#   $@ - Lista de comandos/dependencias a verificar (ejemplo: nvim git curl unzip)
+#   $@ - Lista de comandos/dependencias a verificar (ejemplo: nvim git curl unzip wget)
 #
 # 💡 Uso:
-#   check_dependencies nvim git curl unzip
+#   check_dependencies nvim git curl unzip wget
 #
 # 📦 Ejemplo en el script:
-#   check_dependencies nvim git curl unzip
+#   check_dependencies nvim git curl unzip wget
+#
+# 🛠️ Notas:
+#   - Si el nombre del comando y el paquete son iguales, no es necesario agregarlo al mapeo.
+#   - Solo agrega excepciones al array asociativo `pkg_map`.
 # ==============================================================================
 check_dependencies() {
-  local missing=()
+  # Mapeo de comandos a paquetes (solo excepciones)
+  declare -A pkg_map=( [nvim]="neovim" )
+  local missing_cmds=()
+  local missing_pkgs=()
 
+  # Verifica cada comando recibido
   for cmd in "$@"; do
     if ! command -v "$cmd" &> /dev/null; then
-      missing+=("$cmd")
+      missing_cmds+=("$cmd")
+      # Usa el mapeo si existe, si no, usa el mismo nombre
+      missing_pkgs+=("${pkg_map[$cmd]:-$cmd}")
     fi
   done
 
-  if [ ${#missing[@]} -ne 0 ]; then
-    echo -e "${Red}Error:${Color_Off} Los siguientes comandos no están instalados: ${missing[*]}"
+  # Si falta algún comando, muestra mensaje y termina
+  if [ ${#missing_cmds[@]} -ne 0 ]; then
+    echo -e "${Red}Error:${Color_Off} Los siguientes comandos no están instalados: ${missing_cmds[*]}"
     echo -e "${Red}Por favor, instálalos antes de continuar.${Color_Off}"
-    echo -e "${Yellow}Ejecuta el comando: sudo apt install ${missing[*]} -y.${Color_Off}"
+    echo -e "${Yellow}Ejecuta el comando: sudo apt install ${missing_pkgs[*]} -y.${Color_Off}"
     exit 1
   fi
 }
-
-
 
 # ==============================================================================
 # 📝 Función: msg
