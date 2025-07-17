@@ -9,6 +9,7 @@ export LC_ALL="es_ES.UTF-8"
 # Variables de configuración iniciales
 DATE_HOUR="$(date +%Y)-$(date +%m)-$(date +%d)_$(date +%H):$(date +%M):$(date +%S)"  # Fecha y hora actuales en formato YYYY-MM-DD_HH:MM:SS.
 CURRENT_USER=$(id -un)             # Nombre del usuario actual.
+CURRENT_USER_HOME="${HOME:-$USERPROFILE}"  # Ruta del perfil del usuario actual.
 CURRENT_PC_NAME=$(hostname)        # Nombre del equipo actual.
 MY_INFO="${CURRENT_USER}@${CURRENT_PC_NAME}"  # Información combinada del usuario y del equipo.
 PATH_SCRIPT=$(readlink -f "${BASH_SOURCE:-$0}")  # Ruta completa del script actual.
@@ -17,7 +18,7 @@ CURRENT_DIR=$(dirname "$PATH_SCRIPT")            # Ruta del directorio donde se 
 NAME_DIR=$(basename "$CURRENT_DIR")              # Nombre del directorio actual.
 TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal basado en el nombre del script.
 TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal en /tmp.
-
+ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 # =============================================================================
 # 🎨 SECTION: Colores para su uso7z
 
@@ -50,6 +51,9 @@ BGray='\e[1;90m'        # Gris (negrita).
 # =============================================================================
 # ⚙️ SECTION: Core Function
 # =============================================================================
+source "${CURRENT_DIR}/vscode_functions.sh"
+
+
 
 # ----------------------------------------------------------------------
 # 🗂️ get_rootPath
@@ -130,38 +134,39 @@ view_vars_config
 
 
 # Buscar el proceso y eliminarlo
-taskkill //IM "Termius.exe" //F  >nul 2>&1
+taskkill //IM "Code.exe" //F  >nul 2>&1
 
-
-# Rutas de origen y destino
+# Definir rutas
+#SOURCE_DIR="/C/Users/cesarPc/AppData/Roaming/Termius"
+SOURCE_DIR="${CURRENT_USER_HOME}/AppData/Roaming/Code/User"
+SOURCE_FILE="${SOURCE_DIR}/settings.json"
 BACKUP_DIR="${CURRENT_DIR}/backup"
-BACKUP_FILE="${BACKUP_DIR}/backup_termius.tar.gz"
-TARGET_DIR="/c/Users/cesarPc/AppData/Roaming/Termius"
+BACKUP_FILE="${BACKUP_DIR}/settings.json.gz"
+BACKUP_FILE_EXTENSIONS="${BACKUP_DIR}/vs-extensions.txt"
 # format unix
 BACKUP_FILE=$(echo "$BACKUP_FILE" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
 
-# Verificar si el archivo de backup existe
-if [ ! -f "$BACKUP_FILE" ]; then
-  echo "El archivo de backup no existe: $BACKUP_FILE"
-  exit 1
-fi
-
-# Eliminar el contenido del directorio de destino
-echo -e "${Blue}Eliminando contenido existente en $TARGET_DIR..."
-cd "${TARGET_DIR}" && rm -rf *  # Elimina de forma segura todo el contenido dentro de TARGET_DIR
-
-sleep 3
 # Crear el directorio de destino si no existe
-mkdir -p "$TARGET_DIR"
+mkdir -p "$BACKUP_DIR"
 
-# Extraer el contenido del archivo de backup en el directorio de destino
-echo -e "${Blue}Descomprimiendo backup en $TARGET_DIR..."
+# Entrar al directorio de la fuente y regresar a su raíz
+cd "${SOURCE_DIR}"
+
+echo -e "${Blue}Descomprimiendo : [$SOURCE_DIR]"
 echo -e "${Gray}"
-tar -xvzf "$BACKUP_FILE" -C "$TARGET_DIR" --strip-components=1
 
-# Verificar si la descompresión fue exitosa
+
+echo -e "${Blue}Comprimiendo backup configuraciones de Visual Studio Code"
+gunzip -k "${BACKUP_FILE}"
+
+
+echo -e "${Blue}Comprimiendo backup extensiones de Visual Studio Code"
+# Exportar las extensiones de Visual Studio Code
+vsc_install_extensions "${BACKUP_FILE_EXTENSIONS}"
+
+# Verificar si el backup fue exitoso
 if [ $? -eq 0 ]; then
-  echo -e "${Green}El contenido de $BACKUP_FILE ha sido restaurado exitosamente en $TARGET_DIR"
+  echo -e "${Green}Backup realizado exitosamente: $BACKUP_FILE${Color_Off}"
 else
-  echo -e "${Red}Hubo un error al descomprimir el archivo de backup."
+  echo -e "${Red}Hubo un error al realizar el backup."
 fi

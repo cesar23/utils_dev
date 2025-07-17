@@ -9,6 +9,7 @@ export LC_ALL="es_ES.UTF-8"
 # Variables de configuración iniciales
 DATE_HOUR="$(date +%Y)-$(date +%m)-$(date +%d)_$(date +%H):$(date +%M):$(date +%S)"  # Fecha y hora actuales en formato YYYY-MM-DD_HH:MM:SS.
 CURRENT_USER=$(id -un)             # Nombre del usuario actual.
+CURRENT_USER_HOME="${HOME:-$USERPROFILE}"  # Ruta del perfil del usuario actual.
 CURRENT_PC_NAME=$(hostname)        # Nombre del equipo actual.
 MY_INFO="${CURRENT_USER}@${CURRENT_PC_NAME}"  # Información combinada del usuario y del equipo.
 PATH_SCRIPT=$(readlink -f "${BASH_SOURCE:-$0}")  # Ruta completa del script actual.
@@ -52,6 +53,7 @@ BGray='\e[1;90m'        # Gris (negrita).
 # ⚙️ SECTION: Core Function
 # =============================================================================
 
+source "${CURRENT_DIR}/vscode_functions.sh"
 
 
 # ----------------------------------------------------------------------
@@ -101,12 +103,18 @@ clear
 view_vars_config
 
 # Buscar el proceso y eliminarlo
-taskkill //IM "Termius.exe" //F  >nul 2>&1
+taskkill //IM "Code.exe" //F  >nul 2>&1
+
+#%APPDATA%\Code\User\settings.json
+# C:\Users\cesarPc\AppData\Roaming\Code\User
 
 # Definir rutas
-SOURCE_DIR="/C/Users/cesarPc/AppData/Roaming/Termius"
+#SOURCE_DIR="/C/Users/cesarPc/AppData/Roaming/Termius"
+SOURCE_DIR="${CURRENT_USER_HOME}/AppData/Roaming/Code/User"
+SOURCE_FILE="${SOURCE_DIR}/settings.json"
 BACKUP_DIR="${CURRENT_DIR}/backup"
-BACKUP_FILE="${BACKUP_DIR}/backup_termius.tar.gz"
+BACKUP_FILE="${BACKUP_DIR}/settings.json.gz"
+BACKUP_FILE_EXTENSIONS="${BACKUP_DIR}/vs-extensions.txt"
 # format unix
 BACKUP_FILE=$(echo "$BACKUP_FILE" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
 
@@ -114,12 +122,16 @@ BACKUP_FILE=$(echo "$BACKUP_FILE" | sed 's|^\([A-Za-z]\):|/\L\1|;s|\\|/|g')
 mkdir -p "$BACKUP_DIR"
 
 # Entrar al directorio de la fuente y regresar a su raíz
-cd "${SOURCE_DIR}" && cd ..
+cd "${SOURCE_DIR}"
 
-echo -e "${Blue}Comprimiendo directorio [$SOURCE_DIR]"
+echo -e "${Blue}Comprimiendo fichero [$SOURCE_DIR]"
 echo -e "${Gray}"
 # Comprimir la carpeta en un archivo TAR.GZ
-tar -cvzf "${BACKUP_FILE}" Termius
+#tar -cvzf "${BACKUP_FILE}" Termius
+gzip -c "${SOURCE_FILE}" > "${BACKUP_FILE}"
+
+# Exportar las extensiones de Visual Studio Code
+vsc_export_extensions "${BACKUP_FILE_EXTENSIONS}"
 
 # Verificar si el backup fue exitoso
 if [ $? -eq 0 ]; then

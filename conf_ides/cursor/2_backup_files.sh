@@ -53,7 +53,7 @@ BGray='\e[1;90m'        # Gris (negrita).
 # ⚙️ SECTION: Core Function
 # =============================================================================
 
-source "${CURRENT_DIR}/vscode_functions.sh"
+source "${CURRENT_DIR}/vcursor_functions.sh"
 
 
 # ----------------------------------------------------------------------
@@ -103,14 +103,14 @@ clear
 view_vars_config
 
 # Buscar el proceso y eliminarlo
-taskkill //IM "Code.exe" //F  >nul 2>&1
+taskkill //IM "Cursor.exe" //F  >nul 2>&1
 
 #%APPDATA%\Code\User\settings.json
 # C:\Users\cesarPc\AppData\Roaming\Code\User
 
 # Definir rutas
 #SOURCE_DIR="/C/Users/cesarPc/AppData/Roaming/Termius"
-SOURCE_DIR="${CURRENT_USER_HOME}/AppData/Roaming/Code/User"
+SOURCE_DIR="${CURRENT_USER_HOME}/AppData/Roaming/Cursor/User"
 SOURCE_FILE="${SOURCE_DIR}/settings.json"
 BACKUP_DIR="${CURRENT_DIR}/backup"
 BACKUP_FILE="${BACKUP_DIR}/settings.json.gz"
@@ -131,7 +131,7 @@ echo -e "${Gray}"
 gzip -c "${SOURCE_FILE}" > "${BACKUP_FILE}"
 
 # Exportar las extensiones de Visual Studio Code
-vsc_export_extensions "${BACKUP_FILE_EXTENSIONS}"
+vcursor_export_extensions "${BACKUP_FILE_EXTENSIONS}"
 
 # Verificar si el backup fue exitoso
 if [ $? -eq 0 ]; then

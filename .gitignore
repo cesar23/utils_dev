@@ -12,6 +12,7 @@
 /vendor
 /log/*
 
+**/nul
 
 #--------node
 /node_modules
@@ -39,3 +40,7 @@ binarios/utilitarios/AcroRdrDC1500720033_MUI.exe
 
 
 dotfiles/fastkey_data/nul
+# =======================================
+# ficheros agregados de manera forzada
+# =======================================
+!dotfiles/bashrc/libs_shell.zip
