@@ -1,0 +1,326 @@
+{
+  "workbench.iconTheme": "symbols",
+  "files.autoSave": "afterDelay",
+  "editor.fontSize": 15,
+  "liveServer.settings.wait": 50,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java"
+  },
+  "markdownlint.customRules": [
+    "{docsmsft.docs-linting}/markdownlint-custom-rules/rules.js"
+  ],
+  "markdownlint.config": {
+    "MD028": false
+  },
+  "editor.accessibilityPageSize": 11,
+  "powershell.powerShellAdditionalExePaths": {
+    "PowerShell 7.5.1": "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\pwsh.exe"
+  },
+  "editor.codeActionsOnSave": null,
+  "bracket-pair-colorizer-2.colors": [
+    "#fafafa",
+    "#9F51B6",
+    "#F7C244",
+    "#F07850",
+    "#9CDD29",
+    "#C497D4"
+  ],
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.wordWrap": "on",
+  "hediet.vscode-drawio.local-storage": "eyIuZHJhd2lvLWNvbmZpZyI6IntcImxhbmd1YWdlXCI6XCJcIixcImN1c3RvbUZvbnRzXCI6W10sXCJsaWJyYXJpZXNcIjpcImdlbmVyYWw7d2ViaWNvbnNcIixcImN1c3RvbUxpYnJhcmllc1wiOltcIkwuc2NyYXRjaHBhZFwiXSxcInBsdWdpbnNcIjpbXSxcInJlY2VudENvbG9yc1wiOltdLFwiZm9ybWF0V2lkdGhcIjpcIjI0MFwiLFwiY3JlYXRlVGFyZ2V0XCI6ZmFsc2UsXCJwYWdlRm9ybWF0XCI6e1wieFwiOjAsXCJ5XCI6MCxcIndpZHRoXCI6ODI3LFwiaGVpZ2h0XCI6MTE2OX0sXCJzZWFyY2hcIjp0cnVlLFwic2hvd1N0YXJ0U2NyZWVuXCI6dHJ1ZSxcImdyaWRDb2xvclwiOlwiI2QwZDBkMFwiLFwiZGFya0dyaWRDb2xvclwiOlwiIzZlNmU2ZVwiLFwiYXV0b3NhdmVcIjp0cnVlLFwicmVzaXplSW1hZ2VzXCI6bnVsbCxcIm9wZW5Db3VudGVyXCI6MCxcInZlcnNpb25cIjoxOCxcInVuaXRcIjoxLFwiaXNSdWxlck9uXCI6ZmFsc2UsXCJ1aVwiOlwiXCJ9In0=",
+  "tabnine.experimentalAutoImports": true,
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "git.enableSmartCommit": true,
+  "kite.showWelcomeNotificationOnStartup": false,
+  "editor.renderWhitespace": "all",
+  "vsicons.dontShowNewVersionMessage": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "redhat.telemetry.enabled": true,
+  "files.associations": {
+    "*.java": "java"
+  },
+  "cSpell.language": "es,en,es-ES",
+  "cSpell.userWords": [
+    "acceso",
+    "activador",
+    "activadores",
+    "actualizar",
+    "administrador",
+    "algun",
+    "anio",
+    "ANIO",
+    "archivo",
+    "backup",
+    "base",
+    "bash",
+    "bdthemes",
+    "carpeta",
+    "certbot",
+    "Cian",
+    "clave",
+    "cloudflare",
+    "comando",
+    "comandos",
+    "conexión",
+    "config",
+    "configuracion",
+    "configuración",
+    "configurar",
+    "confirmar",
+    "CONNLIMIT",
+    "contenedor",
+    "contenedores",
+    "copias",
+    "copypublic",
+    "copyviews",
+    "cpanel",
+    "crear",
+    "cscript",
+    "CSF",
+    "csfpost",
+    "csfpre",
+    "cursefqz",
+    "customizer",
+    "datos",
+    "dependencias",
+    "Desafio",
+    "desarrollo",
+    "descargar",
+    "digiboy",
+    "DIRECCION",
+    "directorio",
+    "docker",
+    "documentación",
+    "dominio",
+    "dport",
+    "Edita",
+    "ejecutar",
+    "elementor",
+    "elementos",
+    "elementskit",
+    "elimínalo",
+    "encuentra",
+    "entorno",
+    "entornos",
+    "Enviroment",
+    "error",
+    "escaneos",
+    "extraer",
+    "filesize",
+    "firewall",
+    "función",
+    "geoip",
+    "gitlab",
+    "gitup",
+    "HWID",
+    "inslic",
+    "instalación",
+    "instalar",
+    "interfaz",
+    "inversionesletich",
+    "Laborem",
+    "LABOREM",
+    "Linux",
+    "litespeed",
+    "logs",
+    "LUPER",
+    "MariaDB",
+    "Midlleware",
+    "monitor",
+    "monitoreadas",
+    "monitoreo",
+    "mysql",
+    "MySQL",
+    "MYSQL",
+    "mysqldump",
+    "necesidades",
+    "opcion",
+    "ospp",
+    "pantalla",
+    "paquete",
+    "parámetro",
+    "parametros",
+    "pcbyte",
+    "PERMBLOCK",
+    "permiso",
+    "personalizar",
+    "perucaos",
+    "phar",
+    "plugin",
+    "PORTFLOOD",
+    "preparar",
+    "previo",
+    "probar",
+    "proceso",
+    "producción",
+    "PROPLUS",
+    "proyecto",
+    "puede",
+    "puerto",
+    "registro",
+    "reiniciar",
+    "repo",
+    "respaldo",
+    "resultado",
+    "root",
+    "salida",
+    "script",
+    "seguridad",
+    "servidor",
+    "shell",
+    "siguiente",
+    "sistema",
+    "sobrescribirlo",
+    "softlink",
+    "ssl",
+    "supabase",
+    "SUPABASE",
+    "tar",
+    "temas",
+    "terminal",
+    "Ubuntu",
+    "unicode",
+    "unzip",
+    "usar",
+    "USERKILL",
+    "usuario",
+    "valores",
+    "variable",
+    "virtualhost",
+    "wget",
+    "woocommerce",
+    "wordfence",
+    "wordpres",
+    "wordpress",
+    "WordPress",
+    "WORDPRESS",
+    "xtables"
+  ],
+  "cursor.cpp.disabledLanguages": ["plaintext", "markdown", "scminput"],
+  "workbench.colorTheme": "One Dark Pro",
+  "editor.tabSize": 2,
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "explorer.confirmDelete": false,
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "workbench.colorCustomizations": {},
+  "liveServer.settings.root": "/web_static",
+
+  "code-runner.executorMap": {
+    "javascript": "\"C:\\Program Files\\nodejs\\node.exe\"",
+    "python": "python.exe",
+    "php": "\"C:\\laragon\\bin\\php\\php-8.2.25-Win32-vs16-x64\\php.exe\"",
+    "java": "javac",
+    "c": "gcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "cpp": "g++ $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "shellscript": "\"C:\\Program Files\\Git\\bin\\bash.exe\"",
+    "powershell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy ByPass -File"
+  },
+  //=============================
+  // 📝 Local History
+  //=============================
+  // 🔁 Número de días que se guardarán los historiales locales.
+  // Después de este límite, los archivos antiguos serán eliminados automáticamente.
+  // Pon 0 si no deseas borrar nunca.
+  "local-history.daysLimit": 15,
+
+  // 👁️ Cantidad máxima de archivos que se mostrarán en la lista visual de historial.
+  // No afecta cuántos se guardan realmente, solo lo visible en los menús del plugin.
+  "local-history.maxDisplay": 20,
+
+  // ⏳ Tiempo (en segundos) de retraso antes de guardar una copia del historial
+  // tras haber guardado el archivo en VSCode. Útil si haces muchos guardados rápidos.
+  // 0 = sin retraso.
+  "local-history.saveDelay": 0,
+
+  // 🌐 Formato regional para mostrar las fechas en el historial.
+  // Ejemplo: "es-PE" (Español Perú), "en-US" (Inglés EE.UU.), "fr-FR" (Francés).
+  "local-history.dateLocale": "es-PE",
+
+  // 📂 Carpeta donde se almacenarán los historiales.
+  // Puedes usar rutas absolutas (como D:/historiales/vscode) o variables.
+  // Aquí usamos la carpeta .vscode dentro del proyecto actual.
+  "local-history.path": "${workspaceFolder}/.vscode/.history",
+
+  // 🧭 Define si se guardarán los archivos en ruta absoluta o relativa.
+  // true: guarda como <path>/.history/C:/mi_proyecto/archivo.js
+  // false (recomendado): guarda como <path>/.history/mi_proyecto/archivo.js
+  "local-history.absolute": false,
+
+  // 🔌 Controla cuándo se activa el plugin:
+  // 0 = nunca guardar historial,
+  // 1 = siempre guardar (incluso si no hay carpeta de proyecto),
+  // 2 = solo guardar si estás en un workspace abierto.
+  "local-history.enabled": 2,
+
+  // 🚫 Lista de carpetas o archivos que quieres excluir del historial.
+  // Usa patrones glob. Ideal para carpetas grandes o irrelevantes como node_modules.
+  "local-history.exclude": [
+    "**/.history/**", // No guardar cambios en la carpeta del historial
+    "**/.vscode/**", // Excluir archivos internos de configuración
+    "**/node_modules/**", // No guardar dependencias
+    "**/wp-includes/**", // No guardar dependencias
+    "**/dist/**", // Evitar archivos compilados
+    "**/out/**" // Archivos de salida del proyecto
+  ],
+  "roo-cline.allowedCommands": [
+    "npm test",
+    "npm install",
+    "tsc",
+    "git log",
+    "git diff",
+    "git show"
+  ],
+  "yaml.schemas": {
+    "c:\\Users\\cesarPc\\.vscode\\extensions\\continue.continue-1.0.15-win32-x64\\config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ],
+    "c:\\Users\\cesar\\.vscode\\extensions\\continue.continue-1.0.15-win32-x64\\config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ],
+    "c:\\Users\\cesarPc\\.vscode\\extensions\\continue.continue-1.0.17-win32-x64\\config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ],
+    "c:\\Users\\cesarPc\\.vscode\\extensions\\continue.continue-1.0.18-win32-x64\\config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ]
+  },
+  "editor.fontFamily": "Fira Code",
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "remote.SSH.remotePlatform": {
+    "192.168.0.60": "linux"
+  },
+  "workbench.productIconTheme": "fluent-icons"
+}
