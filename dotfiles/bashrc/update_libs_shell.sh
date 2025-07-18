@@ -284,6 +284,25 @@ msg() {
   esac
 }
 
+pause_continue() {
+  # Descripción:
+  #   Muestra un mensaje de pausa. Si se pasa un argumento, lo usa como descripción del evento.
+  #   Si no se pasa nada, se muestra un mensaje por defecto.
+  #
+  # Uso:
+  #   pause_continue                         # Usa mensaje por defecto
+  #   pause_continue "Se instaló MySQL"      # Muestra "Se instaló MySQL. Presiona..."
+
+  if [ -n "$1" ]; then
+    local mensaje="🔹 $1. Presiona [ENTER] para continuar..."
+  else
+    local mensaje="✅ Comando ejecutado. Presiona [ENTER] para continuar..."
+  fi
+
+  msg  "${Gray}"
+  read -p "$mensaje"
+  msg  "${Color_Off}"
+}
 
 
 # ----------------------------------------
@@ -437,6 +456,9 @@ msg " version: 1.0.1"
 msg " SO: ${system}"
 msg "============================================================="
 echo ""
+
+view_vars_config
+pause_continue
 
 
 # URL del archivo zip
