@@ -26,7 +26,6 @@ TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')  # Ruta para un arc
 TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal en /tmp.
 ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 
-
 # =============================================================================
 # 🎨 SECTION: Colores para su uso
 # =============================================================================
@@ -99,7 +98,6 @@ show_date() {
 # ----------------------------------------------------------------------
 view_vars_config() {
 
-
   echo -e "${Gray}"
   echo -e "╔═══════════════════════════════════════════════════════════"
   echo -e "║             🛠️  CONFIGURACIÓN ACTUAL 🛠️"
@@ -108,6 +106,7 @@ view_vars_config() {
   echo -e "║ 👤 CURRENT_USER:             ${CURRENT_USER}"
   echo -e "║ 🖥️ CURRENT_PC_NAME:         ${CURRENT_PC_NAME}"
   echo -e "║ ℹ️ MY_INFO:                  ${MY_INFO}"
+  echo -e "║ 📁 CURRENT_USER_HOME:        ${CURRENT_USER_HOME}"
   echo -e "║ 📄 PATH_SCRIPT:              ${PATH_SCRIPT}"
   echo -e "║ 📜 SCRIPT_NAME:              ${SCRIPT_NAME}"
   echo -e "║ 📁 CURRENT_DIR:              ${CURRENT_DIR}"
@@ -117,7 +116,6 @@ view_vars_config() {
   if [ -n "$ROOT_PATH" ]; then
     echo -e "║ 🏡 ROOT_PATH:                ${ROOT_PATH}"
   fi
-
   echo -e "╚═══════════════════════════════════════════════════════════"
   echo -e "${Color_Off}"
 }
@@ -465,7 +463,7 @@ pause_continue
 ZIP_URL="https://raw.githubusercontent.com/cesar23/utils_dev/refs/heads/master/dotfiles/bashrc/libs_shell.zip"
 
 # Carpeta de destino
-DEST_DIR="$USERPROFILE/libs_shell"
+DEST_DIR="$CURRENT_USER_HOME/libs_shell"
 
 # Ruta temporal para el zip descargado
 TEMP_ZIP="/tmp/libs_shell.zip"
@@ -490,8 +488,8 @@ if [ -d "$DEST_DIR" ]; then
 fi
 
 # Descomprimir el zip en el directorio de usuario
-msg "📂 Descomprimiendo en $USERPROFILE..."
-unzip -q "$TEMP_ZIP" -d "$USERPROFILE"
+msg "📂 Descomprimiendo en $CURRENT_USER_HOME..."
+unzip -q "$TEMP_ZIP" -d "$CURRENT_USER_HOME"
 
 # Confirmación
 if [ -d "$DEST_DIR" ]; then
