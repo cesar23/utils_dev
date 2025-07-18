@@ -13,8 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
-VERSION_BASHRC=2.0.5
+VERSION_BASHRC=3.0.0
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -555,6 +554,7 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 fi
 
 
+
 menu(){
   echo -e "${Gray}========================${Color_Off}"
   echo -e "${Gray}VERSION_BASHRC: ${VERSION_BASHRC}${Color_Off}"
@@ -566,23 +566,25 @@ menu(){
   echo -e ""
   echo -e "${Gray}Seleccione una opción:${Color_Off}"
   echo -e "${Gray}1) Opciones Generales${Color_Off}"
-  echo -e "${Gray}2) Docker${Color_Off}"
-  echo -e "${Gray}3) Docker Comandos${Color_Off}"
-  echo -e "${Gray}4) CyberPanel${Color_Off}"
-  echo -e "${Gray}5) FZF${Color_Off}"
-  echo -e "${Gray}6) Script Python${Color_Off}"
-  echo -e "${Gray}7) Ficheros de configuración${Color_Off}"
-  echo -e "${Gray}8) Salir${Color_Off}"
+  echo -e "${Gray}2) Navegacion${Color_Off}"
+  echo -e "${Gray}3) Docker${Color_Off}"
+  echo -e "${Gray}4) Docker Comandos${Color_Off}"
+  echo -e "${Gray}5) CyberPanel${Color_Off}"
+  echo -e "${Gray}6) FZF${Color_Off}"
+  echo -e "${Gray}7) Script Python${Color_Off}"
+  echo -e "${Gray}8) Ficheros de configuración${Color_Off}"
+  echo -e "${Gray}9) Salir${Color_Off}"
   read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
     1) submenu_generales ;;
-    2) submenu_docker ;;
-    3) submenu_docker_comandos ;;
-    4) submenu_cyberpanel ;;
-    5) submenu_fzf ;;
-    6) submenu_python_utils ;;
-    7) submenu_ficheros_configuracion ;;
-    8) return ;;
+    2) menu_search ;; # esto es del fichero ./libs_shell/gitbash/func_navegacion.sh
+    3) submenu_docker ;;
+    4) submenu_docker_comandos ;;
+    5) submenu_cyberpanel ;;
+    6) submenu_fzf ;;
+    7) submenu_python_utils ;;
+    8) submenu_ficheros_configuracion ;;
+    9) return ;;
     "") return ;;  # Si se presiona Enter sin escribir nada, salir
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
@@ -933,7 +935,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
