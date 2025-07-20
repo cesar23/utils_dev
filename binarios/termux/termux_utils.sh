@@ -120,7 +120,7 @@ pause_continue() {
 clear
 echo -e "${BBlue}=====================================${Color_Off}"
 echo -e "${BBlue}::: Instalacion de Utils Termux :::${Color_Off}"
-echo -e "${BBlue}version 2.0        ${Color_Off}"
+echo -e "${BBlue}version 2.2       ${Color_Off}"
 echo -e "${BBlue}=====================================${Color_Off}"
 echo ""
 
@@ -162,3 +162,6 @@ echo -e "${Gray}📁 Tus archivos están en: /storage/emulated/0${Color_Off}"
 echo -e "${Gray}🐍 Python y pip ya están listos para usar.${Color_Off}"
 echo -e "${Gray}💡 Usa 'pip install paquete' para instalar más herramientas.${Color_Off}"
 
+echo -e "${BBlue}=====================================${Color_Off}"
+echo -e "${Yellow}⚠️ Si hay un error ejecutar:${Color_Off}"
+echo -e "${Yellow} >  dpkg --configure -a${Color_Off}"
