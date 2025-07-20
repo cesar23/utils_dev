@@ -118,19 +118,19 @@ pause_continue() {
 
 # Mostrar título bonito
 clear
-msg "====================================="
-msg "::: Instalacion de Utils Termux :::"
-msg "version 1.0"
-msg "====================================="
+echo -e "${Gray}=====================================${Color_Off}"
+echo -e "${Gray}::: Instalacion de Utils Termux :::${Color_Off}"
+echo -e "${Gray}version 1.0        ${Color_Off}"
+echo -e "${Gray}=====================================${Color_Off}"
 echo ""
 
-msg  "🔐 Solicitando permisos de almacenamiento..."
+echo -e "${Gray}🔐 Solicitando permisos de almacenamiento...${Color_Off}" && sleep 3
 termux-setup-storage
 
-msg "\n⬆️ Actualizando sistema..."
+echo -e "${Gray}\n⬆️ Actualizando sistema...${Color_Off}" && sleep 3
 pkg update -y && pkg upgrade -y
 
-msg "\n📦 Instalando herramientas esenciales..."
+echo -e "${Gray}\n📦 Instalando herramientas esenciales...${Color_Off}" && sleep 3
 pkg install -y \
   bash-completion \
   net-tools \
@@ -152,13 +152,13 @@ pkg install -y \
   ffmpeg \
   python
 
-msg "\n🐍 Verificando instalación de Python y pip..."
+echo -e "${Gray}\n🐍 Verificando instalación de Python y pip...${Color_Off}" && sleep 3
 python --version
 pip --version
 
-msg "\n✅ Todo instalado correctamente."
-msg "🟢 Herramientas instaladas exitosamente."
-msg "📁 Tus archivos están en: /storage/emulated/0"
-msg "🐍 Python y pip ya están listos para usar."
-msg "💡 Usa 'pip install paquete' para instalar más herramientas."
+echo -e "${Gray}\n✅ Todo instalado correctamente.${Color_Off}"
+echo -e "${Gray}🟢 Herramientas instaladas exitosamente.${Color_Off}"
+echo -e "${Gray}📁 Tus archivos están en: /storage/emulated/0${Color_Off}"
+echo -e "${Gray}🐍 Python y pip ya están listos para usar.${Color_Off}"
+echo -e "${Gray}💡 Usa 'pip install paquete' para instalar más herramientas.${Color_Off}"
 
