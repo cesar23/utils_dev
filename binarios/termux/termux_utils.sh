@@ -118,8 +118,11 @@ pause_continue() {
 
 # Mostrar título bonito
 clear
-pkg install figlet -y > /dev/null 2>&1
-figlet "Setup Termux"
+msg "====================================="
+msg "::: Instalacion de Utils Termux :::"
+msg "version 1.0"
+msg "====================================="
+echo ""
 
 msg  "🔐 Solicitando permisos de almacenamiento..."
 termux-setup-storage
@@ -154,7 +157,6 @@ python --version
 pip --version
 
 msg "\n✅ Todo instalado correctamente."
-figlet "Listo!"
 msg "🟢 Herramientas instaladas exitosamente."
 msg "📁 Tus archivos están en: /storage/emulated/0"
 msg "🐍 Python y pip ya están listos para usar."
