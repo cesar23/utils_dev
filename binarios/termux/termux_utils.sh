@@ -118,19 +118,19 @@ pause_continue() {
 
 # Mostrar título bonito
 clear
-echo -e "${Gray}=====================================${Color_Off}"
-echo -e "${Gray}::: Instalacion de Utils Termux :::${Color_Off}"
-echo -e "${Gray}version 1.0        ${Color_Off}"
-echo -e "${Gray}=====================================${Color_Off}"
+echo -e "${BBlue}=====================================${Color_Off}"
+echo -e "${BBlue}::: Instalacion de Utils Termux :::${Color_Off}"
+echo -e "${BBlue}version 2.0        ${Color_Off}"
+echo -e "${BBlue}=====================================${Color_Off}"
 echo ""
 
-echo -e "${Gray}🔐 Solicitando permisos de almacenamiento...${Color_Off}" && sleep 3
+echo -e "${BPurple}🔐 Solicitando permisos de almacenamiento...${Color_Off}" && sleep 3
 termux-setup-storage
 
-echo -e "${Gray}\n⬆️ Actualizando sistema...${Color_Off}" && sleep 3
+echo -e "${BPurple}\n⬆️ Actualizando sistema...${Color_Off}" && sleep 3
 pkg update -y && pkg upgrade -y
 
-echo -e "${Gray}\n📦 Instalando herramientas esenciales...${Color_Off}" && sleep 3
+echo -e "${BPurple}\n📦 Instalando herramientas esenciales...${Color_Off}" && sleep 3
 pkg install -y \
   bash-completion \
   net-tools \
