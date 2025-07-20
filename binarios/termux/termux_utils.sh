@@ -159,3 +159,4 @@ msg "🟢 Herramientas instaladas exitosamente."
 msg "📁 Tus archivos están en: /storage/emulated/0"
 msg "🐍 Python y pip ya están listos para usar."
 msg "💡 Usa 'pip install paquete' para instalar más herramientas."
+

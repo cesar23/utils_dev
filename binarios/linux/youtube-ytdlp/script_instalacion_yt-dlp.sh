@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
@@ -18,14 +18,12 @@ ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 
 
 # =============================================================================
-# 🎨 SECTION: Colores para su uso
-# =============================================================================
 # Definición de colores que se pueden usar en la salida del terminal.
 
 # Colores Regulares
 Color_Off='\033[0m'       # Reset de color.
 Black='\033[0;30m'        # Negro.
-Red='\033[0;31m'          # Rojo.
+Red='\033[0;31m'          # Rojo. 
 Green='\033[0;32m'        # Verde.
 Yellow='\033[0;33m'       # Amarillo.
 Blue='\033[0;34m'         # Azul.
@@ -44,8 +42,6 @@ BPurple='\033[1;35m'      # Púrpura (negrita).
 BCyan='\033[1;36m'        # Cian (negrita).
 BWhite='\033[1;37m'       # Blanco (negrita).
 BGray='\033[1;90m'        # Gris (negrita).
-
-
 
 # ==============================================================================
 # 📝 Función: msg
@@ -106,7 +102,25 @@ pause_continue() {
 }
 
 
-
+# ----------------------------------------------------------------------
+# check_run_root
+# ----------------------------------------------------------------------
+# Descripción:
+#   Verifica si el script se está ejecutando como root (usuario administrador).
+#   Si no es así, muestra un mensaje de error y termina la ejecución.
+# Uso:
+#   check_run_root
+# Ejemplo:
+#   check_run_root  # Detiene el script si no se ejecuta con sudo/root
+# ----------------------------------------------------------------------
+check_run_root() {
+  # Verifica si el script se está ejecutando como root
+  if [[ $(id -u) -ne 0 ]]; then
+    echo -e "${BRed}❌ Error: Este script requiere privilegios de administrador.${Color_Off}"
+    echo -e "${BGray}💡 Uso correcto: sudo ./$(basename "$0")${Color_Off}"
+    exit 1
+  fi
+}
 
 # ----------------------------------------
 # Function: detect_system
@@ -149,31 +163,86 @@ detect_system() {
     fi
 }
 
+# =============================================================================
+# ⚙️ SECTION: Function script
+# =============================================================================
+
+
+
 
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
 
 
-system=$(detect_system)
 
+
+
+
+
+
+# Detectar sistema operativo
+sistema=$(detect_system)
+
+
+# === INICIO ===
+msg "================================================="
+msg "======= INSTALADOR yt-dlp AVANZADO  v1.0.1 ======="
+msg "================================================="
+echo ""
+
+# Instalar fzf según la plataforma detectada
 case "$sistema" in
     ubuntu)
-        echo "🟢 Instalando yt-dlp en Ubuntu/Debian..."
+        # Verificar si somos root
+        check_run_root
+        # === Descargar yt-dlp ===
+        msg "Descargando yt-dlp..."
         curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+
+        # === Asignar permisos ===
+        msg "Asignando permisos de ejecución..."
         chmod a+rx /usr/local/bin/yt-dlp
         ;;
     termux)
-        echo "📱 Instalando yt-dlp en Termux..."
+        msg "Instalando yt-dlp..."
         pkg install python ffmpeg -y
         pip install -U yt-dlp
-        ;;
-    wsl)
-        curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-        chmod a+rx /usr/local/bin/yt-dlp
         ;;
     *)
         echo "❌ Sistema no reconocido. Instala fzf manualmente."
         exit 1
         ;;
 esac
+
+
+
+
+
+
+
+
+
+# === Mostrar ejemplos de uso ===
+msg "========== EJEMPLOS DE USO ==========" "SUCCESS"
+echo ""
+msg "📹 Para descargar un video con la mejor calidad:" "INFO"
+echo "   yt-dlp -c -f \"bestvideo+bestaudio\" \"https://www.youtube.com/watch?v=VIDEO_ID\""
+echo ""
+msg "📹 Para descargar solo audio (MP3):" "INFO"
+echo "   yt-dlp -x --audio-format mp3 \"https://www.youtube.com/watch?v=VIDEO_ID\""
+echo ""
+msg "📹 Para descargar una lista de reproducción:" "INFO"
+echo "   yt-dlp -c -f \"bestvideo+bestaudio\" \"https://www.youtube.com/playlist?list=PLAYLIST_ID\""
+echo ""
+msg "📹 Para ver las opciones disponibles:" "INFO"
+echo "   yt-dlp -F \"https://www.youtube.com/watch?v=VIDEO_ID\""
+echo ""
+msg "📹 Para descargar en una carpeta específica:" "INFO"
+echo "   yt-dlp -o \"~/Videos/%(title)s.%(ext)s\" \"https://www.youtube.com/watch?v=VIDEO_ID\""
+echo ""
+msg "💡 Reemplaza VIDEO_ID con el ID del video de YouTube" "WARNING"
+msg "💡 Reemplaza PLAYLIST_ID con el ID de la lista de reproducción" "WARNING"
+echo ""
+
+exit 0
