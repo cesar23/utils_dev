@@ -87,6 +87,7 @@ show_date() {
     echo "Fecha actual en Perú (UTC-5):   $peru_date"
 }
 
+
 # ----------------------------------------------------------------------
 # 📋 view_vars_config
 # ----------------------------------------------------------------------
@@ -98,27 +99,42 @@ show_date() {
 # ----------------------------------------------------------------------
 view_vars_config() {
 
-  echo -e "${Gray}"
-  echo -e "╔═══════════════════════════════════════════════════════════"
-  echo -e "║             🛠️  CONFIGURACIÓN ACTUAL 🛠️"
+
+  echo -e "${Color_Off}"
+  echo -e "╔════════════════════════════════════════════════"
+  echo -e "║         ${BYellow}🛠️  CONFIGURACIÓN ACTUAL 🛠️${Color_Off}"
   echo -e "║"
-  echo -e "║ 📅 DATE_HOUR:                ${DATE_HOUR}"
-  echo -e "║ 👤 CURRENT_USER:             ${CURRENT_USER}"
-  echo -e "║ 🖥️ CURRENT_PC_NAME:         ${CURRENT_PC_NAME}"
-  echo -e "║ ℹ️ MY_INFO:                  ${MY_INFO}"
-  echo -e "║ 📁 CURRENT_USER_HOME:        ${CURRENT_USER_HOME}"
-  echo -e "║ 📄 PATH_SCRIPT:              ${PATH_SCRIPT}"
-  echo -e "║ 📜 SCRIPT_NAME:              ${SCRIPT_NAME}"
-  echo -e "║ 📁 CURRENT_DIR:              ${CURRENT_DIR}"
-  echo -e "║ 🗂️ NAME_DIR:                 ${NAME_DIR}"
-  echo -e "║ 🗃️ TEMP_PATH_SCRIPT:        ${TEMP_PATH_SCRIPT}"
-  echo -e "║ 📂 TEMP_PATH_SCRIPT_SYSTEM:  ${TEMP_PATH_SCRIPT_SYSTEM}"
+  echo -e "║ ${BBlue}📅 DATE_HOUR:${Color_Off}"
+  echo -e "║    ${DATE_HOUR}"
+  echo -e "║ ${BBlue}👤 CURRENT_USER:${Color_Off}"
+  echo -e "║    ${CURRENT_USER}"
+  echo -e "║ ${BBlue}🖥️ CURRENT_PC_NAME:${Color_Off}"
+  echo -e "║    ${CURRENT_PC_NAME}"
+  echo -e "║ ${BBlue}ℹ️ MY_INFO:${Color_Off}"
+  echo -e "║    ${MY_INFO}"
+  echo -e "║ ${BBlue}📁 CURRENT_USER_HOME:${Color_Off}"
+  echo -e "║    ${CURRENT_USER_HOME}"
+  echo -e "║ ${BBlue}📄 PATH_SCRIPT:${Color_Off}"
+  echo -e "║    ${PATH_SCRIPT}"
+  echo -e "║ ${BBlue}📜 SCRIPT_NAME:${Color_Off}"
+  echo -e "║    ${SCRIPT_NAME}"
+  echo -e "║ ${BBlue}📁 CURRENT_DIR:${Color_Off}"
+  echo -e "║    ${CURRENT_DIR}"
+  echo -e "║ ${BBlue}🗂️ NAME_DIR:${Color_Off}"
+  echo -e "║    ${NAME_DIR}"
+  echo -e "║ ${BBlue}🗃️ TEMP_PATH_SCRIPT:${Color_Off}"
+  echo -e "║    ${TEMP_PATH_SCRIPT}"
+  echo -e "║ ${BBlue}📂 TEMP_PATH_SCRIPT_SYSTEM:${Color_Off}"
+  echo -e "║    ${TEMP_PATH_SCRIPT_SYSTEM}"
   if [ -n "$ROOT_PATH" ]; then
-    echo -e "║ 🏡 ROOT_PATH:                ${ROOT_PATH}"
+    echo -e "║ ${BBlue}🏡 ROOT_PATH:${Color_Off}"
+    echo -e "║    ${ROOT_PATH}"
   fi
-  echo -e "╚═══════════════════════════════════════════════════════════"
+
+  echo -e "╚════════════════════════════════════════════════"
   echo -e "${Color_Off}"
 }
+
 
 # ----------------------------------------------------------------------
 # ❌ check_error
@@ -244,6 +260,8 @@ limpiar_directorio_excluyendo() {
   echo "✅ Limpieza completada. Directorios preservados: ${EXCLUDE_DIRS[*]}"
 }
 
+
+
 # ==============================================================================
 # 📝 Función: msg
 # ------------------------------------------------------------------------------
@@ -273,14 +291,49 @@ msg() {
   local timestamp
   timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
 
+  local SHOW_DETAIL=1
+  if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
+    SHOW_DETAIL=0
+  fi
+
+
   case "$level" in
-    INFO) echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}" ;;
-    WARNING) echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}" ;;
-    ERROR) echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}" ;;
-    SUCCESS) echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}" ;;
-    *) echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}" ;;
+    INFO)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BBlue}[INFO]${Color_Off} ${message}"
+        else
+          echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}"
+        fi
+        ;;
+    WARNING)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BYellow}[WARNING]${Color_Off} ${message}"
+        else
+          echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}"
+        fi
+        ;;
+    ERROR)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BRed}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}"
+        fi
+        ;;
+    SUCCESS)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BGreen}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}"
+        fi
+        ;;
+    *)
+          echo -e "${BGray}[OTHER]${Color_Off} ${message}"
+        ;;
   esac
 }
+
+
+
 
 pause_continue() {
   # Descripción:
@@ -430,28 +483,31 @@ check_and_install() {
 
 
 # Detect operating system
-system=$(detect_system)
+SO_SYSTEM=$(detect_system)
+
+DIR_TEMP="/tmp"
 
 # Check and install fzf if not installed (no message if already installed)
-if [[ "$system" == "ubuntu" || "$system" == "wsl" ]]; then
+if [[ "$SO_SYSTEM" == "ubuntu" || "$SO_SYSTEM" == "wsl" ]]; then
     # echo "🔄 verificaciones para  Debian/WSL..."
     check_and_install zip zip
     check_and_install unzip unzip
-elif [[ "$system" == "redhat" ]]; then
+elif [[ "$SO_SYSTEM" == "redhat" ]]; then
     # echo "🔄 Instalando fzf en CentOS/RHEL..."
     check_and_install zip zip
     check_and_install unzip unzip
-elif [[ "$system" == "termux" ]]; then
+elif [[ "$SO_SYSTEM" == "termux" ]]; then
     # echo "🔄 Instalando fzf en CentOS/RHEL..."
     check_and_install zip zip
     check_and_install unzip unzip
+    DIR_TEMP="/data/data/com.termux/files/usr/tmp"
 fi
 
 
 msg "============================================================="
 msg " Isntalacion de librerias de libs_shell para bashrc"
 msg " version: 1.0.1"
-msg " SO: ${system}"
+msg " SO: ${SO_SYSTEM}"
 msg "============================================================="
 echo ""
 
@@ -465,11 +521,10 @@ ZIP_URL="https://raw.githubusercontent.com/cesar23/utils_dev/refs/heads/master/d
 # Carpeta de destino
 DEST_DIR="$CURRENT_USER_HOME/libs_shell"
 
-# Ruta temporal para el zip descargado
-TEMP_ZIP="/tmp/libs_shell.zip"
 
-# Crear carpeta temporal si no existe
-mkdir -p /tmp
+# Ruta temporal para el zip descargado
+TEMP_ZIP="${DIR_TEMP}/libs_shell.zip"
+
 
 # Descargar el archivo zip
 msg "📥 Descargando archivo..."
