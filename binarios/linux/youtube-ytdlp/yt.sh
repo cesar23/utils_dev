@@ -351,7 +351,7 @@ fi
 url="$1"
 echo ""
 echo -e "${Gray}=======================================${Color_Off}"
-echo -e "${BGray}====== ${BPurple}Descarga de videos v3.0.1${BGray} ======${Color_Off}"
+echo -e "${BGray}====== ${BPurple}Descarga de videos v3.2.1${BGray} ======${Color_Off}"
 echo -e "${Gray}=======================================${Color_Off}"
 echo -e "${Gray}== Autor: Cesar auris                  ${Color_Off}"
 echo -e "${Gray}== ubicado en: /usr/local/bin/yt   ${Color_Off}"
@@ -368,8 +368,10 @@ while true; do
 
     case $opcion in
         1)
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}: ${Gray}${DOWNLOADS_PATH}${Color_Off}"
-            read -p "$(echo -e "${BGreen}Ingrese la ruta si desea cambiarla (Enter para usar la predeterminada):${Color_Off} ")" input_path
+            echo ""
+            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
+            echo -e "  ${Gray}${DOWNLOADS_PATH}${Color_Off}"
+            read -p "$(echo -e "${BGreen}Opcional ingresa ruta:${Color_Off} ")" input_path
             if [[ -n "$input_path" ]]; then
                 DOWNLOADS_PATH="$input_path"
             fi
@@ -381,8 +383,10 @@ while true; do
             descargar_video "$url"
             ;;
         2)
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}: ${Gray}${DOWNLOADS_PATH}${Color_Off}"
-            read -p "$(echo -e "${BGreen}Ingrese la ruta si desea cambiarla (Enter para usar la predeterminada):${Color_Off} ")" input_path
+            echo ""
+            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
+            echo -e "  ${Gray}${DOWNLOADS_PATH}${Color_Off}"
+            read -p "$(echo -e "${BGreen}Opcional ingresa ruta:${Color_Off} ")" input_path
             if [[ -n "$input_path" ]]; then
                 DOWNLOADS_PATH="$input_path"
             fi
@@ -394,8 +398,10 @@ while true; do
             descargar_playlist "$url"
             ;;
         3)
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}: ${Gray}${DOWNLOADS_PATH}${Color_Off}"
-            read -p "$(echo -e "${BGreen}Ingrese la ruta si desea cambiarla (Enter para usar la predeterminada):${Color_Off} ")" input_path
+            echo ""
+            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
+            echo -e "  ${Gray}${DOWNLOADS_PATH}${Color_Off}"
+            read -p "$(echo -e "${BGreen}Opcional ingresa ruta:${Color_Off} ")" input_path
             if [[ -n "$input_path" ]]; then
                 DOWNLOADS_PATH="$input_path"
             fi
