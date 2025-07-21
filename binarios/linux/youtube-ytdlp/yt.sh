@@ -138,6 +138,48 @@ pause_continue() {
   msg  "${Color_Off}"
 }
 
+
+# ----------------------------------------
+# Function: detect_system
+# Detects the operating system distribution.
+# Returns:
+#   - "termux"  -> If running in Termux
+#   - "wsl"     -> If running on Windows Subsystem for Linux
+#   - "ubuntu"  -> If running on Ubuntu/Debian-based distributions
+#   - "redhat"  -> If running on Red Hat, Fedora, CentOS, Rocky, or AlmaLinux
+#   - "gitbash" -> If running on Git Bash
+#   - "unknown" -> If the system is not recognized
+#
+# Example usage:
+#   system=$(detect_system)
+#   echo "Detected system: $system"
+# ----------------------------------------
+detect_system() {
+    if [ -f /data/data/com.termux/files/usr/bin/pkg ]; then
+        echo "termux"
+    elif grep -q Microsoft /proc/version; then
+        echo "wsl"
+    elif [ -f /etc/os-release ]; then
+        # Lee el ID de /etc/os-release
+        source /etc/os-release
+        case $ID in
+            ubuntu|debian)
+                echo "ubuntu"
+                ;;
+            rhel|centos|fedora|rocky|almalinux)
+                echo "redhat"
+                ;;
+            *)
+                echo "unknown"
+                ;;
+        esac
+    elif [ -n "$MSYSTEM" ]; then
+        echo "gitbash"
+    else
+        echo "unknown"
+    fi
+}
+
 # =============================================================================
 # 🔧 SECTION: Functions Utils
 # =============================================================================
@@ -284,6 +326,8 @@ descargar_audio() {
 # 🔥 SECTION: Main Code
 # =============================================================================
 # Detectar sistema operativo
+
+
 SO_SYSTEM=$(detect_system)
 DOWNLOADS_PATH="${CURRENT_USER_HOME}/Downloads/youtube"
 
@@ -294,18 +338,20 @@ if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
 fi
 
 
+
+
 mkdir -p "$DOWNLOADS_PATH"
 
 
 if [ $# -ne 1 ]; then
-    msg "Uso: $0 <URL de YouTube>"
+    msg "Uso: $0 '<URL de YouTube>'" "ERROR"
     exit 1
 fi
 
 url="$1"
 echo ""
 echo -e "${Gray}=======================================${Color_Off}"
-echo -e "${BGray}====== Descarga de videos v2.0.1 ======${Color_Off}"
+echo -e "${BGray}====== ${BPurple}Descarga de videos v3.0.1${BGray} ======${Color_Off}"
 echo -e "${Gray}=======================================${Color_Off}"
 echo -e "${Gray}== Autor: Cesar auris                  ${Color_Off}"
 echo -e "${Gray}== ubicado en: /usr/local/bin/yt   ${Color_Off}"
