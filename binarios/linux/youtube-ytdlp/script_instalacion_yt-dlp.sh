@@ -43,6 +43,7 @@ BCyan='\033[1;36m'        # Cian (negrita).
 BWhite='\033[1;37m'       # Blanco (negrita).
 BGray='\033[1;90m'        # Gris (negrita).
 
+
 # ==============================================================================
 # 📝 Función: msg
 # ------------------------------------------------------------------------------
@@ -72,15 +73,46 @@ msg() {
   local timestamp
   timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
 
+  local SHOW_DETAIL=1
+  if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
+    SHOW_DETAIL=0
+  fi
+
+
   case "$level" in
-    INFO) echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}" ;;
-    WARNING) echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}" ;;
-    ERROR) echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}" ;;
-    SUCCESS) echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}" ;;
-    *) echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}" ;;
+    INFO)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BBlue}[INFO]${Color_Off} ${message}"
+        else
+          echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}"
+        fi
+        ;;
+    WARNING)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BYellow}[WARNING]${Color_Off} ${message}"
+        else
+          echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}"
+        fi
+        ;;
+    ERROR)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BRed}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}"
+        fi
+        ;;
+    SUCCESS)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BGreen}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}"
+        fi
+        ;;
+    *)
+          echo -e "${BGray}[OTHER]${Color_Off} ${message}"
+        ;;
   esac
 }
-
 pause_continue() {
   # Descripción:
   #   Muestra un mensaje de pausa. Si se pasa un argumento, lo usa como descripción del evento.
@@ -182,7 +214,7 @@ detect_system() {
 
 
 # Detectar sistema operativo
-sistema=$(detect_system)
+SO_SYSTEM=$(detect_system)
 
 
 # === INICIO ===
@@ -192,7 +224,7 @@ msg "================================================="
 echo ""
 
 # Instalar fzf según la plataforma detectada
-case "$sistema" in
+case "$SO_SYSTEM" in
     ubuntu)
         # Verificar si somos root
         check_run_root
