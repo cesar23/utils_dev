@@ -44,27 +44,27 @@ export TMOUT=0
 
 
 # Colores Regulares
-Color_Off='\e[0m'       # Reset de color.
-Black='\e[0;30m'        # Negro.
-Red='\e[0;31m'          # Rojo.
-Green='\e[0;32m'        # Verde.
-Yellow='\e[0;33m'       # Amarillo.
-Blue='\e[0;34m'         # Azul.
-Purple='\e[0;35m'       # Púrpura.
-Cyan='\e[0;36m'         # Cian.
-White='\e[0;37m'        # Blanco.
-Gray='\e[0;90m'         # Gris.
+Color_Off='\033[0m'       # Reset de color.
+Black='\033[0;30m'        # Negro.
+Red='\033[0;31m'          # Rojo.
+Green='\033[0;32m'        # Verde.
+Yellow='\033[0;33m'       # Amarillo.
+Blue='\033[0;34m'         # Azul.
+Purple='\033[0;35m'       # Púrpura.
+Cyan='\033[0;36m'         # Cian.
+White='\033[0;37m'        # Blanco.
+Gray='\033[0;90m'         # Gris.
 
 # Colores en Negrita
-BBlack='\e[1;30m'       # Negro (negrita).
-BRed='\e[1;31m'         # Rojo (negrita).
-BGreen='\e[1;32m'       # Verde (negrita).
-BYellow='\e[1;33m'      # Amarillo (negrita).
-BBlue='\e[1;34m'        # Azul (negrita).
-BPurple='\e[1;35m'      # Púrpura (negrita).
-BCyan='\e[1;36m'        # Cian (negrita).
-BWhite='\e[1;37m'       # Blanco (negrita).
-BGray='\e[1;90m'        # Gris (negrita).
+BBlack='\033[1;30m'       # Negro (negrita).
+BRed='\033[1;31m'         # Rojo (negrita).
+BGreen='\033[1;32m'       # Verde (negrita).
+BYellow='\033[1;33m'      # Amarillo (negrita).
+BBlue='\033[1;34m'        # Azul (negrita).
+BPurple='\033[1;35m'      # Púrpura (negrita).
+BCyan='\033[1;36m'        # Cian (negrita).
+BWhite='\033[1;37m'       # Blanco (negrita).
+BGray='\033[1;90m'        # Gris (negrita).
 
 
 # Fondo gris oscuro,fondo gris claro
@@ -83,8 +83,21 @@ parse_git_branch() {
 # Configuración del Prompt
 # example output: root@server1 /root/curso_vps (master)#
 #export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
-export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\w\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
+# Variables de color para el prompt
+PROMPT_COLOR_TIME="${Cyan}"        # Cian para la hora
+PROMPT_COLOR_USER_HOST="${Green}"  # Verde para usuario@host
+PROMPT_COLOR_DIR="${Blue}"         # Azul para el directorio
+PROMPT_COLOR_GIT="${Purple}"       # Púrpura para la rama Git
+PROMPT_COLOR_RESET="${Color_Off}"  # Reset de color
 
+export PS1="\
+${PROMPT_COLOR_RESET}[\
+${PROMPT_COLOR_TIME}\t \
+${PROMPT_COLOR_USER_HOST}\u@\h \
+${PROMPT_COLOR_DIR}\W\
+${PROMPT_COLOR_GIT}\$(parse_git_branch)\
+${PROMPT_COLOR_RESET}]\
+\n\$ "
 
 
 # Si la sesión es SSH, cambia el color del prompt
@@ -92,7 +105,16 @@ if [ -n "$SSH_CONNECTION" ]; then
     # ========================================
     # Configuración del Prompt
     # example output: root@server1 (SSH) /root/curso_vps (master)#
-    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SSH):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
+    export PS1="\
+    ${PROMPT_COLOR_RESET}[\
+    ${PROMPT_COLOR_TIME}\t \
+    ${PROMPT_COLOR_USER_HOST}\u@\h (SSH):\
+    ${PROMPT_COLOR_DIR}\W\
+    ${PROMPT_COLOR_GIT}\$(parse_git_branch)\
+    ${PROMPT_COLOR_RESET}]\
+    \n\$ "
+
+
     # ::: para servidor Sociedad - spdtss
 #    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SOCIEDAD):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 fi
@@ -922,7 +944,6 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
