@@ -119,8 +119,10 @@ pause_continue() {
 # Mostrar título bonito
 clear
 echo -e "${BBlue}=====================================${Color_Off}"
-echo -e "${BBlue}::: Instalacion de Utils Termux :::${Color_Off}"
-echo -e "${BBlue}version 2.2       ${Color_Off}"
+echo -e "${BBlue}=== Instalacion de Utils Termux ===${Color_Off}"
+echo -e "${BBlue} - version: 2.2       ${Color_Off}"
+echo -e "${BBlue} - autor: solucionessystem.com       ${Color_Off}"
+
 echo -e "${BBlue}=====================================${Color_Off}"
 echo ""
 
