@@ -283,8 +283,17 @@ descargar_audio() {
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
-
+# Detectar sistema operativo
+SO_SYSTEM=$(detect_system)
 DOWNLOADS_PATH="${CURRENT_USER_HOME}/Downloads/youtube"
+
+
+# si estamos en so de termux, cambiar la ruta de descarga
+if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
+    DOWNLOADS_PATH="/storage/emulated/0/Download/youtube"
+fi
+
+
 mkdir -p "$DOWNLOADS_PATH"
 
 
@@ -296,7 +305,7 @@ fi
 url="$1"
 echo ""
 echo -e "${Gray}=======================================${Color_Off}"
-echo -e "${BGray}====== Descarga de videos v1.0.1 ======${Color_Off}"
+echo -e "${BGray}====== Descarga de videos v2.0.1 ======${Color_Off}"
 echo -e "${Gray}=======================================${Color_Off}"
 echo -e "${Gray}== Autor: Cesar auris                  ${Color_Off}"
 echo -e "${Gray}== ubicado en: /usr/local/bin/yt   ${Color_Off}"
