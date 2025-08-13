@@ -1,6 +1,112 @@
-
 enable: true
-matches:
 
-  - trigger: :cformat
-    replace: " formateame el codigo ponle comentarios y sus ejemplos de uso y que se vea lo mas entendible posible. que se vea  bonito."
+matches:
+  # ===== Documentación y formateo =====
+  - trigger: "..DocCompleto"
+    label: "Formatear y documentar código (completo)"
+    replace: |
+      📝 Formatea el código, agrega comentarios y ejemplos de uso. Haz que se vea claro, ordenado y bonito.
+
+  - trigger: "..docFunction"
+    label: "Regenerar docs de funciones"
+    replace: |
+      🧩 Elimina los comentarios previos de las funciones y regenera la documentación acorde al lenguaje usado.
+      Formatea el código, agrega comentarios explicativos y ejemplos claros. Ejemplo de documentación:
+        - @param s: Cadena original (no nula) que se desea transformar en slug.
+        - @param caseFormat: Formato de capitalización ("lower", "upper", "capitalize", "title", "none").
+        - @return: Cadena en formato slug, lista para URLs o identificadores.
+        - @throws: IllegalArgumentException si caseFormat es inválido o la cadena es null.
+        - @example: StringUtil.stringSlugify("¡Hola mundo! Prueba de Slugify.", "title") → "Hola-Mundo-Prueba-De-Slugify"
+        - @example: StringUtil.stringSlugify("¡Hola mundo! Prueba de Slugify.", "lower") → "hola-mundo-prueba-de-slugify"
+
+  - trigger: "..docCodigo"
+    label: "Documentar solo esta parte"
+    replace: |
+      Agrega documentación SOLO a este fragmento. Mantén el estilo del proyecto y formatea el código.
+
+  - trigger: "..verifyCode"
+    label: "Revisar y sugerir mejoras"
+    replace: |
+      Verifica SOLO este fragmento y sugiere mejoras concretas (nombres, complejidad, errores, edge cases).
+
+
+  # ===== Análisis / explicación =====
+  - trigger: "..analizaProyecto"
+    replace: |
+      Analiza mi proyecto lo realicé para {{form1.proyecto}}.
+      Analiza todos los ficheros y si hay un error infórmame.
+      El proyecto esta hecho en el lenguaje {{form1.lenguaje}}.
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: "este proyecto es para: [[proyecto]] \nLenguaje utilizado: [[lenguaje]]"
+          fields:
+            proyecto:
+              type: text
+            lenguaje:
+              type: choice # or `choice`
+              values:
+                - JavaScript
+                - TypeScript
+                - Python
+                - Java
+                - PHP
+              default: "JavaScript"
+
+
+  - trigger: "..explica"
+    label: "Explicar código"
+    replace: |
+      Explica qué hace este código con ejemplos simples y casos límite.
+
+  # ===== Generación de código =====
+  - trigger: "..crud"
+    label: "CRUD con ejemplos"
+    replace: "Crea un CRUD completo en  con comentarios y ejemplos."
+    vars:
+      - name: lenguaje
+        type: choice
+        params:
+          values:
+            - JavaScript
+            - TypeScript
+            - Python
+            - Java
+            - PHP
+
+  - trigger: "..patron"
+    label: "Patrón de diseño"
+    replace: "Implementa el patrón de diseño {{patron}} con un ejemplo claro y buenas prácticas."
+    vars:
+      - name: patron
+        type: choice
+        params:
+          values:
+            - Singleton
+            - Factory
+            - Observer
+            - Strategy
+            - Adapter
+            - Decorator
+
+  # ===== Optimización y refactor =====
+  - trigger: "..optimiza"
+    label: "Optimizar código"
+    replace: |
+      Optimiza este código para mayor rendimiento, legibilidad y mantenibilidad. Explica brevemente los cambios.
+
+  - trigger: "..refactor"
+    label: "Refactor según buenas prácticas"
+    replace: |
+      Refactoriza este código siguiendo buenas prácticas sin cambiar su comportamiento observable. Incluye before/after breve.
+
+  # ===== Comparativas / dudas =====
+  - trigger: "..duda"
+    label: "Comparar tecnologías"
+    replace: "Explícame las diferencias entre {{opcion1}} y {{opcion2}} con pros, contras y cuándo usar cada una."
+    vars:
+      - name: opcion1
+        type: text
+      - name: opcion2
+        type: text

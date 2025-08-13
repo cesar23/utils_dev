@@ -4,10 +4,11 @@ matches:
 
   - trigger: ":fkimg"
     replace: | 
-      ![imagen](../assets/{{form1.ruta_img}})
+      ![imagen](./assets/{{form1.ruta_img}})
       -- -
     vars:
       - name: "form1"
         type: form
         params:
           layout: "Ruta de imagen: [[ruta_img]]"
+

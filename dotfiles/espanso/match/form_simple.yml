@@ -31,3 +31,28 @@ matches:
         type: form
         params:
           layout: "Hey [[name]], how are you?"
+
+
+  - trigger: ":5demo"
+    replace: |
+      Analiza mi proyecto: lo realicé .
+      Analiza todos los ficheros y si hay un error infórmame.
+      Está hecho en el {{form1.name}} lenguaje {{form1.fruit}}.
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: "Name: [[name]] \nLenguaje: [[fruit]]"
+          fields:
+            name:
+              type: text
+#              multiline: true
+            fruit:
+              type: choice # or `choice`
+              values:
+                - JavaScript
+                - TypeScript
+                - Python
+                - Java
+                - PHP
+              default: "JavaScript"

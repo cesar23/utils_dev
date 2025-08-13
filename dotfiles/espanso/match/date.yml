@@ -1,0 +1,46 @@
+enable: true
+matches:
+  # Fecha formato corto
+  - trigger: ":date"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+
+  # Fecha completa con día y mes
+  - trigger: ":fulldate"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%A, %d %B %Y"
+
+  # Fecha y hora
+  - trigger: ":datetime"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d %H:%M:%S"
+
+  # Hora actual
+  - trigger: ":time"
+    replace: "{{mytime}}"
+    vars:
+      - name: mytime
+        type: date
+        params:
+          format: "%H:%M:%S"
+
+  # Fecha en formato día/mes/año
+  - trigger: ":fecha"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%d/%m/%Y"

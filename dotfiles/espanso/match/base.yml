@@ -11,24 +11,12 @@
 enable: true
 matches:
 
-  - trigger: :euro
-    replace: "\u02EE \u02BA \u030E"
-  # Simple text replacement
-  - trigger: ":espanso"
-    replace: "Hi there! line1\nline2   {{firstname}}"
+
 
   # NOTE: espanso uses YAML to define matches, so pay attention to the indentation!
 
   # But matches can also be dynamic:
 
-  # Print the current date
-  - trigger: ":date"
-    replace: "{{mydate}}"
-    vars:
-      - name: mydate
-        type: date
-        params:
-          format: "%m/%d/%Y"
 
   # ---------------------------------------------------------------
   # -------- Comando se ejecutan en  PowerShell -------------------
@@ -43,14 +31,7 @@ matches:
           cmd: "echo 'Hello from your shell'"
 
 
-  - trigger: ":ls"
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: shell
-        params:
-          cmd: "Get-Service"
-      # And much more! For more information, visit the docs: https://espanso.org/docs/
+
 
   - trigger: ":bc"
     replace: "[[{{yesterdaybc}}|<< Yesterday]] | [[{{tomorrowbc}}|Tomorrow >>]]"
