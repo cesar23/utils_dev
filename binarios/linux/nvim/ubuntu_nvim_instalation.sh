@@ -245,7 +245,7 @@ function! LightlineFilename()
 endfunction
 
 " Para darle la sintaxys a los  ficheros (.cnf, 50-server.cnf , my.cnf)
-autocmd BufRead,BufNewFile *.cnf,*.local,*.allow,*.deny set filetype=dosini
+autocmd BufRead,BufNewFile *.cnf,*.cf,*.local,*.allow,*.deny set filetype=dosini
 
 EOF
 
