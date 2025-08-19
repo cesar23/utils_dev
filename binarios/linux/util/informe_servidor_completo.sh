@@ -135,6 +135,32 @@ titulo "ÚLTIMOS INICIOS DE SESIÓN SSH (Aceptados)"
 journalctl _COMM=sshd | grep "Accepted" | tail -n 15 >> "$informe"
 separador
 
+
+# =======================================
+# 📊 Recursos del sistema
+# =======================================
+
+titulo "USO DE CPU, MEMORIA Y SWAP"
+echo -e ">> Salida de top (procesos principales):\n" >> "$informe"
+top -b -n 1 | head -n 20 >> "$informe"
+separador
+
+titulo "USO DE MEMORIA DETALLADO"
+free -h >> "$informe"
+separador
+
+titulo "USO DE DISCO"
+df -hT >> "$informe"
+separador
+
+titulo "USO DE INODOS"
+df -i >> "$informe"
+separador
+
+titulo "TOP 10 DIRECTORIOS CON MÁS USO EN /home"
+du -sh /home/* 2>/dev/null | sort -hr | head -n 10 >> "$informe"
+separador
+
 # =======================================
 # 🔒 Seguridad
 # =======================================
