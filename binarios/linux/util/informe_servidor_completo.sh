@@ -77,7 +77,7 @@ separador
 titulo "LOGS DE CYBERPANEL (últimos 100)"
 if [ -f /home/cyberpanel/error-logs.txt ]; then
   if sudo -n true 2>/dev/null; then
-    sudo tail -n 100 /home/cyberpanel/error-logs.txt >> "$informe"
+    sudo tail -n 50 /home/cyberpanel/error-logs.txt >> "$informe"
   else
     echo "⚠️  No se pudo acceder a los logs de CyberPanel (se requiere sudo)." >> "$informe"
   fi
@@ -115,9 +115,9 @@ separador
 # 🛠️ Servicios
 # =======================================
 
-titulo "INFORMACIÓN DE SERVICIOS (Todos)"
-systemctl list-units --type=service --all >> "$informe"
-separador
+#titulo "INFORMACIÓN DE SERVICIOS (Todos)"
+#systemctl list-units --type=service --all >> "$informe"
+#separador
 
 titulo "SERVICIOS ACTIVOS"
 systemctl list-units --type=service --state=running >> "$informe"
@@ -132,7 +132,7 @@ journalctl -xe | tail -n 20 >> "$informe"
 separador
 
 titulo "ÚLTIMOS INICIOS DE SESIÓN SSH (Aceptados)"
-journalctl _COMM=sshd | grep "Accepted" | tail -n 20 >> "$informe"
+journalctl _COMM=sshd | grep "Accepted" | tail -n 15 >> "$informe"
 separador
 
 # =======================================
@@ -154,7 +154,7 @@ separador
 titulo "ÚLTIMOS EVENTOS DEL FIREWALL (syslog)"
 if [ -f /var/log/syslog ]; then
   if sudo -n true 2>/dev/null; then
-    sudo grep 'Firewall' /var/log/syslog | tail -n 20 >> "$informe"
+    sudo grep 'Firewall' /var/log/syslog | tail -n 10 >> "$informe"
   else
     echo "⚠️  No se pudo acceder a /var/log/syslog (se requiere sudo)." >> "$informe"
   fi
@@ -176,11 +176,57 @@ fi
 separador
 
 # =======================================
+#  Información de servidor de correo
+# =======================================
+
+titulo "INFORMACIÓN SERVIDOR CORREO (Postfix)"
+if [ -f /etc/postfix/main.cf ]; then
+  if sudo -n true 2>/dev/null; then
+    echo ">> Version de Postfix:" >> "$informe"
+    sudo postconf mail_version >> "$informe"
+    echo "" >> "$informe"
+    sudo postconf -n >> "$informe"
+  else
+    echo "⚠️  No se pudo acceder a la configuración de Postfix (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "Archivo /etc/postfix/main.cf no encontrado." >> "$informe"
+fi
+separador
+
+
+titulo "INFORMACIÓN SERVIDOR CORREO (Dovecot)"
+if [ -f /etc/dovecot/dovecot.conf ]; then
+  if sudo -n true 2>/dev/null; then
+    echo ">> Version de Dovecot:" >> "$informe"
+    sudo dovecot --version >> "$informe"
+    echo "" >> "$informe"
+    echo "Configuración de Dovecot:" >> "$informe"
+    sudo dovecot -n >> "$informe"
+  else
+    echo "⚠️  No se pudo acceder a la configuración de Dovecot (se requiere sudo)." >> "$informe"
+  fi
+else
+  echo "Archivo /etc/postfix/main.cf no encontrado." >> "$informe"
+fi
+separador
+
+titulo "Logs de postfix"
+if [ -f /var/log/mail.log ]; then
+    echo "Logs mail:" >> "$informe"
+    echo "" >> "$informe"
+    sudo tail -n 25  /var/log/mail.log  >> "$informe"
+else
+  echo "Archivo /var/log/mail.log no encontrado." >> "$informe"
+fi
+
+
+# =======================================
 # 🧠 Información del Kernel
 # =======================================
 
 titulo "INFORMACIÓN DEL KERNEL (dmesg)"
-dmesg | tail -n 100 >> "$informe"
+dmesg | tail -n 50 >> "$informe"
 separador
 
 # =======================================
