@@ -165,6 +165,11 @@ msg "🚀 Iniciando mantenimiento completo de WordPress..."
 msg "   Version:1.0.7"
 msg "===================================================="
 msg ""
+msg "👨‍💻 Desarrollado por: Ingeniero - Cesar Auris"
+msg "📞 Teléfono: 937516027"
+msg "🌐 Website: https://solucionessystem.com"
+msg "===================================================="
+msg ""
 
 
 

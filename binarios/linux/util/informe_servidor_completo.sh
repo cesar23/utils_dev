@@ -42,6 +42,10 @@ separador() {
 
 echo -e "${BYellow}Generando informe del sistema...${Color_Off}"
 echo -e "INFORME DE SISTEMA - Fecha local: $DATE_HOUR | Fecha Perú: $DATE_HOUR_PE\n" > "$informe"
+echo -e "👨‍💻 Desarrollado por: Ingeniero - Cesar Auris" >> "$informe"
+echo -e "📞 Teléfono: 937516027" >> "$informe"
+echo -e "🌐 Website: https://solucionessystem.com" >> "$informe"
+echo -e "========================================\n" >> "$informe"
 
 # =======================================
 # 🌐 Información de red
