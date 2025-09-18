@@ -1,0 +1,69 @@
+enable: true
+
+matches:
+
+
+  # ===== Análisis / explicación =====
+  - trigger: "ppProducto"
+    replace: |
+      Busca información completa en internet sobre este producto: {{form1.producto}}
+
+      Necesito una descripción CONCISA pero COMPLETA para página de producto en WooCommerce (MÁXIMO 800-1000 palabras) que incluya:
+        
+        1. Título atractivo con marca, modelo y 2-3 características principales
+        
+        2. Descripción comercial breve (1-2 párrafos) destacando los 3 beneficios más importantes
+      
+        3. Características técnicas ESENCIALES organizadas en máximo 4 secciones:
+          - Especificaciones principales (solo las más relevantes)
+          - Rendimiento clave (datos más importantes)
+          - Conectividad principal (puertos/interfaces críticos)
+          - Dimensiones básicas (si es relevante para la decisión de compra)
+          
+          4. Sección "Ideal para" con máximo 4 casos de uso específicos
+          
+          5. Compatibilidad básica (solo información crítica para la compra)
+      
+      LIMITACIONES DE CONTENIDO:
+        - MÁXIMO 800-1000 palabras total
+        - Máximo 5-7 viñetas por sección técnica
+        - Priorizar información que impacte la decisión de compra
+        - Eliminar especificaciones redundantes o muy técnicas
+        - Centrarse en beneficios del usuario, no solo especificaciones
+      
+      FORMATO PARA WOOCOMMERCE:
+        - Sin vínculos ni citas de fuentes
+        - Emojis SOLO para separar secciones principales (máximo 6 emojis)
+        - Texto limpio y profesional
+        - Párrafos cortos (máximo 3-4 líneas)
+        - Negritas solo para características MÁS importantes
+        - Estructura mobile-friendly
+      
+      ESTILO:
+        - Lenguaje directo y persuasivo
+        - Enfoque en beneficios del cliente
+        - Información suficiente para decidir, sin saturar
+        - Técnicamente preciso pero accesible
+      
+      IMPORTANTE:
+        - No incluir precios
+        - Solo información técnica ESENCIAL y VERIFICADA
+        - Evitar redundancias entre secciones
+        - Optimizado para conversión, no para mostrar conocimiento técnico
+        - Descripción que genere confianza SIN abrumar al cliente
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: |
+            ═══════════════════════ INFORMACIÓN DEL PRODUCTO ═══════════════════════
+            Producto: 
+            [[producto]]
+          title: "Descripción de Producto"  # Para cambiar el título de la ventana
+          fields:
+            producto:
+              type: text
+              multiline: true
+              placeholder: "Ejemplo: iPhone 13 Pro Max 256GB Azul Sierra -------------------------"
+              width: 900
+
