@@ -168,6 +168,10 @@ show_system_info() {
     echo -e "${BWhite}💻 Equipo:${Color_Off} $CURRENT_PC_NAME"
     echo -e "${BWhite}📁 Directorio del Script:${Color_Off} $CURRENT_DIR"
     echo -e "${BWhite}📄 Nombre del Script:${Color_Off} $SCRIPT_NAME"
+    echo -e "${BCyan}═══════════════════════════════════════════════════════════════${Color_Off}"
+    echo -e "${BGreen}👨‍💻 Desarrollado por:${Color_Off} ${BWhite}Ingeniero - Cesar Auris${Color_Off}"
+    echo -e "${BGreen}📞 Teléfono:${Color_Off} ${BWhite}937516027${Color_Off}"
+    echo -e "${BGreen}🌐 Website:${Color_Off} ${BWhite}https://solucionessystem.com${Color_Off}"
     echo -e "${BCyan}═══════════════════════════════════════════════════════════════${Color_Off}\n"
 }
 
