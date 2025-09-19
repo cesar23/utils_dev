@@ -12,8 +12,7 @@ fi
 echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
-VERSION_BASHRC=3.0.0
+VERSION_BASHRC=3.0.2
 VERSION_PLATFORM='(TERMUX)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -187,6 +186,36 @@ fi
 # 6. Funciones personalizadas
 # ========================
 
+# Buscar texto en archivos
+searchtext() {
+    if [ -z "$1" ]; then
+        echo "Uso: searchtext 'texto_a_buscar'"
+        return 1
+    fi
+    grep -r "$1" . 2>/dev/null
+}
+
+# Crear directorio y navegar a él
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Mostrar tamaño de directorios
+dirsize() {
+    du -sh "${1:-.}"/* 2>/dev/null | sort -rh
+}
+
+# Información rápida del sistema
+sysinfo() {
+    echo "=== INFORMACIÓN DEL SISTEMA ==="
+    echo "Hostname: $(hostname)"
+    echo "Usuario: $USER"
+    echo "Sistema: $(lsb_release -d 2>/dev/null | cut -f2 || uname -s)"
+    echo "Uptime: $(uptime -p 2>/dev/null || uptime)"
+    echo "Memoria: $(free -h | grep '^Mem:' | awk '{print $3"/"$2}')"
+    echo "Disco: $(df -h / | tail -1 | awk '{print $3"/"$2" ("$5")"}')"
+    echo "IP: $(hostname -I | awk '{print $1}' 2>/dev/null || echo 'N/A')"
+}
 # Buscar texto en múltiples archivos
 search_text() {
     grep -rin "$1" . 2>/dev/null
@@ -506,6 +535,66 @@ log() {
     TZ=America/Lima lnav "${found[@]}"
 }
 
+
+
+
+mostrar_uso_log2() {
+  echo -e "Uso: log2 <archivo_log> [más_archivos...]"
+  echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
+}
+
+# Función: sigue logs y reescribe timestamp a YYYY-MM-DD HH:MM:SS en America/Lima
+log2() {
+  # 1) argumentos
+  if [ $# -lt 1 ]; then
+    echo -e "--- ${Yellow}Advertencia:${Color_Off} faltan rutas."
+    echo -e "Uso: log2 <archivo_log> [más_archivos...]"
+    echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
+    return 2
+  fi
+
+  # 2) filtra rutas existentes
+  local found=() missing=0
+  for p in "$@"; do
+    if [ -e "$p" ]; then
+      found+=("$p")
+    else
+      echo -e "--- ${Yellow}Aviso:${Color_Off} '${p}' no existe (omitido)."
+      missing=$((missing+1))
+    fi
+  done
+  if [ ${#found[@]} -eq 0 ]; then
+    echo -e "--- ${Red}Error:${Color_Off} no hay rutas válidas."
+    echo -e "Uso: log2 <archivo_log> [más_archivos...]"
+    echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
+    return 1
+  fi
+
+  # 3) seguir logs (rotación segura) y transformar timestamps a America/Lima
+  #    NOTA: no modifica archivos; solo la salida en pantalla.
+  tail -n0 -F -- "${found[@]}" 2>/dev/null | awk -v TZLOCAL="America/Lima" '
+  {
+    # Espera: Mes(3) Día(1-2) Hora(HH:MM:SS) como en syslog: "Aug 18 16:53:14 ..."
+    m=$1; d=$2; t=$3;
+    if (m ~ /^[A-Za-z]{3}$/ && d ~ /^[0-9]{1,2}$/ && t ~ /^[0-9]{2}:[0-9]{2}:[0-9]{2}$/) {
+      # 1) interpreta la marca del log como UTC
+      cmd = "LC_ALL=C TZ=UTC date -d \"" m " " d " " t "\" +\"%Y-%m-%d %H:%M:%S\"";
+      cmd | getline ts_utc; close(cmd);
+
+      # 2) conviértela a America/Lima
+      cmd2 = "TZ=\"" TZLOCAL "\" date -d \"" ts_utc " UTC\" +\"%Y-%m-%d %H:%M:%S\"";
+      cmd2 | getline ts_local; close(cmd2);
+
+      # 3) borrar los 3 campos originales y emitir
+      $1=""; $2=""; $3="";
+      sub(/^ +/, "");
+      print ts_local "  " $0;
+    } else {
+      # Si la línea no matchea (cabeceras, líneas vacías, etc.), se imprime cruda
+      print $0;
+    }
+  }'
+}
 
 # -----------------------------------------------------------------------------
 # Function: show_date

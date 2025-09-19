@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=3.0.0
+VERSION_BASHRC=3.0.2
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -164,6 +164,37 @@ fi
 # ========================
 # 6. Funciones personalizadas
 # ========================
+
+# Buscar texto en archivos
+searchtext() {
+    if [ -z "$1" ]; then
+        echo "Uso: searchtext 'texto_a_buscar'"
+        return 1
+    fi
+    grep -r "$1" . 2>/dev/null
+}
+
+# Crear directorio y navegar a él
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Mostrar tamaño de directorios
+dirsize() {
+    du -sh "${1:-.}"/* 2>/dev/null | sort -rh
+}
+
+# Información rápida del sistema
+sysinfo() {
+    echo "=== INFORMACIÓN DEL SISTEMA ==="
+    echo "Hostname: $(hostname)"
+    echo "Usuario: $USER"
+    echo "Sistema: $(lsb_release -d 2>/dev/null | cut -f2 || uname -s)"
+    echo "Uptime: $(uptime -p 2>/dev/null || uptime)"
+    echo "Memoria: $(free -h | grep '^Mem:' | awk '{print $3"/"$2}')"
+    echo "Disco: $(df -h / | tail -1 | awk '{print $3"/"$2" ("$5")"}')"
+    echo "IP: $(hostname -I | awk '{print $1}' 2>/dev/null || echo 'N/A')"
+}
 
 # Buscar texto en múltiples archivos
 search_text() {
@@ -442,7 +473,6 @@ vi() {
     fi
 }
 
-
 # ================================================
 # funcion requiere lnav
 # ================================================
@@ -486,6 +516,8 @@ log() {
     #    Nota: no modifica archivos; solo cambia la visualización.
     TZ=America/Lima lnav "${found[@]}"
 }
+
+
 
 # -----------------------------------------------------------------------------
 # Function: show_date
