@@ -12,7 +12,7 @@ fi
 echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=3.0.2
+VERSION_BASHRC=4.0.1
 VERSION_PLATFORM='(TERMUX)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -186,15 +186,666 @@ fi
 # 6. Funciones personalizadas
 # ========================
 
-# Buscar texto en archivos
-searchtext() {
-    if [ -z "$1" ]; then
-        echo "Uso: searchtext 'texto_a_buscar'"
+# Buscar texto en archivos con colores personalizados (ripgrep/grep)
+st() {
+    local pattern=""
+    local directory="."
+    local case_sensitive=false
+    local file_filter=""
+    local exclude_pattern=""
+    local max_depth=""
+    local show_line_numbers=true
+    local context_lines=""
+    local word_boundary=false
+    local use_ripgrep=false
+    local force_grep=false
+
+    # Detectar inicialmente si ripgrep está disponible
+    if command -v rg >/dev/null 2>&1; then
+        use_ripgrep=true
+    fi
+
+    # Función de ayuda
+    show_help() {
+        local tool_name
+        if $use_ripgrep; then
+            tool_name="${BGreen}ripgrep (rg)${Color_Off}"
+        else
+            tool_name="${Yellow}grep${Color_Off}"
+        fi
+
+        echo -e "${BYellow}Uso:${Color_Off} st [opciones] 'texto_a_buscar'"
+        echo -e "${Gray}Usando: $tool_name${Color_Off}"
+        echo ""
+        echo -e "${BCyan}Opciones:${Color_Off}"
+        echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-f, --files PATRÓN${Color_Off}     Buscar solo en archivos que coincidan con patrón (ej: '*.txt')"
+        echo -e "  ${Green}-e, --exclude PATRÓN${Color_Off}   Excluir archivos que coincidan con patrón"
+        echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
+        echo -e "  ${Green}-n, --no-line-numbers${Color_Off}  No mostrar números de línea"
+        echo -e "  ${Green}-C, --context NUM${Color_Off}      Mostrar NUM líneas de contexto antes y después"
+        echo -e "  ${Green}-w, --word${Color_Off}             Buscar palabras completas solamente"
+        echo -e "  ${BYellow}-g, --force-grep${Color_Off}       ${BRed}Forzar el uso de grep${Color_Off} (incluso si ripgrep está disponible)"
+        echo -e "  ${Green}-h, --help${Color_Off}             Mostrar esta ayuda"
+        echo ""
+        echo -e "${BCyan}Ejemplos:${Color_Off}"
+        echo -e "  ${Yellow}st 'function'${Color_Off}              # Buscar texto en todos los archivos"
+        echo -e "  ${Yellow}st -i 'error'${Color_Off}              # Búsqueda insensitive a mayúsculas"
+        echo -e "  ${Yellow}st -f '*.js' 'console'${Color_Off}     # Buscar solo en archivos .js"
+        echo -e "  ${Yellow}st -C 3 'TODO'${Color_Off}             # Mostrar 3 líneas de contexto"
+        echo -e "  ${Yellow}st -w 'test'${Color_Off}               # Buscar palabra completa 'test'"
+        echo -e "  ${Yellow}st -d /home 'config'${Color_Off}       # Buscar en directorio específico"
+        echo -e "  ${Yellow}st -e '*.log' 'error'${Color_Off}      # Excluir archivos .log"
+        echo ""
+        echo -e "${BYellow}Forzar herramienta específica:${Color_Off}"
+        echo -e "  ${BYellow}st -g 'function'${Color_Off}           # ${BRed}Forzar uso de grep${Color_Off} (comparar con ripgrep)"
+        return 0
+    }
+
+    # Procesar argumentos
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                return 0
+                ;;
+            -d|--dir)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    directory="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --dir requiere un directorio" >&2
+                    return 1
+                fi
+                ;;
+            -i|--ignore-case)
+                case_sensitive=true
+                shift
+                ;;
+            -f|--files)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    file_filter="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --files requiere un patrón" >&2
+                    return 1
+                fi
+                ;;
+            -e|--exclude)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    exclude_pattern="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --exclude requiere un patrón" >&2
+                    return 1
+                fi
+                ;;
+            -m|--max-depth)
+                if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                    max_depth="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    return 1
+                fi
+                ;;
+            -n|--no-line-numbers)
+                show_line_numbers=false
+                shift
+                ;;
+            -C|--context)
+                if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                    context_lines="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --context requiere un número" >&2
+                    return 1
+                fi
+                ;;
+            -w|--word)
+                word_boundary=true
+                shift
+                ;;
+            -g|--force-grep)
+                force_grep=true
+                use_ripgrep=false
+                shift
+                ;;
+            -*)
+                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "Usa '${Yellow}st --help${Color_Off}' para ver las opciones disponibles"
+                return 1
+                ;;
+            *)
+                if [[ -z "$pattern" ]]; then
+                    pattern="$1"
+                    shift
+                else
+                    echo -e "${BRed}Error:${Color_Off} Solo se permite un patrón de búsqueda" >&2
+                    return 1
+                fi
+                ;;
+        esac
+    done
+
+    # Verificar que se proporcionó un patrón
+    if [[ -z "$pattern" ]]; then
+        echo -e "${BRed}Error:${Color_Off} Debes especificar un texto a buscar"
+        echo -e "${BYellow}Uso:${Color_Off} st 'texto_a_buscar'"
+        echo -e "Usa '${Yellow}st --help${Color_Off}' para más información"
         return 1
     fi
-    grep -r "$1" . 2>/dev/null
+
+    # Verificar que el directorio existe
+    if [[ ! -d "$directory" ]]; then
+        echo -e "${BRed}Error:${Color_Off} El directorio '${Yellow}$directory${Color_Off}' no existe" >&2
+        return 1
+    fi
+
+    # Mostrar información de búsqueda
+    local tool_info
+    if $use_ripgrep; then
+        tool_info="${BGreen}ripgrep${Color_Off}"
+    else
+        tool_info="${Yellow}grep${Color_Off}"
+    fi
+
+    echo -e "${BCyan}[>] Buscando texto:${Color_Off} ${BYellow}'$pattern'${Color_Off} ${Gray}(usando $tool_info)${Color_Off}"
+    echo -e "${BCyan}[DIR] En directorio:${Color_Off} ${BBlue}$(realpath "$directory")${Color_Off}"
+    if [[ -n "$file_filter" ]]; then
+        echo -e "${BCyan}[FILTER] Filtro de archivos:${Color_Off} ${Yellow}$file_filter${Color_Off}"
+    fi
+    if [[ -n "$exclude_pattern" ]]; then
+        echo -e "${BCyan}[EXCLUDE] Excluir:${Color_Off} ${Yellow}$exclude_pattern${Color_Off}"
+    fi
+    echo ""
+
+    # Ejecutar búsqueda según la herramienta disponible
+    if $use_ripgrep; then
+        # Usar ripgrep
+        local rg_opts="--color=always --heading --with-filename"
+
+        # Agregar opciones según parámetros
+        if $case_sensitive; then
+            rg_opts="$rg_opts -i"
+        fi
+
+        if $show_line_numbers; then
+            rg_opts="$rg_opts -n"
+        else
+            rg_opts="$rg_opts -N"
+        fi
+
+        if [[ -n "$context_lines" ]]; then
+            rg_opts="$rg_opts -C $context_lines"
+        fi
+
+        if $word_boundary; then
+            rg_opts="$rg_opts -w"
+        fi
+
+        if [[ -n "$max_depth" ]]; then
+            rg_opts="$rg_opts --max-depth $max_depth"
+        fi
+
+        if [[ -n "$file_filter" ]]; then
+            rg_opts="$rg_opts -g '$file_filter'"
+        fi
+
+        if [[ -n "$exclude_pattern" ]]; then
+            rg_opts="$rg_opts -g '!$exclude_pattern'"
+        fi
+
+        # Ejecutar ripgrep y obtener estadísticas
+        local results
+        results=$(eval "rg $rg_opts '$pattern' '$directory'" 2>/dev/null)
+
+        if [[ -z "$results" ]]; then
+            echo -e "${BRed}[X] No se encontraron coincidencias para '${BYellow}$pattern${Color_Off}${BRed}'${Color_Off}"
+            return 1
+        else
+            echo "$results"
+            echo ""
+
+            # Contar coincidencias de manera más precisa con ripgrep
+            local match_count
+            local file_count
+
+            # Usar ripgrep con --count-matches para obtener estadísticas precisas
+            local stats_opts="--count-matches"
+            if $case_sensitive; then
+                stats_opts="$stats_opts -i"
+            fi
+            if $word_boundary; then
+                stats_opts="$stats_opts -w"
+            fi
+            if [[ -n "$max_depth" ]]; then
+                stats_opts="$stats_opts --max-depth $max_depth"
+            fi
+            if [[ -n "$file_filter" ]]; then
+                stats_opts="$stats_opts -g '$file_filter'"
+            fi
+            if [[ -n "$exclude_pattern" ]]; then
+                stats_opts="$stats_opts -g '!$exclude_pattern'"
+            fi
+
+            # Obtener estadísticas
+            local stats_result
+            stats_result=$(eval "rg $stats_opts '$pattern' '$directory'" 2>/dev/null)
+
+            if [[ -n "$stats_result" ]]; then
+                file_count=$(echo "$stats_result" | wc -l)
+                match_count=$(echo "$stats_result" | awk -F: '{sum += $2} END {print sum}' 2>/dev/null || echo "0")
+                echo -e "${BGreen}[OK] Encontradas ${BWhite}$match_count${Color_Off}${BGreen} coincidencias en ${BWhite}$file_count${Color_Off}${BGreen} archivos${Color_Off}"
+            else
+                echo -e "${BGreen}[OK] Búsqueda completada con ripgrep${Color_Off}"
+            fi
+        fi
+
+    else
+        # Usar grep como fallback
+        local grep_opts="-r --color=always"
+
+        if $case_sensitive; then
+            grep_opts="$grep_opts -i"
+        fi
+
+        if $show_line_numbers; then
+            grep_opts="$grep_opts -n"
+        fi
+
+        if [[ -n "$context_lines" ]]; then
+            grep_opts="$grep_opts -C $context_lines"
+        fi
+
+        if $word_boundary; then
+            grep_opts="$grep_opts -w"
+        fi
+
+        # Construir comando find para filtros
+        local find_cmd="find \"$directory\""
+
+        if [[ -n "$max_depth" ]]; then
+            find_cmd="$find_cmd -maxdepth $max_depth"
+        fi
+
+        find_cmd="$find_cmd -type f"
+
+        # Excluir directorios comunes
+        find_cmd="$find_cmd ! -path '*/.git/*' ! -path '*/node_modules/*' ! -path '*/.svn/*'"
+
+        if [[ -n "$file_filter" ]]; then
+            find_cmd="$find_cmd -name '$file_filter'"
+        fi
+
+        if [[ -n "$exclude_pattern" ]]; then
+            find_cmd="$find_cmd ! -name '$exclude_pattern'"
+        fi
+
+        # Ejecutar búsqueda con grep
+        local results=""
+        local file_count=0
+        local match_count=0
+
+        while IFS= read -r -d '' file; do
+            ((file_count++))
+            local grep_result
+            grep_result=$(eval "grep $grep_opts '$pattern' \"$file\"" 2>/dev/null)
+            if [[ -n "$grep_result" ]]; then
+                local file_matches=$(echo "$grep_result" | wc -l)
+                ((match_count += file_matches))
+
+                echo -e "${BPurple}[FILE] $file${Color_Off} ${Gray}($file_matches coincidencias)${Color_Off}"
+                echo "$grep_result" | while IFS= read -r line; do
+                    echo -e "  $line"
+                done
+                echo ""
+            fi
+        done < <(eval "$find_cmd -print0" 2>/dev/null)
+
+        if [[ $match_count -eq 0 ]]; then
+            echo -e "${BRed}[X] No se encontraron coincidencias para '${BYellow}$pattern${Color_Off}${BRed}' en $file_count archivos${Color_Off}"
+            return 1
+        else
+            echo -e "${BGreen}[OK] Encontradas ${BWhite}$match_count${Color_Off}${BGreen} coincidencias en ${BWhite}$file_count${Color_Off}${BGreen} archivos revisados${Color_Off}"
+        fi
+    fi
 }
 
+# Buscar archivos por nombre con colores personalizados
+sf2() {
+    local pattern=""
+    local directory="."
+    local case_sensitive=false
+    local type_filter=""
+    local max_depth=""
+
+    # Función de ayuda
+    show_help() {
+        echo -e "${BYellow}Uso:${Color_Off} sf2 [opciones] 'patrón_de_archivo'"
+        echo ""
+        echo -e "${BCyan}Opciones:${Color_Off}"
+        echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-f, --files-only${Color_Off}       Buscar solo archivos regulares"
+        echo -e "  ${Green}-D, --dirs-only${Color_Off}        Buscar solo directorios"
+        echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
+        echo -e "  ${Green}-h, --help${Color_Off}             Mostrar esta ayuda"
+        echo ""
+        echo -e "${BCyan}Ejemplos:${Color_Off}"
+        echo -e "  ${Yellow}sf2 ejemplo.sh${Color_Off}          # Buscar archivo exacto"
+        echo -e "  ${Yellow}sf2 'ejemplo*'${Color_Off}          # Buscar con wildcards"
+        echo -e "  ${Yellow}sf2 plo${Color_Off}                 # Buscar archivos que contengan 'plo'"
+        echo -e "  ${Yellow}sf2 -i '*.PDF'${Color_Off}          # Buscar PDFs sin importar mayúsculas"
+        echo -e "  ${Yellow}sf2 -f -d /home script${Color_Off}  # Buscar solo archivos que contengan 'script' en /home"
+        echo -e "  ${Yellow}sf2 -D config${Color_Off}           # Buscar solo directorios que contengan 'config'"
+        return 0
+    }
+
+    # Procesar argumentos
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                return 0
+                ;;
+            -d|--dir)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    directory="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --dir requiere un directorio" >&2
+                    return 1
+                fi
+                ;;
+            -i|--ignore-case)
+                case_sensitive=true
+                shift
+                ;;
+            -f|--files-only)
+                type_filter="-type f"
+                shift
+                ;;
+            -D|--dirs-only)
+                type_filter="-type d"
+                shift
+                ;;
+            -m|--max-depth)
+                if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                    max_depth="-maxdepth $2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    return 1
+                fi
+                ;;
+            -*)
+                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "Usa '${Yellow}sf2 --help${Color_Off}' para ver las opciones disponibles"
+                return 1
+                ;;
+            *)
+                if [[ -z "$pattern" ]]; then
+                    pattern="$1"
+                    shift
+                else
+                    echo -e "${BRed}Error:${Color_Off} Solo se permite un patrón de búsqueda" >&2
+                    return 1
+                fi
+                ;;
+        esac
+    done
+
+    # Verificar que se proporcionó un patrón
+    if [[ -z "$pattern" ]]; then
+        echo -e "${BRed}Error:${Color_Off} Debes especificar un patrón de búsqueda"
+        echo -e "${BYellow}Uso:${Color_Off} sf2 'patrón_de_archivo'"
+        echo -e "Usa '${Yellow}sf2 --help${Color_Off}' para más información"
+        return 1
+    fi
+
+    # Verificar que el directorio existe
+    if [[ ! -d "$directory" ]]; then
+        echo -e "${BRed}Error:${Color_Off} El directorio '${Yellow}$directory${Color_Off}' no existe" >&2
+        return 1
+    fi
+
+    # Construir el comando find
+    local find_cmd="find \"$directory\" $max_depth $type_filter"
+
+    # Determinar el tipo de búsqueda y agregar opciones de case sensitivity
+    if $case_sensitive; then
+        find_cmd="$find_cmd -iname"
+    else
+        find_cmd="$find_cmd -name"
+    fi
+
+    # Si el patrón no contiene wildcards, buscar como substring
+    if [[ "$pattern" != *"*"* && "$pattern" != *"?"* && "$pattern" != *"["* ]]; then
+        pattern="*${pattern}*"
+    fi
+
+    # Mostrar información de búsqueda
+    echo -e "${BCyan}[>] Buscando archivos que coincidan con:${Color_Off} ${BYellow}$pattern${Color_Off}"
+    echo -e "${BCyan}[DIR] En directorio:${Color_Off} ${BBlue}$(realpath "$directory")${Color_Off}"
+    echo ""
+
+    # Ejecutar la búsqueda
+    local results
+    results=$(eval "$find_cmd \"$pattern\" 2>/dev/null | sort")
+
+    if [[ -z "$results" ]]; then
+        echo -e "${BRed}[X] No se encontraron archivos que coincidan con el patrón '${BYellow}$pattern${Color_Off}${BRed}'${Color_Off}"
+        return 1
+    else
+        # Mostrar resultados con colores personalizados
+        echo "$results" | while IFS= read -r file; do
+            if [[ -d "$file" ]]; then
+                # Es un directorio
+                echo -e "${BBlue}[DIR] $file${Color_Off}"
+            elif [[ -x "$file" ]]; then
+                # Es un archivo ejecutable
+                echo -e "${BGreen}[EXE] $file${Color_Off}"
+            elif [[ "$file" == *.sh || "$file" == *.py || "$file" == *.pl || "$file" == *.rb ]]; then
+                # Es un script
+                echo -e "${BPurple}[SCR] $file${Color_Off}"
+            elif [[ "$file" == *.txt || "$file" == *.md || "$file" == *.doc* ]]; then
+                # Es un documento de texto
+                echo -e "${BCyan}[DOC] $file${Color_Off}"
+            elif [[ "$file" == *.jpg || "$file" == *.png || "$file" == *.gif || "$file" == *.jpeg ]]; then
+                # Es una imagen
+                echo -e "${BYellow}[IMG] $file${Color_Off}"
+            elif [[ "$file" == *.zip || "$file" == *.tar || "$file" == *.gz || "$file" == *.rar ]]; then
+                # Es un archivo comprimido
+                echo -e "${Purple}[ZIP] $file${Color_Off}"
+            else
+                # Archivo regular
+                echo -e "${Green}[FILE] $file${Color_Off}"
+            fi
+        done
+
+        # Mostrar contador de resultados
+        local count=$(echo "$results" | wc -l)
+        echo ""
+        echo -e "${BGreen}[OK] Encontrados ${BWhite}$count${Color_Off}${BGreen} resultado(s)${Color_Off}"
+    fi
+}
+
+# Buscar directorios por nombre con colores personalizados
+sd2() {
+    local pattern=""
+    local directory="."
+    local case_sensitive=false
+    local max_depth=""
+
+    # Función de ayuda
+    show_help() {
+        echo -e "${BYellow}Uso:${Color_Off} sd2 [opciones] 'patrón_de_directorio'"
+        echo ""
+        echo -e "${BCyan}Opciones:${Color_Off}"
+        echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
+        echo -e "  ${Green}-a, --all${Color_Off}              Incluir directorios ocultos (que empiecen con .)"
+        echo -e "  ${Green}-h, --help${Color_Off}             Mostrar esta ayuda"
+        echo ""
+        echo -e "${BCyan}Ejemplos:${Color_Off}"
+        echo -e "  ${Yellow}sd2 config${Color_Off}              # Buscar directorios que contengan 'config'"
+        echo -e "  ${Yellow}sd2 'src*'${Color_Off}              # Buscar directorios que empiecen con 'src'"
+        echo -e "  ${Yellow}sd2 node${Color_Off}                # Buscar directorios que contengan 'node'"
+        echo -e "  ${Yellow}sd2 -i 'TEST'${Color_Off}           # Buscar sin importar mayúsculas"
+        echo -e "  ${Yellow}sd2 -d /home backup${Color_Off}     # Buscar directorios con 'backup' en /home"
+        echo -e "  ${Yellow}sd2 -a '.git'${Color_Off}           # Buscar directorios .git (incluye ocultos)"
+        echo -e "  ${Yellow}sd2 -m 2 temp${Color_Off}           # Buscar solo hasta 2 niveles de profundidad"
+        return 0
+    }
+
+    # Procesar argumentos
+    local include_hidden=false
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                return 0
+                ;;
+            -d|--dir)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    directory="$2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --dir requiere un directorio" >&2
+                    return 1
+                fi
+                ;;
+            -i|--ignore-case)
+                case_sensitive=true
+                shift
+                ;;
+            -a|--all)
+                include_hidden=true
+                shift
+                ;;
+            -m|--max-depth)
+                if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                    max_depth="-maxdepth $2"
+                    shift 2
+                else
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    return 1
+                fi
+                ;;
+            -*)
+                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "Usa '${Yellow}sd2 --help${Color_Off}' para ver las opciones disponibles"
+                return 1
+                ;;
+            *)
+                if [[ -z "$pattern" ]]; then
+                    pattern="$1"
+                    shift
+                else
+                    echo -e "${BRed}Error:${Color_Off} Solo se permite un patrón de búsqueda" >&2
+                    return 1
+                fi
+                ;;
+        esac
+    done
+
+    # Verificar que se proporcionó un patrón
+    if [[ -z "$pattern" ]]; then
+        echo -e "${BRed}Error:${Color_Off} Debes especificar un patrón de búsqueda"
+        echo -e "${BYellow}Uso:${Color_Off} sd2 'patrón_de_directorio'"
+        echo -e "Usa '${Yellow}sd2 --help${Color_Off}' para más información"
+        return 1
+    fi
+
+    # Verificar que el directorio existe
+    if [[ ! -d "$directory" ]]; then
+        echo -e "${BRed}Error:${Color_Off} El directorio '${Yellow}$directory${Color_Off}' no existe" >&2
+        return 1
+    fi
+
+    # Construir el comando find (solo directorios)
+    local find_cmd="find \"$directory\" $max_depth -type d"
+
+    # Excluir directorios ocultos si no se especifica -a
+    if ! $include_hidden; then
+        find_cmd="$find_cmd ! -path '*/.*'"
+    fi
+
+    # Determinar el tipo de búsqueda y agregar opciones de case sensitivity
+    if $case_sensitive; then
+        find_cmd="$find_cmd -iname"
+    else
+        find_cmd="$find_cmd -name"
+    fi
+
+    # Si el patrón no contiene wildcards, buscar como substring
+    if [[ "$pattern" != *"*"* && "$pattern" != *"?"* && "$pattern" != *"["* ]]; then
+        pattern="*${pattern}*"
+    fi
+
+    # Mostrar información de búsqueda
+    echo -e "${BCyan}[>] Buscando directorios que coincidan con:${Color_Off} ${BYellow}$pattern${Color_Off}"
+    echo -e "${BCyan}[DIR] En directorio:${Color_Off} ${BBlue}$(realpath "$directory")${Color_Off}"
+    if ! $include_hidden; then
+        echo -e "${BCyan}[INFO] Excluyendo directorios ocultos${Color_Off} ${Gray}(usa -a para incluirlos)${Color_Off}"
+    fi
+    echo ""
+
+    # Ejecutar la búsqueda
+    local results
+    results=$(eval "$find_cmd \"$pattern\" 2>/dev/null | sort")
+
+    if [[ -z "$results" ]]; then
+        echo -e "${BRed}[X] No se encontraron directorios que coincidan con el patrón '${BYellow}$pattern${Color_Off}${BRed}'${Color_Off}"
+        return 1
+    else
+        # Mostrar resultados con colores personalizados para directorios
+        echo "$results" | while IFS= read -r dir; do
+            # Determinar el tipo de directorio y asignar color
+            local dir_name=$(basename "$dir")
+
+            if [[ "$dir_name" =~ ^\. ]]; then
+                # Directorio oculto
+                echo -e "${Gray}[HIDDEN] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(src|source|lib|library)$ ]]; then
+                # Directorio de código fuente
+                echo -e "${BPurple}[SRC] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(test|tests|spec|specs)$ ]]; then
+                # Directorio de tests
+                echo -e "${BYellow}[TEST] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(config|conf|cfg|settings)$ ]]; then
+                # Directorio de configuración
+                echo -e "${BCyan}[CONF] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(doc|docs|documentation)$ ]]; then
+                # Directorio de documentación
+                echo -e "${BWhite}[DOCS] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(bin|binary|exe)$ ]]; then
+                # Directorio de binarios
+                echo -e "${BGreen}[BIN] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(backup|bak|old|archive)$ ]]; then
+                # Directorio de respaldo
+                echo -e "${Purple}[BAK] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ ^(temp|tmp|cache)$ ]]; then
+                # Directorio temporal
+                echo -e "${Yellow}[TEMP] $dir${Color_Off}"
+            elif [[ "$dir_name" =~ (node_modules|\.git|\.svn|build|dist|target)$ ]]; then
+                # Directorios de sistema/build
+                echo -e "${Red}[SYS] $dir${Color_Off}"
+            else
+                # Directorio regular
+                echo -e "${BBlue}[DIR] $dir${Color_Off}"
+            fi
+        done
+
+        # Mostrar contador de resultados
+        local count=$(echo "$results" | wc -l)
+        echo ""
+        echo -e "${BGreen}[OK] Encontrados ${BWhite}$count${Color_Off}${BGreen} directorio(s)${Color_Off}"
+    fi
+}
 # Crear directorio y navegar a él
 mkcd() {
     mkdir -p "$1" && cd "$1"
@@ -736,10 +1387,14 @@ menu(){
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
 }
+
 submenu_generales(){
   cls
   echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
   echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
+  echo -e "${Gray}   - sf2 : ${Cyan} realiza busquedas de archivos (sf2 -h  para ayuda y ejemplos)${Color_Off}"
+  echo -e "${Gray}   - sd2 : ${Cyan} realiza busquedas de directorios (sd2 -h  para ayuda y ejemplos)${Color_Off}"
+  echo -e "${Gray}   - st : ${Cyan} realiza busqueda de texto en directorio actual (st -h  para ayuda y ejemplos)${Color_Off}"
   echo -e "${Gray}   - listar_archivos_recientes_modificados : ${Cyan} ficheros recientes y modificados  Ejemplo: listar_archivos_recientes_modificados '/var/www/html' 15${Color_Off}"
   echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
   echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
@@ -767,7 +1422,6 @@ submenu_generales(){
   echo -e "${Gray}   - history : ${Cyan}Historial extendido con fecha y hora.${Color_Off}"
   echo -e "${Gray}   - PATH : ${Cyan}Incluye scripts personalizados en /opt/mis-scripts.${Color_Off}"
 }
-
 submenu_docker(){
   cls
   echo -e "${Yellow}Submenú Docker:${Color_Off}"
