@@ -1355,6 +1355,7 @@ menu(){
 submenu_generales(){
   cls
   echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
+
   echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
   echo -e "${Gray}   - sf2 : ${Cyan} realiza busquedas de archivos (sf2 -h  para ayuda y ejemplos)${Color_Off}"
   echo -e "${Gray}   - sd2 : ${Cyan} realiza busquedas de directorios (sd2 -h  para ayuda y ejemplos)${Color_Off}"
@@ -1699,6 +1700,7 @@ dcrestart() {
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
+
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"

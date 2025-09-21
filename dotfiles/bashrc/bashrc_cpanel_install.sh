@@ -1317,61 +1317,62 @@ menu(){
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
 }
-
 submenu_generales(){
   cls
-  echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
-  echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
-  echo -e "${Gray}   - sf2 : ${Cyan} realiza busquedas de archivos (sf2 -h  para ayuda y ejemplos)${Color_Off}"
-  echo -e "${Gray}   - sd2 : ${Cyan} realiza busquedas de directorios (sd2 -h  para ayuda y ejemplos)${Color_Off}"
-  echo -e "${Gray}   - st : ${Cyan} realiza busqueda de texto en directorio actual (st -h  para ayuda y ejemplos)${Color_Off}"
-  echo -e "${Gray}   - listar_archivos_recientes_modificados : ${Cyan} ficheros recientes y modificados  Ejemplo: listar_archivos_recientes_modificados '/var/www/html' 15${Color_Off}"
-  echo -e "${Gray}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
-  echo -e "${Gray}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
-  echo -e "${Gray}   - search_text : ${Cyan}Buscar texto en múltiples archivos del directorio actual. Ejemplo: search_text 'texto_a_buscar'${Color_Off}"
-  echo -e "${Gray}   - directory_space : ${Cyan}Ver peso de sus directorios pasar el path opcional . Ejemplo: directory_space '/var/www'${Color_Off}"
-  echo -e "${Gray}   - find_files_by_size : ${Cyan}Archivos por tamaño. Ejemplo: find_files_by_size . 5M${Color_Off}"
-  echo -e "${Gray}   - find_heaviest_files : ${Cyan}Listar los archivos más pesados en un directorio. Ejemplo: find_heaviest_files /ruta/al/directorio 10${Color_Off}"
-  echo -e "${Gray}   - simple_server : ${Cyan}Iniciar un servidor HTTP simple en el puerto especificado (por defecto 8000). Ejemplo: simple_server 8080${Color_Off}"
-  echo -e "${Gray}Utilidades Red:${Color_Off}"
-  echo -e "${Gray}   - Obtener Ip Publica : ${Cyan}curl checkip.amazonaws.com${Color_Off}"
-  echo -e "${Gray}Alias básicos disponibles:${Color_Off}"
-  echo -e "${Gray}   - ll : ${Cyan}Lista archivos con tamaños legibles (ls -lh).${Color_Off}"
-  echo -e "${Gray}   - la : ${Cyan}Lista todos los archivos, incluidos ocultos (ls -lha).${Color_Off}"
-  echo -e "${Gray}   - rm : ${Cyan}Borrar archivos con confirmación.${Color_Off}"
-  echo -e "${Gray}   - cp : ${Cyan}Copiar archivos con confirmación.${Color_Off}"
-  echo -e "${Gray}   - mm : ${Cyan}Efecto Hacker${Color_Off}"
-  echo -e "${Gray}   - mv : ${Cyan}Mover archivos con confirmación.${Color_Off}"
-  echo -e "${Gray}   - cls : ${Cyan}Limpiar la pantalla.${Color_Off}"
-  echo -e "${Gray}Alias avanzados disponibles:${Color_Off}"
-  echo -e "${Gray}   - search : ${Cyan}Buscar archivos por nombre. Ejemplo: search '*.log'${Color_Off}"
-  echo -e "${Gray}   - bigfiles : ${Cyan}Mostrar los 10 archivos más grandes en el directorio actual.${Color_Off}"
-  echo -e "${Gray}   - newestfile : ${Cyan}Mostrar el archivo más reciente del directorio actual.${Color_Off}"
-  echo -e "${Gray}Configuraciones adicionales:${Color_Off}"
-  echo -e "${Gray}   - ulimit -n 4096 : ${Cyan}Incrementa el límite de archivos abiertos.${Color_Off}"
-  echo -e "${Gray}   - history : ${Cyan}Historial extendido con fecha y hora.${Color_Off}"
-  echo -e "${Gray}   - PATH : ${Cyan}Incluye scripts personalizados en /opt/mis-scripts.${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Yellow}  Generales:${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Purple}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
+  echo -e "${Purple}   - ll : ${Cyan}Lista archivos con tamaños legibles (ls -lh).${Color_Off}"
+  echo -e "${Purple}   - la : ${Cyan}Lista todos los archivos, incluidos ocultos (ls -lha).${Color_Off}"
+  echo -e "${Purple}   - rm : ${Cyan}Borrar archivos con confirmación.${Color_Off}"
+  echo -e "${Purple}   - cp : ${Cyan}Copiar archivos con confirmación.${Color_Off}"
+  echo -e "${Purple}   - mm : ${Cyan}Efecto Hacker${Color_Off}"
+  echo -e "${Purple}   - mv : ${Cyan}Mover archivos con confirmación.${Color_Off}"
+  echo -e "${Purple}   - cls : ${Cyan}Limpiar la pantalla.${Color_Off}"
+  echo -e "${Purple}   - directory_space : ${Cyan}Ver peso de sus directorios pasar el path opcional . Ejemplo: directory_space '/var/www'${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Yellow}  Busquedas:${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Purple}   - sf2 : ${Cyan} realiza busquedas de archivos (sf2 -h  para ayuda y ejemplos)${Color_Off}"
+  echo -e "${Purple}   - sd2 : ${Cyan} realiza busquedas de directorios (sd2 -h  para ayuda y ejemplos)${Color_Off}"
+  echo -e "${Purple}   - st : ${Cyan} realiza busqueda de texto en directorio actual (st -h  para ayuda y ejemplos)${Color_Off}"
+  echo -e "${Purple}   - find_files_by_size : ${Cyan}Archivos por tamaño. Ejemplo: find_files_by_size . 5M${Color_Off}"
+  echo -e "${Purple}   - find_heaviest_files : ${Cyan}Listar los archivos más pesados en un directorio. Ejemplo: find_heaviest_files /ruta/al/directorio 10${Color_Off}"
+  echo -e "${Purple}   - bigfiles : ${Cyan}Mostrar los 10 archivos más grandes en el directorio actual.${Color_Off}"
+  echo -e "${Purple}   - listar_archivos_recientes_modificados : ${Cyan} ficheros recientes y modificados  Ejemplo: listar_archivos_recientes_modificados '/var/www/html' 15${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Yellow}  Otros:${Color_Off}"
+  echo -e "${Yellow}=============================================${Color_Off}"
+  echo -e "${Purple}   - generar_ssh : ${Cyan}Generar claves SSH. Ejemplo: generar_ssh usuario@dominio.com${Color_Off}"
+  echo -e "${Purple}   - comparar : ${Cyan}Comparar dos archivos. Ejemplo: comparar archivo1.txt archivo2.txt${Color_Off}"
+  echo -e "${Purple}   - Obtener Ip Publica : ${Cyan}curl checkip.amazonaws.com${Color_Off}"
+  echo -e "${Purple}   - newestfile : ${Cyan}Mostrar el archivo más reciente del directorio actual.${Color_Off}"
+  echo -e "${Purple}   - ulimit -n 4096 : ${Cyan}Incrementa el límite de archivos abiertos.${Color_Off}"
+  echo -e "${Purple}   - history : ${Cyan}Historial extendido con fecha y hora.${Color_Off}"
+  echo -e "${Purple}   - PATH : ${Cyan}Incluye scripts personalizados en /opt/mis-scripts.${Color_Off}"
 }
+
 submenu_docker(){
   cls
   echo -e "${Yellow}Submenú Docker:${Color_Off}"
-  echo -e "${Gray}   - d : ${Cyan}docker${Color_Off}"
-  echo -e "${Gray}   - dps : ${Cyan}docker ps${Color_Off}"
-  echo -e "${Gray}   - di : ${Cyan}docker images${Color_Off}"
-  echo -e "${Gray}   - drm : ${Cyan}docker rm -f${Color_Off}"
-  echo -e "${Gray}   - drmi : ${Cyan}docker rmi${Color_Off}"
-  echo -e "${Gray}   - dlog : ${Cyan}docker logs -f${Color_Off}"
+  echo -e "${Purple}   - d : ${Cyan}docker${Color_Off}"
+  echo -e "${Purple}   - dps : ${Cyan}docker ps${Color_Off}"
+  echo -e "${Purple}   - di : ${Cyan}docker images${Color_Off}"
+  echo -e "${Purple}   - drm : ${Cyan}docker rm -f${Color_Off}"
+  echo -e "${Purple}   - drmi : ${Cyan}docker rmi${Color_Off}"
+  echo -e "${Purple}   - dlog : ${Cyan}docker logs -f${Color_Off}"
   echo ""
-  echo -e "${Gray}   - dc : ${Cyan}docker-compose ${Color_Off}"
-  echo -e "${Gray}   - dcu : ${Cyan}docker-compose up -d ${Color_Off}"
-  echo -e "${Gray}   - dcd : ${Cyan}docker-compose down ${Color_Off}"
-  echo -e "${Gray}   - dcb : ${Cyan}docker-compose build ${Color_Off}"
-  echo -e "${Gray}   - dcr : ${Cyan}docker-compose restart ${Color_Off}"
+  echo -e "${Purple}   - dc : ${Cyan}docker-compose ${Color_Off}"
+  echo -e "${Purple}   - dcu : ${Cyan}docker-compose up -d ${Color_Off}"
+  echo -e "${Purple}   - dcd : ${Cyan}docker-compose down ${Color_Off}"
+  echo -e "${Purple}   - dcb : ${Cyan}docker-compose build ${Color_Off}"
+  echo -e "${Purple}   - dcr : ${Cyan}docker-compose restart ${Color_Off}"
   echo ""
-  echo -e "${Gray}   - dinspect : ${Cyan}Inspecionar contenedor - Uso: dinspect <nombre_contenedor> ${Color_Off}"
-  echo -e "${Gray}   - dlogin : ${Cyan}Listar e Ingresar a contenedor - Uso: dit ${Color_Off}"
-  echo -e "${Gray}   - droot : ${Cyan}Listar e Ingresar a contenedor MODO : ROOT- Uso: dit ${Color_Off}"
-  echo -e "${Gray}   - dcrestart : ${Cyan}docker-compose down && docker-compose up -d ${Color_Off}"
+  echo -e "${Purple}   - dinspect : ${Cyan}Inspecionar contenedor - Uso: dinspect <nombre_contenedor> ${Color_Off}"
+  echo -e "${Purple}   - dlogin : ${Cyan}Listar e Ingresar a contenedor - Uso: dit ${Color_Off}"
+  echo -e "${Purple}   - droot : ${Cyan}Listar e Ingresar a contenedor MODO : ROOT- Uso: dit ${Color_Off}"
+  echo -e "${Purple}   - dcrestart : ${Cyan}docker-compose down && docker-compose up -d ${Color_Off}"
 }
 
 submenu_docker_comandos(){
@@ -1380,32 +1381,31 @@ submenu_docker_comandos(){
 
 }
 
-
 submenu_cyberpanel(){
   cls
   echo -e "${Yellow}Submenú Configuraciones CyberPanel:${Color_Off}"
-  echo -e "${Gray}   - stop_cyber_panel : ${Cyan}Detener CyberPanel.${Color_Off}"
-  echo -e "${Gray}   - start_cyber_panel : ${Cyan}Iniciar CyberPanel.${Color_Off}"
+  echo -e "${Purple}   - stop_cyber_panel : ${Cyan}Detener CyberPanel.${Color_Off}"
+  echo -e "${Purple}   - start_cyber_panel : ${Cyan}Iniciar CyberPanel.${Color_Off}"
 }
 
 submenu_fzf(){
   cls
   echo -e "${Yellow}Submenú FZF:${Color_Off}"
-  echo -e "${Gray}   - sd : ${Cyan}Buscar y cambiar de directorio.${Color_Off}"
-  echo -e "${Gray}   - sde : ${Cyan}Navegación estilo explorador de Windows.${Color_Off}"
-  echo -e "${Gray}   - sf : ${Cyan}Buscar archivos excluyendo carpetas y tipos de archivos.${Color_Off}"
-  echo -e "${Gray}   - sff : ${Cyan}Buscar archivos sin exclusiones.${Color_Off}"
+  echo -e "${Purple}   - sd : ${Cyan}Buscar y cambiar de directorio.${Color_Off}"
+  echo -e "${Purple}   - sde : ${Cyan}Navegación estilo explorador de Windows.${Color_Off}"
+  echo -e "${Purple}   - sf : ${Cyan}Buscar archivos excluyendo carpetas y tipos de archivos.${Color_Off}"
+  echo -e "${Purple}   - sff : ${Cyan}Buscar archivos sin exclusiones.${Color_Off}"
 }
 
 submenu_python_utils(){
   cls
   echo -e "${Yellow}Submenú Comandos Python:${Color_Off}"
-  echo -e "${Gray}   - run_server_py : ${Cyan}Crea un servidor de explorador de ficheros.${Color_Off}"
-  echo -e "${Gray}        ${Yellow}Ejemplos de uso:${Color_Off}"
-  echo -e "${Gray}            ${Purple}run_server_py  :${Cyan}directorio actual.${Color_Off}"
-  echo -e "${Gray}            ${Purple}run_server_py 9090 : ${Cyan}directorio actual y con puerto 9090.${Color_Off}"
-  echo -e "${Gray}            ${Purple}run_server_py 9090 /d/repos : ${Cyan}puerto y directorio pasado por parametro.${Color_Off}"
-  echo -e "${Gray}   - optimize_img_dir : ${Cyan} ${Yellow}(solo Linux)${Color_Off} ${Cyan}Comprime Recursivamente imagenes tipo (jpg,png) en el directorio actual o pasandole un path ejemplo: optimize_img_dir '/mnt/e/imgs'  ${Color_Off}"
+  echo -e "${Purple}   - run_server_py : ${Cyan}Crea un servidor de explorador de ficheros.${Color_Off}"
+  echo -e "${Purple}        ${Yellow}Ejemplos de uso:${Color_Off}"
+  echo -e "${Purple}            ${Purple}run_server_py  :${Cyan}directorio actual.${Color_Off}"
+  echo -e "${Purple}            ${Purple}run_server_py 9090 : ${Cyan}directorio actual y con puerto 9090.${Color_Off}"
+  echo -e "${Purple}            ${Purple}run_server_py 9090 /d/repos : ${Cyan}puerto y directorio pasado por parametro.${Color_Off}"
+  echo -e "${Purple}   - optimize_img_dir : ${Cyan} ${Yellow}(solo Linux)${Color_Off} ${Cyan}Comprime Recursivamente imagenes tipo (jpg,png) en el directorio actual o pasandole un path ejemplo: optimize_img_dir '/mnt/e/imgs'  ${Color_Off}"
 
 }
 
@@ -1422,7 +1422,6 @@ submenu_ficheros_configuracion(){
   echo -e "${Code_background} /etc/iptables/rules.v4 y /etc/iptables/rules.v6 ${Cyan} → Configuración de reglas de firewall (si usa iptables)..${Color_Off}"
 
 }
-
 
 #--------------------------------------------
 
