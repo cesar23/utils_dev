@@ -1946,10 +1946,10 @@ dcrestart() {
 # Cargar prompt guardado al iniciar sesión
 # ==========================================================================
 # Cargar automáticamente el prompt guardado (solo si no es SSH)
-if [ -z "$SSH_CONNECTION" ]; then
-    load_saved_prompt
-fi
-
+#if [ -z "$SSH_CONNECTION" ]; then
+#    load_saved_prompt
+#fi
+load_saved_prompt
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
