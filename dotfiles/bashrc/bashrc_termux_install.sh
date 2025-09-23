@@ -12,7 +12,6 @@ fi
 echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
 VERSION_BASHRC=4.5.1
 VERSION_PLATFORM='(TERMUX)'
 
