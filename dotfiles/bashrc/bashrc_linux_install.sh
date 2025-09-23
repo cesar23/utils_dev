@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.0.1
+VERSION_BASHRC=4.5.1
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -72,7 +72,7 @@ BGray='\e[1;90m'        # Gris (negrita).
 Code_background='\e[7;90;47m'   # Black
 
 
-# Prompt básico con colores
+# Prompt b谩sico con colores
 export PS1='\[\e[32m\]\u@\h:\[\e[34m\]\w\[\e[0m\]\$ '
 
 # Agregar información del branch Git al prompt
@@ -80,24 +80,264 @@ parse_git_branch() {
     git branch 2> /dev/null | sed -n -e 's/^\* \(.*\)/(\1)/p'
 }
 
+# Funci贸n para mostrar solo los últimos 3 niveles del path
+short_pwd() {
+
+    local pwd_length=${#PWD}
+    local max_length=60  # Ajusta este valor según tus preferencias
+
+    if [ $pwd_length -gt $max_length ]; then
+        local path_parts=(${PWD//\// })
+        local num_parts=${#path_parts[@]}
+
+        if [ $num_parts -gt 3 ]; then
+            echo "../${path_parts[$((num_parts-3))]}/${path_parts[$((num_parts-2))]}/${path_parts[$((num_parts-1))]}"
+        else
+            echo "$PWD"
+        fi
+    else
+        echo "$PWD"
+    fi
+}
 
 # ========================================
-# Configuración del Prompt
+# Configuraci贸n del Prompt
 # example output: root@server1 /root/curso_vps (master)#
 #export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\w\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 
 
 
-# Si la sesión es SSH, cambia el color del prompt
+# Si la sesi贸n es SSH, cambia el color del prompt
 if [ -n "$SSH_CONNECTION" ]; then
     # ========================================
-    # Configuración del Prompt
+    # Configuraci贸n del Prompt
     # example output: root@server1 (SSH) /root/curso_vps (master)#
-    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SSH):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
+    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SSH):\[\e[0m\] \[\e[34m\]\$(short_pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
     # ::: para servidor Sociedad - spdtss
 #    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SOCIEDAD):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 fi
+
+
+# ========================
+# Sistema de Prompt Persistente
+# ========================
+
+# Archivo para guardar el prompt preferido
+PROMPT_CONFIG_FILE="$HOME/.prompt_config"
+
+# Función para guardar el prompt actual
+save_prompt() {
+    echo "$1" > "$PROMPT_CONFIG_FILE"
+}
+
+# Función para cargar el prompt guardado
+load_saved_prompt() {
+    if [ -f "$PROMPT_CONFIG_FILE" ]; then
+        local saved_prompt=$(cat "$PROMPT_CONFIG_FILE")
+        if [ -n "$saved_prompt" ]; then
+            $saved_prompt
+        fi
+    fi
+}
+
+# Función para mostrar el prompt actual guardado
+show_saved_prompt() {
+    if [ -f "$PROMPT_CONFIG_FILE" ]; then
+        local saved_prompt=$(cat "$PROMPT_CONFIG_FILE")
+        if [ -n "$saved_prompt" ]; then
+            echo -e "${BGreen}Prompt guardado: ${Yellow}$saved_prompt${Color_Off}"
+        else
+            echo -e "${BRed}No hay prompt guardado${Color_Off}"
+        fi
+    else
+        echo -e "${BRed}No hay prompt guardado${Color_Off}"
+    fi
+}
+
+# Función para eliminar el prompt guardado
+clear_saved_prompt() {
+    if [ -f "$PROMPT_CONFIG_FILE" ]; then
+        rm "$PROMPT_CONFIG_FILE"
+        echo -e "${BGreen}Prompt guardado eliminado${Color_Off}"
+    else
+        echo -e "${BRed}No hay prompt guardado para eliminar${Color_Off}"
+    fi
+}
+
+# ========================
+# Funciones para cambiar el prompt
+# ========================
+
+# p1 - Prompt completo con fecha, hora y información detallada
+# Formato: [fecha hora] usuario@host ruta_acortada (git_branch) $
+p1() {
+    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\$(short_pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
+    save_prompt "p1"
+}
+
+
+# === p2 ESTILO HACKING - COLORES MEJORADOS ===
+
+p2() {
+     export PS1="\[\033[1;96m\]╭─\[\033[1;95m\]\u\[\033[1;96m\]@\[\033[1;95m\]\h\[\033[1;96m\]─[\[\033[1;93m\]\$(short_pwd)\[\033[1;92m\] \$(parse_git_branch)\[\033[1;96m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;96m\]]"$'\n'"╰─\[\033[1;95m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    save_prompt "p2"
+}
+
+# p2 - Matrix Green (estilo Matrix clásico)
+p2_matrix() {
+    export PS1="\[\033[1;32m\]╭─\[\033[1;92m\]\u\[\033[1;32m\]@\[\033[1;92m\]\h\[\033[1;32m\]─[\[\033[1;96m\]\$(short_pwd)\[\033[1;93m\] \$(parse_git_branch)\[\033[1;32m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;32m\]]"$'\n'"╰─\[\033[1;92m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '⚡ ❯' )\[\033[0m\] "
+    echo -e "${BGreen}Prompt Matrix Green activado${Color_Off}"
+}
+
+# p2 - Cyberpunk (cyan/magenta)
+p2_cyberpunk() {
+    export PS1="\[\033[1;96m\]╭─\[\033[1;95m\]\u\[\033[1;96m\]@\[\033[1;95m\]\h\[\033[1;96m\]─[\[\033[1;93m\]\$(short_pwd)\[\033[1;92m\] \$(parse_git_branch)\[\033[1;96m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;96m\]]"$'\n'"╰─\[\033[1;95m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '💀 ❯' )\[\033[0m\] "
+    echo -e "${BCyan}Prompt Cyberpunk activado${Color_Off}"
+}
+
+# p2 - Neon Blue (azul neón)
+p2_neon() {
+    export PS1="\[\033[1;94m\]╭─\[\033[1;96m\]\u\[\033[1;94m\]@\[\033[1;96m\]\h\[\033[1;94m\]─[\[\033[1;97m\]\$(short_pwd)\[\033[1;93m\] \$(parse_git_branch)\[\033[1;94m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;94m\]]"$'\n'"╰─\[\033[1;96m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BBlue}Prompt Neon Blue activado${Color_Off}"
+}
+
+# p2 - Hacker Terminal (verde/negro intenso)
+p2_terminal() {
+    export PS1="\[\033[1;92m\]╭─\[\033[1;32m\]\u\[\033[1;92m\]@\[\033[1;32m\]\h\[\033[1;92m\]─[\[\033[1;97m\]\$(short_pwd)\[\033[1;93m\] \$(parse_git_branch)\[\033[1;92m\] [\[\033[1;33m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;92m\]]"$'\n'"╰─\[\033[1;32m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BGreen}Prompt Hacker Terminal activado${Color_Off}"
+}
+
+# p2 - Fire (rojo/naranja)
+p2_fire() {
+    export PS1="\[\033[1;91m\]╭─\[\033[1;93m\]\u\[\033[1;91m\]@\[\033[1;93m\]\h\[\033[1;91m\]─[\[\033[1;97m\]\$(short_pwd)\[\033[1;92m\] \$(parse_git_branch)\[\033[1;91m\] [\[\033[1;95m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;91m\]]"$'\n'"╰─\[\033[1;93m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BRed}Prompt Fire activado${Color_Off}"
+}
+
+# p2 - Rainbow Hacker (multicolor vibrante)
+p2_rainbow() {
+    export PS1="\[\033[1;95m\]╭─\[\033[1;96m\]\u\[\033[1;95m\]@\[\033[1;92m\]\h\[\033[1;95m\]─[\[\033[1;93m\]\$(short_pwd)\[\033[1;94m\] \$(parse_git_branch)\[\033[1;95m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;95m\]]"$'\n'"╰─\[\033[1;97m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BPurple}Prompt Rainbow Hacker activado${Color_Off}"
+}
+
+# p2 - Dark Mode Elite (gris/blanco)
+p2_elite() {
+    export PS1="\[\033[1;37m\]╭─\[\033[1;96m\]\u\[\033[1;37m\]@\[\033[1;96m\]\h\[\033[1;37m\]─[\[\033[1;92m\]\$(short_pwd)\[\033[1;93m\] \$(parse_git_branch)\[\033[1;37m\] [\[\033[1;91m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;37m\]]"$'\n'"╰─\[\033[1;96m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BWhite}Prompt Elite activado${Color_Off}"
+}
+
+# p2 - Retro Wave (magenta/cyan estilo 80s)
+p2_retro() {
+    export PS1="\[\033[1;95m\]╭─\[\033[1;96m\]\u\[\033[1;95m\]@\[\033[1;96m\]\h\[\033[1;95m\]─[\[\033[1;97m\]\$(short_pwd)\[\033[1;93m\] \$(parse_git_branch)\[\033[1;95m\] [\[\033[1;92m\]\D{%Y-%m-%d %H:%M:%S}\[\033[1;95m\]]"$'\n'"╰─\[\033[1;96m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '❯' )\[\033[0m\] "
+    echo -e "${BPurple}Prompt Retro Wave activado${Color_Off}"
+}
+
+
+# p3 - Prompt Pure/Minimal (súper minimalista)
+# Formato: directorio_actual (git_branch) ❯
+p3() {
+    export PS1="\[\e[34m\]\W\[\e[0m\]\[\e[1;33m\]\$(parse_git_branch)\[\e[0m\] ❯ "
+    save_prompt "p3"
+}
+
+# p4 - Prompt Two-Line (dos líneas para mejor legibilidad)
+# Línea 1: usuario@host ruta_completa
+# Línea 2: ❯
+p4() {
+    export PS1="\[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\]\n\[\e[32m\]❯\[\e[0m\] "
+    save_prompt "p4"
+}
+
+# p5 - Prompt Ultra Minimal (solo símbolo colorido)
+# Formato: ❯
+p5() {
+    export PS1="\[\e[1;31m\]❯\[\e[0m\] "
+    save_prompt "p5"
+}
+
+# p - Función de ayuda para mostrar todos los prompts disponibles
+p() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo -e "${BYellow}=== PROMPTS DISPONIBLES ===${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p1${Color_Off} - ${Cyan}Prompt Completo${Color_Off}"
+        echo -e "     Fecha y hora completa + usuario@host + directorio + Git + indicador root"
+        echo -e "     ${Gray}Ejemplo: [2025-09-22 15:30:25] cesar@host /d/repos/curso_linux (master) \$${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2${Color_Off} - ${Cyan}Hacker Style (Cyberpunk)${Color_Off}"
+        echo -e "     Estilo hacker con líneas elegantes y colores cyan/magenta"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─💀 ❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_matrix${Color_Off} - ${Cyan}Matrix Green${Color_Off}"
+        echo -e "     Estilo Matrix clásico con colores verdes"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─⚡ ❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_cyberpunk${Color_Off} - ${Cyan}Cyberpunk${Color_Off}"
+        echo -e "     Colores cyan/magenta estilo cyberpunk"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─💀 ❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_neon${Color_Off} - ${Cyan}Neon Blue${Color_Off}"
+        echo -e "     Azul neón vibrante"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_terminal${Color_Off} - ${Cyan}Hacker Terminal${Color_Off}"
+        echo -e "     Verde/negro intenso estilo terminal hacker"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_fire${Color_Off} - ${Cyan}Fire${Color_Off}"
+        echo -e "     Colores rojo/naranja como fuego"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_rainbow${Color_Off} - ${Cyan}Rainbow Hacker${Color_Off}"
+        echo -e "     Multicolor vibrante"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_elite${Color_Off} - ${Cyan}Dark Mode Elite${Color_Off}"
+        echo -e "     Gris/blanco elegante"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p2_retro${Color_Off} - ${Cyan}Retro Wave${Color_Off}"
+        echo -e "     Magenta/cyan estilo años 80"
+        echo -e "     ${Gray}Ejemplo: ╭─ cesar@host─[/path] (branch) [15:30:25]${Color_Off}"
+        echo -e "     ${Gray}         ╰─❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p3${Color_Off} - ${Cyan}Pure/Minimal${Color_Off}"
+        echo -e "     Directorio actual + rama Git (si existe) + símbolo"
+        echo -e "     ${Gray}Ejemplo: curso_linux${BYellow}(master)${Color_Off}${Gray} ❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p4${Color_Off} - ${Cyan}Two-Line${Color_Off}"
+        echo -e "     Información completa en dos líneas"
+        echo -e "     ${Gray}Ejemplo: cesar@host /d/repos/curso_linux${Color_Off}"
+        echo -e "     ${Gray}         ❯${Color_Off}"
+        echo ""
+        echo -e "${BGreen}p5${Color_Off} - ${Cyan}Ultra Minimal${Color_Off}"
+        echo -e "     Solo símbolo en rojo brillante"
+        echo -e "     ${Gray}Ejemplo: ${BRed}❯${Color_Off}"
+        echo ""
+        echo -e "${BYellow}Uso:${Color_Off} Escribe ${Yellow}p1${Color_Off}, ${Yellow}p2${Color_Off}, ${Yellow}p2_matrix${Color_Off}, ${Yellow}p3${Color_Off}, etc. para activar cada prompt"
+        echo -e "${BYellow}Ayuda:${Color_Off} ${Yellow}p -h${Color_Off} para mostrar este menú"
+        echo ""
+        echo -e "${BYellow}=== GESTIÓN DE PROMPT PERSISTENTE ===${Color_Off}"
+        echo -e "${BGreen}show_saved_prompt${Color_Off} - ${Cyan}Mostrar el prompt actualmente guardado${Color_Off}"
+        echo -e "${BGreen}clear_saved_prompt${Color_Off} - ${Cyan}Eliminar el prompt guardado${Color_Off}"
+        echo -e "${BGreen}load_saved_prompt${Color_Off} - ${Cyan}Cargar el prompt guardado manualmente${Color_Off}"
+        echo ""
+        echo -e "${BCyan}Nota:${Color_Off} Los prompts se guardan automáticamente al activarlos y se cargan al iniciar sesión"
+        echo ""
+    else
+        echo -e "${BRed}Uso:${Color_Off} p -h    ${Gray}(para ver todos los prompts disponibles)${Color_Off}"
+        echo -e "${BRed}     ${Color_Off} p1, p2, p2_matrix, p3, p4, p5   ${Gray}(para activar un prompt específico)${Color_Off}"
+    fi
+}
+
 
 # ========================
 # 2. Alias útiles
@@ -165,6 +405,7 @@ fi
 # 6. Funciones personalizadas
 # ========================
 
+
 # Buscar texto en archivos con colores personalizados (ripgrep/grep)
 st() {
     local pattern=""
@@ -179,12 +420,12 @@ st() {
     local use_ripgrep=false
     local force_grep=false
 
-    # Detectar inicialmente si ripgrep está disponible
+    # Detectar inicialmente si ripgrep est谩 disponible
     if command -v rg >/dev/null 2>&1; then
         use_ripgrep=true
     fi
 
-    # Función de ayuda
+    # Funci贸n de ayuda
     show_help() {
         local tool_name
         if $use_ripgrep; then
@@ -198,26 +439,26 @@ st() {
         echo ""
         echo -e "${BCyan}Opciones:${Color_Off}"
         echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
-        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      B煤squeda sin distinguir mayúsculas/minúsculas"
         echo -e "  ${Green}-f, --files PATRÓN${Color_Off}     Buscar solo en archivos que coincidan con patrón (ej: '*.txt')"
         echo -e "  ${Green}-e, --exclude PATRÓN${Color_Off}   Excluir archivos que coincidan con patrón"
         echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
         echo -e "  ${Green}-n, --no-line-numbers${Color_Off}  No mostrar números de línea"
-        echo -e "  ${Green}-C, --context NUM${Color_Off}      Mostrar NUM líneas de contexto antes y después"
+        echo -e "  ${Green}-C, --context NUM${Color_Off}      Mostrar NUM líneas de contexto antes y despu茅s"
         echo -e "  ${Green}-w, --word${Color_Off}             Buscar palabras completas solamente"
-        echo -e "  ${BYellow}-g, --force-grep${Color_Off}       ${BRed}Forzar el uso de grep${Color_Off} (incluso si ripgrep está disponible)"
+        echo -e "  ${BYellow}-g, --force-grep${Color_Off}       ${BRed}Forzar el uso de grep${Color_Off} (incluso si ripgrep est谩 disponible)"
         echo -e "  ${Green}-h, --help${Color_Off}             Mostrar esta ayuda"
         echo ""
         echo -e "${BCyan}Ejemplos:${Color_Off}"
         echo -e "  ${Yellow}st 'function'${Color_Off}              # Buscar texto en todos los archivos"
-        echo -e "  ${Yellow}st -i 'error'${Color_Off}              # Búsqueda insensitive a mayúsculas"
+        echo -e "  ${Yellow}st -i 'error'${Color_Off}              # B煤squeda insensitive a mayúsculas"
         echo -e "  ${Yellow}st -f '*.js' 'console'${Color_Off}     # Buscar solo en archivos .js"
         echo -e "  ${Yellow}st -C 3 'TODO'${Color_Off}             # Mostrar 3 líneas de contexto"
         echo -e "  ${Yellow}st -w 'test'${Color_Off}               # Buscar palabra completa 'test'"
         echo -e "  ${Yellow}st -d /home 'config'${Color_Off}       # Buscar en directorio específico"
         echo -e "  ${Yellow}st -e '*.log' 'error'${Color_Off}      # Excluir archivos .log"
         echo ""
-        echo -e "${BYellow}Forzar herramienta específica:${Color_Off}"
+        echo -e "${BYellow}Forzar herramienta espec铆fica:${Color_Off}"
         echo -e "  ${BYellow}st -g 'function'${Color_Off}           # ${BRed}Forzar uso de grep${Color_Off} (comparar con ripgrep)"
         return 0
     }
@@ -265,7 +506,7 @@ st() {
                     max_depth="$2"
                     shift 2
                 else
-                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un n煤mero" >&2
                     return 1
                 fi
                 ;;
@@ -278,7 +519,7 @@ st() {
                     context_lines="$2"
                     shift 2
                 else
-                    echo -e "${BRed}Error:${Color_Off} --context requiere un número" >&2
+                    echo -e "${BRed}Error:${Color_Off} --context requiere un n煤mero" >&2
                     return 1
                 fi
                 ;;
@@ -292,7 +533,7 @@ st() {
                 shift
                 ;;
             -*)
-                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "${BRed}Error:${Color_Off} Opci贸n desconocida '$1'" >&2
                 echo -e "Usa '${Yellow}st --help${Color_Off}' para ver las opciones disponibles"
                 return 1
                 ;;
@@ -308,7 +549,7 @@ st() {
         esac
     done
 
-    # Verificar que se proporcionó un patrón
+    # Verificar que se proporcion贸 un patrón
     if [[ -z "$pattern" ]]; then
         echo -e "${BRed}Error:${Color_Off} Debes especificar un texto a buscar"
         echo -e "${BYellow}Uso:${Color_Off} st 'texto_a_buscar'"
@@ -345,7 +586,7 @@ st() {
         # Usar ripgrep
         local rg_opts="--color=always --heading --with-filename"
 
-        # Agregar opciones según parámetros
+        # Agregar opciones según par谩metros
         if $case_sensitive; then
             rg_opts="$rg_opts -i"
         fi
@@ -376,7 +617,7 @@ st() {
             rg_opts="$rg_opts -g '!$exclude_pattern'"
         fi
 
-        # Ejecutar ripgrep y obtener estadísticas
+        # Ejecutar ripgrep y obtener estad铆sticas
         local results
         results=$(eval "rg $rg_opts '$pattern' '$directory'" 2>/dev/null)
 
@@ -391,7 +632,7 @@ st() {
             local match_count
             local file_count
 
-            # Usar ripgrep con --count-matches para obtener estadísticas precisas
+            # Usar ripgrep con --count-matches para obtener estad铆sticas precisas
             local stats_opts="--count-matches"
             if $case_sensitive; then
                 stats_opts="$stats_opts -i"
@@ -409,7 +650,7 @@ st() {
                 stats_opts="$stats_opts -g '!$exclude_pattern'"
             fi
 
-            # Obtener estadísticas
+            # Obtener estad铆sticas
             local stats_result
             stats_result=$(eval "rg $stats_opts '$pattern' '$directory'" 2>/dev/null)
 
@@ -418,7 +659,7 @@ st() {
                 match_count=$(echo "$stats_result" | awk -F: '{sum += $2} END {print sum}' 2>/dev/null || echo "0")
                 echo -e "${BGreen}[OK] Encontradas ${BWhite}$match_count${Color_Off}${BGreen} coincidencias en ${BWhite}$file_count${Color_Off}${BGreen} archivos${Color_Off}"
             else
-                echo -e "${BGreen}[OK] Búsqueda completada con ripgrep${Color_Off}"
+                echo -e "${BGreen}[OK] B煤squeda completada con ripgrep${Color_Off}"
             fi
         fi
 
@@ -500,13 +741,13 @@ sf2() {
     local type_filter=""
     local max_depth=""
 
-    # Función de ayuda
+    # Funci贸n de ayuda
     show_help() {
         echo -e "${BYellow}Uso:${Color_Off} sf2 [opciones] 'patrón_de_archivo'"
         echo ""
         echo -e "${BCyan}Opciones:${Color_Off}"
         echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
-        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      B煤squeda sin distinguir mayúsculas/minúsculas"
         echo -e "  ${Green}-f, --files-only${Color_Off}       Buscar solo archivos regulares"
         echo -e "  ${Green}-D, --dirs-only${Color_Off}        Buscar solo directorios"
         echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
@@ -555,12 +796,12 @@ sf2() {
                     max_depth="-maxdepth $2"
                     shift 2
                 else
-                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un n煤mero" >&2
                     return 1
                 fi
                 ;;
             -*)
-                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "${BRed}Error:${Color_Off} Opci贸n desconocida '$1'" >&2
                 echo -e "Usa '${Yellow}sf2 --help${Color_Off}' para ver las opciones disponibles"
                 return 1
                 ;;
@@ -576,7 +817,7 @@ sf2() {
         esac
     done
 
-    # Verificar que se proporcionó un patrón
+    # Verificar que se proporcion贸 un patrón
     if [[ -z "$pattern" ]]; then
         echo -e "${BRed}Error:${Color_Off} Debes especificar un patrón de búsqueda"
         echo -e "${BYellow}Uso:${Color_Off} sf2 'patrón_de_archivo'"
@@ -658,13 +899,13 @@ sd2() {
     local case_sensitive=false
     local max_depth=""
 
-    # Función de ayuda
+    # Funci贸n de ayuda
     show_help() {
         echo -e "${BYellow}Uso:${Color_Off} sd2 [opciones] 'patrón_de_directorio'"
         echo ""
         echo -e "${BCyan}Opciones:${Color_Off}"
         echo -e "  ${Green}-d, --dir DIRECTORIO${Color_Off}    Buscar en directorio específico (por defecto: directorio actual)"
-        echo -e "  ${Green}-i, --ignore-case${Color_Off}      Búsqueda sin distinguir mayúsculas/minúsculas"
+        echo -e "  ${Green}-i, --ignore-case${Color_Off}      B煤squeda sin distinguir mayúsculas/minúsculas"
         echo -e "  ${Green}-m, --max-depth NUM${Color_Off}    Profundidad máxima de búsqueda"
         echo -e "  ${Green}-a, --all${Color_Off}              Incluir directorios ocultos (que empiecen con .)"
         echo -e "  ${Green}-h, --help${Color_Off}             Mostrar esta ayuda"
@@ -710,12 +951,12 @@ sd2() {
                     max_depth="-maxdepth $2"
                     shift 2
                 else
-                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un número" >&2
+                    echo -e "${BRed}Error:${Color_Off} --max-depth requiere un n煤mero" >&2
                     return 1
                 fi
                 ;;
             -*)
-                echo -e "${BRed}Error:${Color_Off} Opción desconocida '$1'" >&2
+                echo -e "${BRed}Error:${Color_Off} Opci贸n desconocida '$1'" >&2
                 echo -e "Usa '${Yellow}sd2 --help${Color_Off}' para ver las opciones disponibles"
                 return 1
                 ;;
@@ -731,7 +972,7 @@ sd2() {
         esac
     done
 
-    # Verificar que se proporcionó un patrón
+    # Verificar que se proporcion贸 un patrón
     if [[ -z "$pattern" ]]; then
         echo -e "${BRed}Error:${Color_Off} Debes especificar un patrón de búsqueda"
         echo -e "${BYellow}Uso:${Color_Off} sd2 'patrón_de_directorio'"
@@ -790,7 +1031,7 @@ sd2() {
                 # Directorio oculto
                 echo -e "${Gray}[HIDDEN] $dir${Color_Off}"
             elif [[ "$dir_name" =~ ^(src|source|lib|library)$ ]]; then
-                # Directorio de código fuente
+                # Directorio de c贸digo fuente
                 echo -e "${BPurple}[SRC] $dir${Color_Off}"
             elif [[ "$dir_name" =~ ^(test|tests|spec|specs)$ ]]; then
                 # Directorio de tests
@@ -1317,6 +1558,7 @@ fi
 
 
 
+
 menu(){
   echo -e "${Gray}========================${Color_Off}"
   echo -e "${Gray}VERSION_BASHRC: ${VERSION_BASHRC}${Color_Off}"
@@ -1335,7 +1577,8 @@ menu(){
   echo -e "${Gray}6) FZF${Color_Off}"
   echo -e "${Gray}7) Script Python${Color_Off}"
   echo -e "${Gray}8) Ficheros de configuración${Color_Off}"
-  echo -e "${Gray}9) Salir${Color_Off}"
+  echo -e "${Gray}9) Prompts${Color_Off}"
+  echo -e "${Gray}x) Salir${Color_Off}"
   read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
     1) submenu_generales ;;
@@ -1346,7 +1589,8 @@ menu(){
     6) submenu_fzf ;;
     7) submenu_python_utils ;;
     8) submenu_ficheros_configuracion ;;
-    9) return ;;
+    9) p -h ;;
+    x|X) return ;;
     "") return ;;  # Si se presiona Enter sin escribir nada, salir
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
@@ -1697,10 +1941,18 @@ droot() {
 dcrestart() {
     docker-compose down && docker-compose up -d
 }
+
+# ==========================================================================
+# Cargar prompt guardado al iniciar sesión
+# ==========================================================================
+# Cargar automáticamente el prompt guardado (solo si no es SSH)
+if [ -z "$SSH_CONNECTION" ]; then
+    load_saved_prompt
+fi
+
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César
 # ==========================================================================
-
 EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
