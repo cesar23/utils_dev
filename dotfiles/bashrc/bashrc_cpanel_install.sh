@@ -13,8 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
-VERSION_BASHRC=4.5.1
+VERSION_BASHRC=4.5.2
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -1449,7 +1448,7 @@ show_date() {
 
 
 # ==============================================================================
-# 📦 Función: create_file
+# 📦 Función: cf
 # ------------------------------------------------------------------------------
 # ✅ Descripción:
 #   Crea un archivo con contenido ingresado en múltiples líneas desde la terminal
@@ -1457,14 +1456,14 @@ show_date() {
 #   lo solicita interactivamente. Luego marca el archivo como ejecutable.
 #
 # 💡 Uso:
-#   create_file              # Solicita nombre interactivo
-#   create_file fichero.txt  # Usa nombre pasado como parámetro
+#   cf              # Solicita nombre interactivo
+#   cf fichero.txt  # Usa nombre pasado como parámetro
 #
 # 🎨 Requiere:
 #   - Permiso de escritura en el directorio actual
 #   - Variables de color definidas previamente
 # ==============================================================================
-create_file() {
+cf() {
   local FILE_NAME="$1"
 
   echo ""
@@ -1576,7 +1575,7 @@ submenu_generales(){
   cls
   echo -e "${Yellow}Submenú Opciones disponibles:${Color_Off}"
 
-  echo -e "${Gray}   - create_file : ${Cyan}Crear un fichero de manera manual${Color_Off}"
+  echo -e "${Gray}   - cf : ${Cyan}Crear un fichero de manera manual${Color_Off}"
   echo -e "${Gray}   - sf2 : ${Cyan} realiza busquedas de archivos (sf2 -h  para ayuda y ejemplos)${Color_Off}"
   echo -e "${Gray}   - sd2 : ${Cyan} realiza busquedas de directorios (sd2 -h  para ayuda y ejemplos)${Color_Off}"
   echo -e "${Gray}   - st : ${Cyan} realiza busqueda de texto en directorio actual (st -h  para ayuda y ejemplos)${Color_Off}"
