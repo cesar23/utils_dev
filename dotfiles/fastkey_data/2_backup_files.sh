@@ -126,6 +126,84 @@ view_vars_config() {
 
 
 
+# ==============================================================================
+# 📝 Función: msg
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Imprime un mensaje con formato estándar, incluyendo:
+#   - Marca de tiempo en UTC-5 (Perú)
+#   - Tipo de mensaje (INFO, WARNING, ERROR, o personalizado)
+#   - Colores para terminal (si están definidos previamente)
+#
+# 🔧 Parámetros:
+#   $1 - Mensaje a mostrar (texto)
+#   $2 - Tipo de mensaje (INFO | WARNING | ERROR | otro) [opcional, por defecto: INFO]
+#
+# 💡 Uso:
+#   msg "Inicio del proceso"               # Por defecto: INFO
+#   msg "Plugin no instalado" "WARNING"
+#   msg "Error de conexión" "ERROR"
+#   msg "Mensaje personalizado" "DEBUG"
+#
+# 🎨 Requiere:
+#   Variables de color: BBlue, BYellow, BRed, BWhite, BGray, Color_Off
+# ==============================================================================
+
+msg() {
+  local message="$1"
+  local level="${2:-INFO}"
+  local timestamp
+  timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
+
+  local SHOW_DETAIL=1
+  if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
+    SHOW_DETAIL=0
+  fi
+
+
+  case "$level" in
+    INFO)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BBlue}[INFO]${Color_Off} ${message}"
+        else
+          echo -e "${BBlue}${timestamp} - [INFO]${Color_Off} ${message}"
+        fi
+        ;;
+    WARNING)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BYellow}[WARNING]${Color_Off} ${message}"
+        else
+          echo -e "${BYellow}${timestamp} - [WARNING]${Color_Off} ${message}"
+        fi
+        ;;
+    DEBUG)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BPurple}[DEBUG]${Color_Off} ${message}"
+        else
+          echo -e "${BPurple}${timestamp} - [DEBUG]${Color_Off} ${message}"
+        fi
+        ;;
+    ERROR)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BRed}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BRed}${timestamp} - [ERROR]${Color_Off} ${message}"
+        fi
+        ;;
+    SUCCESS)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BGreen}[SUCCESS]${Color_Off} ${message}"
+        else
+          echo -e "${BGreen}${timestamp} - ${BGreen}[SUCCESS]${Color_Off} ${message}"
+        fi
+        ;;
+    *)
+          echo -e "${BGray}[OTHER]${Color_Off} ${message}"
+        ;;
+  esac
+}
+
+
 
 
 # ==============================================================================

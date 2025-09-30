@@ -125,6 +125,7 @@ view_vars_config() {
 }
 
 
+
 # ==============================================================================
 # 📝 Función: msg
 # ------------------------------------------------------------------------------
@@ -150,26 +151,55 @@ view_vars_config() {
 
 msg() {
   local message="$1"
-  local level="${2:-INFO}"  # INFO por defecto si no se especifica
+  local level="${2:-INFO}"
   local timestamp
   timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
 
+  local SHOW_DETAIL=1
+  if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
+    SHOW_DETAIL=0
+  fi
+
+
   case "$level" in
     INFO)
-      echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}"
-      ;;
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BBlue}[INFO]${Color_Off} ${message}"
+        else
+          echo -e "${BBlue}${timestamp} - [INFO]${Color_Off} ${message}"
+        fi
+        ;;
     WARNING)
-      echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}"
-      ;;
-    ERROR)
-      echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}"
-      ;;
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BYellow}[WARNING]${Color_Off} ${message}"
+        else
+          echo -e "${BYellow}${timestamp} - [WARNING]${Color_Off} ${message}"
+        fi
+        ;;
     DEBUG)
-      echo -e "${BYellow}${timestamp} ${BWhite}- [DEBUG]${Color_Off} ${Yellow}${message}"
-      ;;
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BPurple}[DEBUG]${Color_Off} ${message}"
+        else
+          echo -e "${BPurple}${timestamp} - [DEBUG]${Color_Off} ${message}"
+        fi
+        ;;
+    ERROR)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BRed}[ERROR]${Color_Off} ${message}"
+        else
+          echo -e "${BRed}${timestamp} - [ERROR]${Color_Off} ${message}"
+        fi
+        ;;
+    SUCCESS)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BGreen}[SUCCESS]${Color_Off} ${message}"
+        else
+          echo -e "${BGreen}${timestamp} - ${BGreen}[SUCCESS]${Color_Off} ${message}"
+        fi
+        ;;
     *)
-      echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}"
-      ;;
+          echo -e "${BGray}[OTHER]${Color_Off} ${message}"
+        ;;
   esac
 }
 
@@ -368,7 +398,7 @@ taskkill //IM "FastKeys.exe" //F  >/tmp/nul 2>&1
 
 # C:\Users\cesarPc\Documents\FastKeys
 # Definir rutas
-SOURCE_DIR="/C/Users/cesarPc/Documents/FastKeys"
+SOURCE_DIR="/C/Users/cesar/Documents/FastKeys"
 BACKUP_DIR="${CURRENT_DIR}/backup"
 BACKUP_DIR=$(path_windows_to_path_shell "$BACKUP_DIR")
 
