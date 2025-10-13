@@ -21,7 +21,7 @@ sudo apt-get -y install vim neovim
 #descargara y ejecutar curl
 sudo apt-get -y install curl
 #nos da comandos basicos d como ifconfig
-sudo apt-get -y install net-tools
+sudo apt-get -y install net-tools telnet
 #una mejor herramienta de top de linux paar ver procesoss
 sudo apt-get -y install htop
 #iftop, vigila el consumo de ancho de banda de tu red en tiempo real
