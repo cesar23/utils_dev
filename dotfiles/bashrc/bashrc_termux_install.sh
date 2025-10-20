@@ -1911,11 +1911,11 @@ alias drmi="docker rmi"       # Eliminar imagen
 alias dlog="docker logs -f"   # Ver logs en tiempo real
 
 # Alias básicos para Docker Compose
-alias dc="docker-compose"     # Abreviatura para Docker Compose
-alias dcu="docker-compose up -d"   # Iniciar servicios en segundo plano
-alias dcd="docker-compose down"    # Detener y eliminar servicios
-alias dcb="docker-compose build"   # Construir servicios
-alias dcr="docker-compose restart" # Reiniciar servicios
+alias dc="docker compose"     # Abreviatura para Docker Compose
+alias dcu="docker compose up -d"   # Iniciar servicios en segundo plano
+alias dcd="docker compose down"    # Detener y eliminar servicios
+alias dcb="docker compose build"   # Construir servicios
+alias dcr="docker compose restart" # Reiniciar servicios
 
 # ----------- Funciones
 
