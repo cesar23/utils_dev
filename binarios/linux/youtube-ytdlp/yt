@@ -1,9 +1,9 @@
 #!/bin/bash
-
 # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
 # Fecha y hora actual en Perú (UTC -5)
-DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S") # Fecha y hora actuales en formato YYYY-MM-DD_HH:MM:SS.
+HOURS_RESTART="-5"
+DATE_HOUR_PE_DEFAULT=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S") # Fecha y hora actuales en formato YYYY-MM-DD_HH:MM:SS.
 CURRENT_USER=$(id -un)             # Nombre del usuario actual.
 CURRENT_USER_HOME="${HOME:-$USERPROFILE}"  # Ruta del perfil del usuario actual.
 CURRENT_PC_NAME=$(hostname)        # Nombre del equipo actual.
@@ -15,6 +15,8 @@ NAME_DIR=$(basename "$CURRENT_DIR")              # Nombre del directorio actual.
 TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal basado en el nombre del script.
 TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')  # Ruta para un archivo temporal en /tmp.
 ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
+
+
 
 # =============================================================================
 # 🎨 SECTION: Colores para su uso
@@ -44,6 +46,106 @@ BCyan='\033[1;36m'        # Cian (negrita).
 BWhite='\033[1;37m'       # Blanco (negrita).
 BGray='\033[1;90m'        # Gris (negrita).
 
+# Ejemplo de uso:
+# echo -e "${Red}Este texto se mostrará en rojo.${Color_Off}"
+
+# =============================================================================
+# ⚙️ SECTION: Core Function
+# =============================================================================
+
+#=============================================================================
+# Función: get_date_peru
+#
+# Descripción:
+#   Obtiene la fecha y hora actual de Perú desde una API externa.
+#   La función realiza una llamada HTTP a un servicio de zona horaria
+#   y extrae la fecha en formato yyyy-MM-dd_HH:mm:ss (con guión bajo
+#   como separador para compatibilidad con nombres de archivo).
+#
+# Variables de entorno:
+#   API_TOKEN - Token de autenticación para la API (opcional, tiene fallback)
+#
+# Retorna:
+#   0: Éxito - Imprime la fecha en stdout en formato yyyy-MM-dd_HH:mm:ss
+#   1: Error - Fallo en la conexión o en el parseo de la respuesta
+#
+# Ejemplos de uso:
+#
+#   Opción 1 - Manejo con valor por defecto (más conciso):
+#   if ! FECHA=$(get_date_peru); then
+#       FECHA="2025-01-01_00:00:00"
+#   fi
+#   echo "Fecha: $FECHA"
+#
+#   Opción 2 - Manejo con mensajes de error:
+#   if FECHA=$(get_date_peru); then
+#       echo "Fecha obtenida: $FECHA"
+#   else
+#       echo "Error al obtener fecha" >&2
+#       exit 1
+#   fi
+#=============================================================================
+get_date_peru() {
+    # Configuración del token de autenticación
+    # Se prioriza la variable de entorno API_TOKEN por seguridad
+    # Si no existe, usa el valor predeterminado (solo para desarrollo)
+    local TOKEN="${API_TOKEN:-12312323rfefewfewfwefwef23r23r23f23f32f}"
+
+    # Parámetros de la petición HTTP
+    local API_URL="https://worker-utils.solucionessystem.com/api/time-zone/peru"
+    local FORMATO_FECHA="yyyy-MM-dd%20HH%3Amm%3Ass"  # URL encoded: "yyyy-MM-dd HH:mm:ss"
+    local TIMEOUT=10  # Timeout en segundos para la petición
+
+    # Realizar llamada a la API con curl
+    # Opciones:
+    #   -s (silent): Suprime la barra de progreso
+    #   --location: Sigue redirecciones HTTP
+    #   --max-time: Tiempo máximo de espera para la operación completa
+    local RESPONSE
+    RESPONSE=$(curl -s --location \
+        --max-time "$TIMEOUT" \
+        "${API_URL}?key=${TOKEN}&format=${FORMATO_FECHA}") || {
+        # Si curl falla (código de salida != 0), retornar error
+        # Posibles causas: sin conexión, timeout, servidor no responde
+        return 1
+    }
+
+    # Parsear la respuesta JSON para extraer el campo "date_local"
+    # Método: Usa grep con regex para buscar el patrón y cut para extraer el valor
+    # Ventaja: No requiere dependencias adicionales como jq
+    # Ejemplo de JSON esperado: {"date_local":"2025-10-30 15:30:45"}
+    local FECHA_HORA
+    FECHA_HORA=$(echo "$RESPONSE" | grep -o '"date_local":"[^"]*"' | cut -d'"' -f4)
+
+    # Validar que se extrajo correctamente la fecha
+    if [ -z "$FECHA_HORA" ]; then
+        # Si la extracción falla, la respuesta no tiene el formato esperado
+        # o el campo "date_local" no existe
+        return 1
+    fi
+
+    # Reemplazar espacios por guiones bajos para compatibilidad
+    # Útil cuando se usa la fecha en nombres de archivo o rutas
+    FECHA_HORA=$(echo "$FECHA_HORA" | tr ' ' '_')
+
+    # Retornar la fecha formateada
+    echo "$FECHA_HORA"
+    return 0
+}
+# funcion para saber si restaremos horas para obtener hora peru
+set_hours_rest_peru(){
+
+  # 2025-02-02_12:33:34  =  2025-02-02_12
+  # El patrón ':*' busca el primer ':' y  lo que le sigue, eliminando ':33:34'.
+  local DATE_HOUR_HOUR="${DATE_HOUR%:*}"
+  local DATE_HOUR_PE_HOUR="${DATE_HOUR_PE%:*}"
+
+  # Si las horas coinciden, no es necesario restar (la API ya devuelve hora correcta)
+  if [[ "${DATE_HOUR_HOUR}" == "${DATE_HOUR_PE_HOUR}" ]]; then
+      HOURS_RESTART="-0"
+  fi
+}
+
 
 
 # ==============================================================================
@@ -72,8 +174,11 @@ BGray='\033[1;90m'        # Gris (negrita).
 msg() {
   local message="$1"
   local level="${2:-INFO}"
-  local timestamp
-  timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
+#  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+
+  local timestamp=$(date -u -d "${HOURS_RESTART} hours" "+%Y-%m-%d %H:%M:%S")
+
+
 
   local SHOW_DETAIL=1
   if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
@@ -86,28 +191,35 @@ msg() {
         if [ "$SHOW_DETAIL" -eq 0 ]; then
           echo -e "${BBlue}[INFO]${Color_Off} ${message}"
         else
-          echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}"
+          echo -e "${BBlue}${timestamp} - [INFO]${Color_Off} ${message}"
         fi
         ;;
     WARNING)
         if [ "$SHOW_DETAIL" -eq 0 ]; then
           echo -e "${BYellow}[WARNING]${Color_Off} ${message}"
         else
-          echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}"
+          echo -e "${BYellow}${timestamp} - [WARNING]${Color_Off} ${message}"
+        fi
+        ;;
+    DEBUG)
+        if [ "$SHOW_DETAIL" -eq 0 ]; then
+          echo -e "${BPurple}[DEBUG]${Color_Off} ${message}"
+        else
+          echo -e "${BPurple}${timestamp} - [DEBUG]${Color_Off} ${message}"
         fi
         ;;
     ERROR)
         if [ "$SHOW_DETAIL" -eq 0 ]; then
           echo -e "${BRed}[ERROR]${Color_Off} ${message}"
         else
-          echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}"
+          echo -e "${BRed}${timestamp} - [ERROR]${Color_Off} ${message}"
         fi
         ;;
     SUCCESS)
         if [ "$SHOW_DETAIL" -eq 0 ]; then
-          echo -e "${BGreen}[ERROR]${Color_Off} ${message}"
+          echo -e "${BGreen}[SUCCESS]${Color_Off} ${message}"
         else
-          echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}"
+          echo -e "${BGreen}${timestamp} - ${BGreen}[SUCCESS]${Color_Off} ${message}"
         fi
         ;;
     *)
@@ -115,7 +227,6 @@ msg() {
         ;;
   esac
 }
-
 
 
 pause_continue() {
@@ -265,6 +376,155 @@ string_slugify() {
     echo "$input"
 }
 
+# ==============================================================================
+# 📝 Función: verificar_dependencias
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Verifica que las dependencias necesarias estén instaladas en el sistema.
+#
+# 🔧 Dependencias:
+#   - yt-dlp: Herramienta para descargar videos de YouTube
+#
+# 💡 Uso:
+#   verificar_dependencias
+# ==============================================================================
+verificar_dependencias() {
+    if ! command -v yt-dlp &> /dev/null; then
+        msg "yt-dlp no está instalado. Por favor instálalo primero." "ERROR"
+        msg "Instalación: pip install yt-dlp o visita https://github.com/yt-dlp/yt-dlp" "INFO"
+        exit 1
+    fi
+}
+
+# ==============================================================================
+# 📝 Función: validar_url
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Valida que la URL proporcionada sea una URL válida de YouTube.
+#
+# 🔧 Parámetros:
+#   $1 - URL a validar
+#
+# 💡 Uso:
+#   validar_url "https://www.youtube.com/watch?v=..."
+# ==============================================================================
+validar_url() {
+    local url="$1"
+    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be) ]]; then
+        msg "La URL no parece ser de YouTube" "WARNING"
+        read -p "¿Continuar de todas formas? (s/n): " resp
+        if [[ ! "$resp" =~ ^[sS]$ ]]; then
+            msg "Operación cancelada por el usuario" "INFO"
+            exit 0
+        fi
+    fi
+}
+
+# ==============================================================================
+# 📝 Función: leer_ultima_ruta
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Lee la última ruta de descarga guardada desde el archivo temporal.
+#
+# 🔧 Variables globales:
+#   TEMP_PATH_SCRIPT - Ruta del archivo temporal donde se guarda la última ruta
+#
+# 💡 Retorna:
+#   La última ruta guardada o una cadena vacía si no existe
+#
+# 💡 Uso:
+#   ultima_ruta=$(leer_ultima_ruta)
+# ==============================================================================
+leer_ultima_ruta() {
+    if [[ -f "$TEMP_PATH_SCRIPT" ]]; then
+        cat "$TEMP_PATH_SCRIPT"
+    else
+        echo ""
+    fi
+}
+
+# ==============================================================================
+# 📝 Función: guardar_ultima_ruta
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Guarda la ruta de descarga actual en el archivo temporal para usarla
+#   como predeterminada en la próxima ejecución.
+#
+# 🔧 Parámetros:
+#   $1 - Ruta a guardar
+#
+# 🔧 Variables globales:
+#   TEMP_PATH_SCRIPT - Ruta del archivo temporal donde se guarda la ruta
+#
+# 💡 Uso:
+#   guardar_ultima_ruta "/path/to/downloads"
+# ==============================================================================
+guardar_ultima_ruta() {
+    local ruta="$1"
+    echo "$ruta" > "$TEMP_PATH_SCRIPT"
+}
+
+# ==============================================================================
+# 📝 Función: solicitar_ruta_descarga
+# ------------------------------------------------------------------------------
+# ✅ Descripción:
+#   Solicita al usuario una ruta de descarga personalizada o usa la predeterminada.
+#   Crea el directorio si no existe.
+#   Guarda la ruta seleccionada para usarla como predeterminada en el futuro.
+#
+# 🔧 Variables globales:
+#   DOWNLOADS_PATH - Ruta de descarga (se modifica si el usuario proporciona una nueva)
+#
+# 💡 Características:
+#   - Permite usar "." para guardar en la ubicación actual
+#   - Guarda la última ruta utilizada en un archivo temporal
+#   - Usa la última ruta guardada como predeterminada
+#
+# 💡 Uso:
+#   solicitar_ruta_descarga
+# ==============================================================================
+solicitar_ruta_descarga() {
+    # Intentar leer la última ruta guardada
+    local ultima_ruta=$(leer_ultima_ruta)
+
+    # Si existe una última ruta guardada, usarla como predeterminada
+    if [[ -n "$ultima_ruta" ]] && [[ -d "$ultima_ruta" ]]; then
+        DOWNLOADS_PATH="$ultima_ruta"
+    fi
+
+    echo ""
+    echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
+    echo -e "  ${BYellow}${DOWNLOADS_PATH}${Color_Off}"
+    echo -e "${Gray}--------------------------------------${Color_Off}"
+    echo -e "${BBlue}(Opcional)${Color_Off}:"
+    echo -e "${Gray}Puedes escribir '.' para guardar en la ubicación actual${Color_Off}"
+    read -p "$(echo -e "${Gray}Cambiar ruta descarga o [ENTER]:${Color_Off} ")" input_path
+
+    # Si el usuario ingresó algo
+    if [[ -n "$input_path" ]]; then
+        # Si es un punto, usar el directorio actual
+        if [[ "$input_path" == "." ]]; then
+            DOWNLOADS_PATH="$(pwd)"
+        else
+            DOWNLOADS_PATH="$input_path"
+        fi
+    fi
+
+    # Crear el directorio si no existe
+    if [[ ! -d "$DOWNLOADS_PATH" ]]; then
+        echo -e "${BYellow}La carpeta no existe. Creando: ${BGreen}$DOWNLOADS_PATH${Color_Off}"
+        if ! mkdir -p "$DOWNLOADS_PATH"; then
+            msg "No se pudo crear el directorio: $DOWNLOADS_PATH" "ERROR"
+            exit 1
+        fi
+    fi
+
+    # Guardar la ruta para futuras ejecuciones
+    guardar_ultima_ruta "$DOWNLOADS_PATH"
+
+    echo -e "${BGreen}Descargando en: ${BWhite}$DOWNLOADS_PATH${Color_Off}"
+}
+
 extraer_url_video() {
     local url="$1"
     # Extrae solo la parte hasta el primer '&' (o toda la url si no hay '&')
@@ -275,59 +535,126 @@ extraer_url_video() {
 descargar_video() {
     local url="$1"
     solo_video=$(extraer_url_video "$url")
+
+    msg "Obteniendo información del video..." "INFO"
     # Obtener y mostrar el título del video
-    titulo_video=$(yt-dlp --get-title "$solo_video")
-    titulo_video_format=$(string_slugify "$titulo_video" title )
-    yt-dlp -c -f "bestvideo+bestaudio" -o "${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s" "$solo_video"
-    # find get name file
-    file_name_path=$(find "${DOWNLOADS_PATH}"  -type f -name "${titulo_video_format}*" | tail -n 1)
-    echo "Fichero descargado en: ${file_name_path}"
+    titulo_video=$(yt-dlp --get-title "$solo_video" 2>/dev/null)
+
+    if [[ -z "$titulo_video" ]]; then
+        msg "No se pudo obtener el título del video. Verifica la URL." "ERROR"
+        return 1
+    fi
+
+    msg "Título: ${titulo_video}" "INFO"
+    titulo_video_format=$(string_slugify "$titulo_video" title)
+
+    msg "Iniciando descarga del video..." "INFO"
+    if yt-dlp -c -f "bestvideo+bestaudio" -o "${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s" "$solo_video"; then
+        # find get name file
+        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*" | tail -n 1)
+        if [[ -n "$file_name_path" ]]; then
+            msg "Fichero descargado en: ${file_name_path}" "SUCCESS"
+        else
+            msg "Video descargado pero no se encontró el archivo" "WARNING"
+        fi
+    else
+        msg "Error al descargar el video" "ERROR"
+        return 1
+    fi
+
+    pause_continue "Descarga completada"
     exit 0
 }
 
 descargar_playlist() {
     local url="$1"
+
+    msg "Iniciando descarga de playlist..." "INFO"
     # yt-dlp -c -f "bestvideo+bestaudio" --yes-playlist -o "%(title)s.%(ext)s" "$url"
-    yt-dlp -c -f "bestvideo+bestaudio" --yes-playlist -o "${DOWNLOADS_PATH}/%(playlist_index)02d-%(title)s.%(ext)s" "$url"
+    if yt-dlp -c -f "bestvideo+bestaudio" --yes-playlist -o "${DOWNLOADS_PATH}/%(playlist_index)02d-%(title)s.%(ext)s" "$url"; then
+        msg "Playlist descargado exitosamente" "SUCCESS"
+    else
+        msg "Error al descargar la playlist" "ERROR"
+        return 1
+    fi
+
+    echo ""
     read -p "¿Deseas renombrar los archivos descargados a formato slug? (s/n): " resp
     if [[ "$resp" =~ ^[sS]$ ]]; then
-        carpeta="."
-        for archivo in "$carpeta"/*.{mp4,mkv,webm,flv}; do
+        msg "Renombrando archivos a formato slug..." "INFO"
+        local count=0
+        for archivo in "${DOWNLOADS_PATH}"/*.{mp4,mkv,webm,flv}; do
             [ -e "$archivo" ] || continue
             nombre=$(basename "$archivo")
             extension="${nombre##*.}"
             base="${nombre%.*}"
             slug=$(string_slugify "$base" title)
-            nuevo="${carpeta}/${slug}.${extension}"
+            nuevo="${DOWNLOADS_PATH}/${slug}.${extension}"
             if [[ "$archivo" != "$nuevo" ]]; then
-                echo "Renombrando: $archivo -> $nuevo"
+                echo "Renombrando: $nombre -> ${slug}.${extension}"
                 mv "$archivo" "$nuevo"
+                ((count++))
             fi
         done
-        echo "Renombrado completado."
+        if [ $count -gt 0 ]; then
+            msg "Renombrado completado: $count archivo(s)" "SUCCESS"
+        else
+            msg "No se encontraron archivos para renombrar" "WARNING"
+        fi
     fi
+
+    pause_continue "Descarga de playlist completada"
     exit 0
 }
 
 descargar_audio() {
     local url="$1"
     solo_audio=$(extraer_url_video "$url")
+
+    msg "Obteniendo información del audio..." "INFO"
     # Obtener y mostrar el título del video
-    titulo_audio=$(yt-dlp --get-title "$solo_audio")
-    titulo_audio_format=$(string_slugify "$titulo_audio" title )
-    yt-dlp -c -f "bestaudio" --extract-audio --audio-format mp3 -o "${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s" "$solo_audio"
-    # find get name file
-    file_name_path=$(find "${DOWNLOADS_PATH}"  -type f -name "${titulo_audio_format}*" | tail -n 1)
-    echo "Fichero de audio descargado en: ${file_name_path}"
+    titulo_audio=$(yt-dlp --get-title "$solo_audio" 2>/dev/null)
+
+    if [[ -z "$titulo_audio" ]]; then
+        msg "No se pudo obtener el título del audio. Verifica la URL." "ERROR"
+        return 1
+    fi
+
+    msg "Título: ${titulo_audio}" "INFO"
+    titulo_audio_format=$(string_slugify "$titulo_audio" title)
+
+    msg "Iniciando descarga del audio..." "INFO"
+    if yt-dlp -c -f "bestaudio" --extract-audio --audio-format mp3 -o "${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s" "$solo_audio"; then
+        # find get name file
+        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_audio_format}*" | tail -n 1)
+        if [[ -n "$file_name_path" ]]; then
+            msg "Fichero de audio descargado en: ${file_name_path}" "SUCCESS"
+        else
+            msg "Audio descargado pero no se encontró el archivo" "WARNING"
+        fi
+    else
+        msg "Error al descargar el audio" "ERROR"
+        return 1
+    fi
+
+    pause_continue "Descarga completada"
     exit 0
 }
+
+
 
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
+# Seteamos la hora peru
+if ! DATE_HOUR_PE=$(get_date_peru); then
+    DATE_HOUR_PE="${DATE_HOUR_PE_DEFAULT}"
+fi
+# setea la variable (HOURS_RESTART) -5 o 0 a restar
+set_hours_rest_peru
+
+
 # Detectar sistema operativo
-
-
 SO_SYSTEM=$(detect_system)
 DOWNLOADS_PATH="${CURRENT_USER_HOME}/Downloads/youtube"
 
@@ -335,6 +662,7 @@ DOWNLOADS_PATH="${CURRENT_USER_HOME}/Downloads/youtube"
 # si estamos en so de termux, cambiar la ruta de descarga
 if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
     DOWNLOADS_PATH="/storage/emulated/0/Download/youtube"
+    mkdir -p $DOWNLOADS_PATH
 fi
 
 
@@ -342,6 +670,8 @@ fi
 
 mkdir -p "$DOWNLOADS_PATH"
 
+# Verificar que yt-dlp esté instalado
+verificar_dependencias
 
 if [ $# -ne 1 ]; then
     msg "Uso: $0 '<URL de YouTube>'" "ERROR"
@@ -349,13 +679,22 @@ if [ $# -ne 1 ]; then
 fi
 
 url="$1"
+
+# Validar que la URL sea de YouTube
+validar_url "$url"
+
+# Limpiar pantalla para mejor experiencia de usuario
+clear
+
+# Banner compacto optimizado para móviles
 echo ""
-echo -e "${Gray}=======================================${Color_Off}"
-echo -e "${BGray}====== ${BPurple}Descarga de videos v3.4.1${BGray} ======${Color_Off}"
-echo -e "${Gray}=======================================${Color_Off}"
-echo -e "${Gray}== Autor: Cesar auris                  ${Color_Off}"
-echo -e "${Gray}== ubicado en: /usr/local/bin/yt   ${Color_Off}"
-echo -e "${Gray}=======================================${Color_Off}"
+echo -e "${BPurple}╔════════════════════════════════════╗${Color_Off}"
+echo -e "${BPurple}║${Color_Off}  ${BCyan}📹 Descarga Videos YouTube${Color_Off}         ${BPurple}║${Color_Off}"
+echo -e "${BPurple}║${Color_Off}         ${BYellow}Versión 3.5.0${Color_Off}              ${BPurple}║${Color_Off}"
+echo -e "${BPurple}╠════════════════════════════════════╣${Color_Off}"
+echo -e "${BPurple}║${Color_Off} ${Gray}👤 Autor:${Color_Off} ${BWhite}Cesar Auris${Color_Off}               ${BPurple}║${Color_Off}"
+echo -e "${BPurple}║${Color_Off} ${Gray}🌐 Web:${Color_Off} ${BCyan}solucionessystem.com${Color_Off}        ${BPurple}║${Color_Off}"
+echo -e "${BPurple}╚════════════════════════════════════╝${Color_Off}"
 echo ""
 
 while true; do
@@ -368,52 +707,15 @@ while true; do
 
     case $opcion in
         1)
-            echo ""
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
-            echo -e "  ${BYellow}${DOWNLOADS_PATH}${Color_Off}"
-            echo -e "${Gray}--------------------------------------${Color_Off}"
-            echo -e "${BBlue}(Opcional)${Color_Off}:"
-            read -p "$(echo -e "${Gray}Cambiar ruta descarga o [ENTER]:${Color_Off} ")" input_path
-            if [[ -n "$input_path" ]]; then
-                DOWNLOADS_PATH="$input_path"
-            fi
-            if [[ ! -d "$DOWNLOADS_PATH" ]]; then
-                echo -e "${BYellow}La carpeta no existe. Creando: ${BGreen}$DOWNLOADS_PATH${Color_Off}"
-                mkdir -p "$DOWNLOADS_PATH"
-            fi
-            echo -e "${BGreen}Descargando en: ${BWhite}$DOWNLOADS_PATH${Color_Off}"
+            solicitar_ruta_descarga
             descargar_video "$url"
             ;;
         2)
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
-            echo -e "  ${BYellow}${DOWNLOADS_PATH}${Color_Off}"
-            echo -e "${Gray}--------------------------------------${Color_Off}"
-            echo -e "${BBlue}(Opcional)${Color_Off}:"
-            read -p "$(echo -e "${Gray}Cambiar ruta descarga o [ENTER]:${Color_Off} ")" input_path
-            if [[ -n "$input_path" ]]; then
-                DOWNLOADS_PATH="$input_path"
-            fi
-            if [[ ! -d "$DOWNLOADS_PATH" ]]; then
-                echo -e "${BYellow}La carpeta no existe. Creando: ${BGreen}$DOWNLOADS_PATH${Color_Off}"
-                mkdir -p "$DOWNLOADS_PATH"
-            fi
-            echo -e "${BGreen}Descargando en: ${BWhite}$DOWNLOADS_PATH${Color_Off}"
+            solicitar_ruta_descarga
             descargar_playlist "$url"
             ;;
         3)
-            echo -e "${BBlue}Ruta por defecto de la descarga${Color_Off}:"
-            echo -e "  ${BYellow}${DOWNLOADS_PATH}${Color_Off}"
-            echo -e "${Gray}--------------------------------------${Color_Off}"
-            echo -e "${BBlue}(Opcional)${Color_Off}:"
-            read -p "$(echo -e "${Gray}Cambiar ruta descarga o [ENTER]:${Color_Off} ")" input_path
-            if [[ -n "$input_path" ]]; then
-                DOWNLOADS_PATH="$input_path"
-            fi
-            if [[ ! -d "$DOWNLOADS_PATH" ]]; then
-                echo -e "${BYellow}La carpeta no existe. Creando: ${BGreen}$DOWNLOADS_PATH${Color_Off}"
-                mkdir -p "$DOWNLOADS_PATH"
-            fi
-            echo -e "${BGreen}Descargando en: ${BWhite}$DOWNLOADS_PATH${Color_Off}"
+            solicitar_ruta_descarga
             descargar_audio "$url"
             ;;
         4)
