@@ -13,7 +13,8 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.5.2
+
+VERSION_BASHRC=4.6.2
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -1553,6 +1554,7 @@ menu(){
   echo -e "${Gray}7) Script Python${Color_Off}"
   echo -e "${Gray}8) Ficheros de configuración${Color_Off}"
   echo -e "${Gray}9) Prompts${Color_Off}"
+  echo -e "${Gray}10) servers SSH ~/.ssh/config{Color_Off}"
   echo -e "${Gray}x) Salir${Color_Off}"
   read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
@@ -1564,12 +1566,14 @@ menu(){
     6) submenu_fzf ;;
     7) submenu_python_utils ;;
     8) submenu_ficheros_configuracion ;;
-    9) p -h ;;
+    9) p -h  ;;
+    10) main_config_ssh ;;
     x|X) return ;;
     "") return ;;  # Si se presiona Enter sin escribir nada, salir
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
 }
+
 
 submenu_generales(){
   cls
