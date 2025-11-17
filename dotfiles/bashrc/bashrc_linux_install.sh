@@ -13,12 +13,13 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.6.2
+VERSION_BASHRC=4.7.2
 VERSION_PLATFORM='(linux, gitbash)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
-DATE_HOUR=$(date -u "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
-DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en Perú (UTC -5)
+DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
+# Fecha y hora actual en Perú (UTC -5)
+DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || TZ="America/Lima" date "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || echo "$DATE_HOUR")
 PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
 # ::::::::::::: END CONSTANT ::::::::::::::
 
@@ -101,7 +102,7 @@ short_pwd() {
 }
 
 # ========================================
-# Configuraci贸n del Prompt
+# Configuracion del Prompt
 # example output: root@server1 /root/curso_vps (master)#
 #export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
 export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\w\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
@@ -1959,4 +1960,3 @@ EOF
 
 echo "✅ Configuración aplicada en $BASHRC_PATH"
 source "$BASHRC_PATH"
-

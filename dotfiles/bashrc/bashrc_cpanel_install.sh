@@ -13,13 +13,13 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-
-VERSION_BASHRC=4.6.2
+VERSION_BASHRC=4.7.2
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
-DATE_HOUR=$(date -u "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
-DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S") # Fecha y hora actual en Perú (UTC -5)
+DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
+# Fecha y hora actual en Perú (UTC -5)
+DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || TZ="America/Lima" date "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || echo "$DATE_HOUR")
 PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
 # ::::::::::::: END CONSTANT ::::::::::::::
 # ==========================================================================
