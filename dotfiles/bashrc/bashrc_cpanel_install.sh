@@ -1433,7 +1433,7 @@ log() {
 # -----------------------------------------------------------------------------
 show_date() {
     # Readable date in Spanish
-    readable_date=$(LC_TIME=es_ES.UTF-8 date "+%A %d de %B de %Y, %H:%M:%S")
+    readable_date=$(date "+%A %d de %B de %Y, %H:%M:%S")
 
     # Date in UTC
     utc_date=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
