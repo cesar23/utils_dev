@@ -1579,7 +1579,7 @@ menu(){
   echo -e "${Gray}7) Script Python${Color_Off}"
   echo -e "${Gray}8) Ficheros de configuración${Color_Off}"
   echo -e "${Gray}9) Prompts${Color_Off}"
-  echo -e "${Gray}10) servers SSH ~/.ssh/config{Color_Off}"
+  echo -e "${Gray}10) servers SSH ~/.ssh/config${Color_Off}"
   echo -e "${Gray}x) Salir${Color_Off}"
   read -p "Seleccione una opción (Enter para salir): " opt
   case $opt in
