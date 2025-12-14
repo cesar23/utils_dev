@@ -12,17 +12,17 @@ fi
 echo "" > $BASHRC_PATH
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.7.2
-VERSION_PLATFORM='(TERMUX)'
+VERSION_BASHRC=4.7.3
+VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
 # Fecha y hora actual en Perú (UTC -5)
 DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || TZ="America/Lima" date "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || echo "$DATE_HOUR")
-PATH_BASHRC='~/.bash_profile'  # Ruta del archivo .bashrc
+PATH_BASHRC='~/.bashrc'  # Ruta del archivo .bashrc
 # ::::::::::::: END CONSTANT ::::::::::::::
 # ==========================================================================
-# VERSION: TERMUX
+# VERSION: (CPanel)
 # START ~/.bashrc - Configuración de Bash por César (version: 1.0.3)
 # ==========================================================================
 
@@ -42,33 +42,42 @@ export TMOUT=0
 # El prompt es la línea inicial de cada comando en la terminal.
 # Esta configuración muestra: usuario@host:directorio_actual (con colores).
 
-
 # Colores Regulares
-Color_Off='\033[0m'       # Reset de color.
-Black='\033[0;30m'        # Negro.
-Red='\033[0;31m'          # Rojo.
-Green='\033[0;32m'        # Verde.
-Yellow='\033[0;33m'       # Amarillo.
-Blue='\033[0;34m'         # Azul.
-Purple='\033[0;35m'       # Púrpura.
-Cyan='\033[0;36m'         # Cian.
-White='\033[0;37m'        # Blanco.
-Gray='\033[0;90m'         # Gris.
+Color_Off='\e[0m'       # Reset de color.
+Black='\e[0;30m'        # Negro.
+Red='\e[0;31m'          # Rojo.
+Green='\e[0;32m'        # Verde.
+Yellow='\e[0;33m'       # Amarillo.
+Blue='\e[0;34m'         # Azul.
+Purple='\e[0;35m'       # Púrpura.
+Cyan='\e[0;36m'         # Cian.
+White='\e[0;37m'        # Blanco.
+Gray='\e[0;90m'         # Gris.
 
 # Colores en Negrita
-BBlack='\033[1;30m'       # Negro (negrita).
-BRed='\033[1;31m'         # Rojo (negrita).
-BGreen='\033[1;32m'       # Verde (negrita).
-BYellow='\033[1;33m'      # Amarillo (negrita).
-BBlue='\033[1;34m'        # Azul (negrita).
-BPurple='\033[1;35m'      # Púrpura (negrita).
-BCyan='\033[1;36m'        # Cian (negrita).
-BWhite='\033[1;37m'       # Blanco (negrita).
-BGray='\033[1;90m'        # Gris (negrita).
+BBlack='\e[1;30m'       # Negro (negrita).
+BRed='\e[1;31m'         # Rojo (negrita).
+BGreen='\e[1;32m'       # Verde (negrita).
+BYellow='\e[1;33m'      # Amarillo (negrita).
+BBlue='\e[1;34m'        # Azul (negrita).
+BPurple='\e[1;35m'      # Púrpura (negrita).
+BCyan='\e[1;36m'        # Cian (negrita).
+BWhite='\e[1;37m'       # Blanco (negrita).
+BGray='\e[1;90m'        # Gris (negrita).
 
 
 # Fondo gris oscuro,fondo gris claro
 Code_background='\e[7;90;47m'   # Black
+
+
+# Prompt básico con colores
+export PS1='\[\e[32m\]\u@\h:\[\e[34m\]\w\[\e[0m\]\$ '
+
+# Agregar información del branch Git al prompt
+parse_git_branch() {
+    git branch 2> /dev/null | sed -n -e 's/^\* \(.*\)/(\1)/p'
+}
+
 
 
 # Prompt b谩sico con colores
@@ -337,47 +346,6 @@ p() {
     fi
 }
 
-# ========================================
-# Configuración del Prompt
-# example output: root@server1 /root/curso_vps (master)#
-#export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
-# Variables de color para el prompt
-PROMPT_COLOR_TIME="${Cyan}"        # Cian para la hora
-PROMPT_COLOR_USER_HOST="${Green}"  # Verde para usuario@host
-PROMPT_COLOR_DIR="${Blue}"         # Azul para el directorio
-PROMPT_COLOR_GIT="${Purple}"       # Púrpura para la rama Git
-PROMPT_COLOR_RESET="${Color_Off}"  # Reset de color
-
-export PS1="\
-${PROMPT_COLOR_RESET}[\
-${PROMPT_COLOR_TIME}\t \
-${PROMPT_COLOR_USER_HOST}\u@\h \
-${PROMPT_COLOR_DIR}\W\
-${PROMPT_COLOR_GIT}\$(parse_git_branch)\
-${PROMPT_COLOR_RESET}]\
-\n\$ "
-
-
-# Si la sesión es SSH, cambia el color del prompt
-if [ -n "$SSH_CONNECTION" ]; then
-    # ========================================
-    # Configuración del Prompt
-    # example output: root@server1 (SSH) /root/curso_vps (master)#
-    export PS1="\
-    ${PROMPT_COLOR_RESET}[\
-    ${PROMPT_COLOR_TIME}\t \
-    ${PROMPT_COLOR_USER_HOST}\u@\h (SSH):\
-    ${PROMPT_COLOR_DIR}\W\
-    ${PROMPT_COLOR_GIT}\$(parse_git_branch)\
-    ${PROMPT_COLOR_RESET}]\
-    \n\$ "
-
-
-    # ::: para servidor Sociedad - spdtss
-#    export PS1="\[\e[36m\][\D{%Y-%m-%d %H:%M:%S}]\[\e[0m\] \[\e[35m\]\u@\h (SOCIEDAD):\[\e[0m\] \[\e[34m\]\$(pwd)\[\e[33m\] \$(parse_git_branch)\[\e[0m\]\$( [ \$(id -u) -eq 0 ] && echo '#' || echo '$' ) "
-fi
-
-
 
 # ========================
 # 2. Alias útiles
@@ -399,8 +367,8 @@ alias search='find . -iname'          # Buscar archivos por nombre
 alias bigfiles='du -ah . | sort -rh | head -n 10' # Archivos más grandes
 alias newestfile='ls -Art | tail -n 1' # Archivo más reciente
 alias ports='netstat -tulnp | grep LISTEN'   # Mostrar puertos abiertos
-alias update='pkg update && sudo apt upgrade -y' # Actualizar sistema
-alias reload="source $PATH_BASHRC"            # Recargar configuraciones de Bash
+alias update='sudo apt update && sudo apt upgrade -y' # Actualizar sistema
+alias reload="source $PATH_BASHRC"           # Recargar configuraciones de Bash
 alias reload_cat="cat $PATH_BASHRC | less"
 # alias efectos
 alias mm='cmatrix'             # efecto cmatrix
@@ -436,8 +404,12 @@ alias grep='grep --color=auto'
 
 # Configuración de `dircolors` si está disponible
 force_color_prompt=yes
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+# if [ -x /usr/bin/dircolors ]; then
+#    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#    alias ls='ls --color=auto'
+#fi
+if command -v dircolors &> /dev/null; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
 fi
 
@@ -1227,6 +1199,7 @@ start_cyber_panel() {
 }
 # Ejemplo de uso: start_cyber_panel
 
+
 ###############################################
 # 📄 FUNCTION: listar_archivos_recientes_modificados
 ###############################################
@@ -1258,6 +1231,7 @@ listar_archivos_recientes_modificados() {
     | sort \
     | tail -n "$count"
 }
+
 
 
 # ----------------------------------------
@@ -1349,6 +1323,7 @@ install_package() {
             ;;
     esac
 }
+
 # ----------------------------------------
 # Function: check_and_install
 # Checks if a package is installed, if not, installs it.
@@ -1401,7 +1376,6 @@ vi() {
     fi
 }
 
-
 # ================================================
 # funcion requiere lnav
 # ================================================
@@ -1448,65 +1422,6 @@ log() {
 
 
 
-
-mostrar_uso_log2() {
-  echo -e "Uso: log2 <archivo_log> [más_archivos...]"
-  echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
-}
-
-# Función: sigue logs y reescribe timestamp a YYYY-MM-DD HH:MM:SS en America/Lima
-log2() {
-  # 1) argumentos
-  if [ $# -lt 1 ]; then
-    echo -e "--- ${Yellow}Advertencia:${Color_Off} faltan rutas."
-    echo -e "Uso: log2 <archivo_log> [más_archivos...]"
-    echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
-    return 2
-  fi
-
-  # 2) filtra rutas existentes
-  local found=() missing=0
-  for p in "$@"; do
-    if [ -e "$p" ]; then
-      found+=("$p")
-    else
-      echo -e "--- ${Yellow}Aviso:${Color_Off} '${p}' no existe (omitido)."
-      missing=$((missing+1))
-    fi
-  done
-  if [ ${#found[@]} -eq 0 ]; then
-    echo -e "--- ${Red}Error:${Color_Off} no hay rutas válidas."
-    echo -e "Uso: log2 <archivo_log> [más_archivos...]"
-    echo -e "Ej.:  log2 /var/log/mail.log /var/log/lfd.log"
-    return 1
-  fi
-
-  # 3) seguir logs (rotación segura) y transformar timestamps a America/Lima
-  #    NOTA: no modifica archivos; solo la salida en pantalla.
-  tail -n0 -F -- "${found[@]}" 2>/dev/null | awk -v TZLOCAL="America/Lima" '
-  {
-    # Espera: Mes(3) Día(1-2) Hora(HH:MM:SS) como en syslog: "Aug 18 16:53:14 ..."
-    m=$1; d=$2; t=$3;
-    if (m ~ /^[A-Za-z]{3}$/ && d ~ /^[0-9]{1,2}$/ && t ~ /^[0-9]{2}:[0-9]{2}:[0-9]{2}$/) {
-      # 1) interpreta la marca del log como UTC
-      cmd = "LC_ALL=C TZ=UTC date -d \"" m " " d " " t "\" +\"%Y-%m-%d %H:%M:%S\"";
-      cmd | getline ts_utc; close(cmd);
-
-      # 2) conviértela a America/Lima
-      cmd2 = "TZ=\"" TZLOCAL "\" date -d \"" ts_utc " UTC\" +\"%Y-%m-%d %H:%M:%S\"";
-      cmd2 | getline ts_local; close(cmd2);
-
-      # 3) borrar los 3 campos originales y emitir
-      $1=""; $2=""; $3="";
-      sub(/^ +/, "");
-      print ts_local "  " $0;
-    } else {
-      # Si la línea no matchea (cabeceras, líneas vacías, etc.), se imprime cruda
-      print $0;
-    }
-  }'
-}
-
 # -----------------------------------------------------------------------------
 # Function: show_date
 # Description: Displays the current date and time in three formats:
@@ -1517,7 +1432,7 @@ log2() {
 # -----------------------------------------------------------------------------
 show_date() {
     # Readable date in Spanish
-    readable_date=$( date "+%A %d de %B de %Y, %H:%M:%S")
+    readable_date=$(LC_TIME=es_ES.UTF-8 date "+%A %d de %B de %Y, %H:%M:%S")
 
     # Date in UTC
     utc_date=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
@@ -1530,6 +1445,8 @@ show_date() {
     echo "Fecha actual en UTC:            $utc_date"
     echo "Fecha actual en Perú (UTC-5):   $peru_date"
 }
+
+
 # ==============================================================================
 # 📦 Función: cf
 # ------------------------------------------------------------------------------
@@ -1579,6 +1496,7 @@ cf() {
   echo -e "${BGreen}✅ Archivo '$FILE_NAME' creado correctamente y marcado como ejecutable.${Color_Off}"
 }
 
+
 # ========================
 # 6. Verificar y instalar paquetes necesarios
 # ========================
@@ -1587,11 +1505,8 @@ cf() {
 system=$(detect_system)
 
 # Check and install fzf if not installed (no message if already installed)
-check_and_install fzf fzf
-check_and_install tree tree
-check_and_install bat bat
-check_and_install neovim nvim
-check_and_install net-tools netstat
+# check_and_install fzf fzf
+# check_and_install tree tree
 
 # ========================
 # 7. Menú interactivo
@@ -1599,10 +1514,15 @@ check_and_install net-tools netstat
 
 alias ls='ls --color=auto'
 
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#if [ -x /usr/bin/dircolors ]; then
+#    test -r ~/.dircolors && eval "$(dircolors ~/.dircolors)" || eval "$(dircolors -b)"
+#    alias ls='ls --color=auto'
+#fi
+if command -v dircolors &> /dev/null; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
 fi
+
 
 
 # Verificar si el sistema operativo es Linux
@@ -1610,6 +1530,7 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     # echo "El sistema operativo es Linux. Configurando ulimit..."
     ulimit -n 4096
 fi
+
 
 
 
@@ -1651,9 +1572,6 @@ menu(){
   *) echo -e "${Red}Opción inválida${Color_Off}" ; menu ;;
   esac
 }
-
-
-
 
 
 submenu_generales(){
@@ -1762,12 +1680,14 @@ submenu_ficheros_configuracion(){
 }
 
 
+#--------------------------------------------
+
 #    ./conf_funciones_level_2.sh
 #    ./conf_funciones_level_2.sh 9090
 #    ./conf_funciones_level_2.sh 9090 /E/deysi^
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# :: (Optional)Cargar Script si queremos poner adicionales
+# :: 8. (Optional)Cargar Script si queremos poner adicionales
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 scriptPath2=${0%/*}
@@ -1785,6 +1705,7 @@ fi
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # :: (Optional) FZF
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 
 
 
@@ -1909,7 +1830,7 @@ function sff() {
 # ================================================
 # Alias básicos para Docker
 alias d="docker"              # Abreviatura para Docker
-alias dps="docker ps"         # Mostrar contenedores en ejecución
+alias dps='docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.RunningFor}}\t{{.Ports}}" | grep --color=auto "NAMES\|Up\|Exited"'
 alias di="docker images"      # Listar imágenes
 alias drm="docker rm -f"      # Eliminar contenedor forzadamente
 alias drmi="docker rmi"       # Eliminar imagen
@@ -2007,8 +1928,6 @@ dcrestart() {
 #    load_saved_prompt
 #fi
 load_saved_prompt
-
-
 
 # ==========================================================================
 # END ~/.bashrc - Configuración de Bash por César

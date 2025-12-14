@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.7.2
+VERSION_BASHRC=4.7.3
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -1433,7 +1433,7 @@ log() {
 # -----------------------------------------------------------------------------
 show_date() {
     # Readable date in Spanish
-    readable_date=$(date "+%A %d de %B de %Y, %H:%M:%S")
+    readable_date=$(LC_TIME=es_ES.UTF-8 date "+%A %d de %B de %Y, %H:%M:%S")
 
     # Date in UTC
     utc_date=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
@@ -1831,7 +1831,7 @@ function sff() {
 # ================================================
 # Alias básicos para Docker
 alias d="docker"              # Abreviatura para Docker
-alias dps="docker ps"         # Mostrar contenedores en ejecución
+alias dps='docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.RunningFor}}\t{{.Ports}}" | grep --color=auto "NAMES\|Up\|Exited"'
 alias di="docker images"      # Listar imágenes
 alias drm="docker rm -f"      # Eliminar contenedor forzadamente
 alias drmi="docker rmi"       # Eliminar imagen
