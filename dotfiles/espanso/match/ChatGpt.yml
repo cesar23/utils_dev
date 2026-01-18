@@ -29,6 +29,10 @@ matches:
     replace: |
       Verifica SOLO este fragmento y sugiere mejoras concretas (nombres, complejidad, errores, edge cases).
 
+  - trigger: "..docCodigoDetalle"
+    label: "Documentar codigo seleccionado"
+    replace: |
+      Agrega comentario al codigo que hace cada cosa para entenderlo bien.
 
   # ===== Análisis / explicación =====
   - trigger: "..analizaProyecto"
