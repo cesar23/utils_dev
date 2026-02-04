@@ -3,14 +3,14 @@
 # Script de Descarga de Videos de YouTube - Versión Mejorada
 # Autor: Cesar Auris
 # Web: solucionessystem.com
-# Versión: 4.1.1 - Fix: Descarga por lotes corregida
+# Versión: 4.2.1 - Nuevas funciones: Actualizar y verificar versión de yt-dlp
 # ============================================================================
 
 # =============================================================================
 # 📋 SECTION: Variables Globales y Configuración
 # =============================================================================
 
-VERSION_SCRIPT="4.1.1"
+VERSION_SCRIPT="4.2.1"
 
 # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
@@ -365,7 +365,8 @@ descargar_con_reintentos() {
     local comando="$1"
     local max_intentos=3
     local intento=1
-    
+
+
     while [ $intento -le $max_intentos ]; do
         msg "Intento $intento de $max_intentos..." "INFO"
         
@@ -432,6 +433,187 @@ verificar_dependencias() {
     
     local version=$(yt-dlp --version 2>/dev/null)
     msg "Usando yt-dlp versión: ${version}" "DEBUG"
+}
+
+verificar_version_ytdlp() {
+    echo ""
+    msg "╔═══════════════════════════════════════╗" "INFO"
+    msg "║   🔍 VERIFICANDO VERSIÓN DE YT-DLP    ║" "INFO"
+    msg "╚═══════════════════════════════════════╝" "INFO"
+    echo ""
+
+    if ! command -v yt-dlp &> /dev/null; then
+        msg "yt-dlp no está instalado" "ERROR"
+        return 1
+    fi
+
+    local version_actual=$(yt-dlp --version 2>/dev/null)
+    msg "Versión instalada: ${version_actual}" "INFO"
+
+    echo ""
+    msg "Consultando última versión disponible..." "INFO"
+
+    # Obtener la última versión desde GitHub
+    local ultima_version=$(curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+' || curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+
+    # Limpiar comillas si quedaron
+    ultima_version=$(echo "$ultima_version" | tr -d '"' | tr -d ' ')
+
+    if [ -z "$ultima_version" ]; then
+        msg "No se pudo obtener la última versión desde GitHub" "WARNING"
+        msg "Verifica tu conexión a Internet" "WARNING"
+        return 1
+    fi
+
+    msg "Última versión disponible: ${ultima_version}" "SUCCESS"
+    echo ""
+
+    if [ "$version_actual" = "$ultima_version" ]; then
+        msg "✅ ¡Tienes la versión más reciente!" "SUCCESS"
+    else
+        msg "⚠️  Hay una nueva versión disponible" "WARNING"
+        msg "   Actual: ${version_actual}" "WARNING"
+        msg "   Nueva: ${ultima_version}" "WARNING"
+    fi
+
+    return 0
+}
+
+actualizar_ytdlp() {
+    clear
+    echo ""
+    msg "╔═══════════════════════════════════════╗" "INFO"
+    msg "║    🔄 ACTUALIZAR YT-DLP               ║" "INFO"
+    msg "╚═══════════════════════════════════════╝" "INFO"
+    echo ""
+
+    # Verificar versión actual
+    verificar_version_ytdlp
+
+    echo ""
+    msg "═══════════════════════════════════════" "INFO"
+    msg "Selecciona el método de actualización:" "INFO"
+    msg "═══════════════════════════════════════" "INFO"
+    echo ""
+
+    local sistema=$(detect_system)
+
+    if [ "$sistema" = "termux" ]; then
+        msg "Sistema detectado: Termux" "DEBUG"
+        echo -e "${BYellow}1)${Color_Off} pip install --upgrade yt-dlp ${BGreen}[RECOMENDADO]${Color_Off}"
+        echo -e "${BYellow}2)${Color_Off} Visitar página de releases de GitHub"
+        echo -e "${BYellow}3)${Color_Off} Ejecutar manualmente [RECOMENDADO-cesar]"
+        echo -e "${BYellow}4)${Color_Off} Cancelar"
+        read -p "Opción: " opcion_update </dev/tty
+
+        case ${opcion_update:-1} in
+            1)
+                msg "Actualizando yt-dlp con pip..." "INFO"
+                pip install --upgrade yt-dlp
+                ;;
+            2)
+                msg "Abre este enlace en tu navegador:" "INFO"
+                echo -e "${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
+                ;;
+            3)
+                msg "sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp " "INFO"
+                msg "sudo chmod a+rx /usr/local/bin/yt-dlp" "INFO"
+                ;;
+            4)
+                msg "Actualización cancelada" "INFO"
+                ;;
+        esac
+
+    elif [ -n "$MSYSTEM" ] || grep -q Microsoft /proc/version 2>/dev/null; then
+        msg "Sistema detectado: Windows (WSL/Git Bash)" "DEBUG"
+        echo -e "${BYellow}1)${Color_Off} pip install --upgrade yt-dlp"
+        echo -e "${BYellow}2)${Color_Off} Descargar ejecutable (.exe) desde GitHub ${BGreen}[RECOMENDADO WINDOWS]${Color_Off}"
+        echo -e "${BYellow}3)${Color_Off} Cancelar"
+        read -p "Opción: " opcion_update </dev/tty
+
+        case ${opcion_update:-2} in
+            1)
+                msg "Actualizando yt-dlp con pip..." "INFO"
+                pip install --upgrade yt-dlp
+                ;;
+            2)
+                echo ""
+                msg "═══════════════════════════════════════" "INFO"
+                msg "INSTRUCCIONES PARA WINDOWS:" "INFO"
+                msg "═══════════════════════════════════════" "INFO"
+                echo ""
+                msg "1. Abre el siguiente enlace en tu navegador:" "INFO"
+                echo -e "   ${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
+                echo ""
+                msg "2. Descarga el archivo: ${BYellow}yt-dlp.exe${Color_Off}" "INFO"
+                echo ""
+                msg "3. Reemplaza el archivo antiguo en tu carpeta de instalación" "INFO"
+                echo ""
+                msg "4. O colócalo en una carpeta que esté en tu PATH" "INFO"
+                echo ""
+                ;;
+            3)
+                msg "Actualización cancelada" "INFO"
+                ;;
+        esac
+
+    else
+        msg "Sistema detectado: Linux" "DEBUG"
+        echo -e "${BYellow}1)${Color_Off} sudo curl + chmod ${BGreen}[RECOMENDADO LINUX]${Color_Off}"
+        echo -e "${BYellow}2)${Color_Off} pip install --upgrade yt-dlp"
+        echo -e "${BYellow}3)${Color_Off} Ejecutar manualmente [RECOMENDADO-cesar]"
+        echo -e "${BYellow}4)${Color_Off} Visitar página de releases de GitHub"
+        echo -e "${BYellow}5)${Color_Off} Cancelar"
+        read -p "Opción: " opcion_update </dev/tty
+
+        case ${opcion_update:-1} in
+            1)
+                echo ""
+                msg "Ejecutando actualización con curl..." "INFO"
+                echo ""
+                msg "Comando 1: Descargando última versión..." "DEBUG"
+                sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+
+                if [ $? -eq 0 ]; then
+                    msg "✓ Descarga completada" "SUCCESS"
+                    echo ""
+                    msg "Comando 2: Asignando permisos de ejecución..." "DEBUG"
+                    sudo chmod a+rx /usr/local/bin/yt-dlp
+
+                    if [ $? -eq 0 ]; then
+                        msg "✓ Permisos asignados correctamente" "SUCCESS"
+                        echo ""
+                        msg "═══════════════════════════════════════" "SUCCESS"
+                        msg "¡Actualización completada exitosamente!" "SUCCESS"
+                        msg "═══════════════════════════════════════" "SUCCESS"
+                        echo ""
+                        verificar_version_ytdlp
+                    else
+                        msg "Error al asignar permisos" "ERROR"
+                    fi
+                else
+                    msg "Error en la descarga" "ERROR"
+                fi
+                ;;
+            2)
+                msg "Actualizando yt-dlp con pip..." "INFO"
+                pip install --upgrade yt-dlp --break-system-packages
+                ;;
+            3)
+                msg "sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp " "INFO"
+                msg "sudo chmod a+rx /usr/local/bin/yt-dlp" "INFO"
+                ;;
+            4)
+                msg "Abre este enlace en tu navegador:" "INFO"
+                echo -e "${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
+                ;;
+            5)
+                msg "Actualización cancelada" "INFO"
+                ;;
+        esac
+    fi
+
+    pause_continue "Proceso de actualización finalizado"
 }
 
 validar_url() {
@@ -551,6 +733,11 @@ descargar_video() {
     msg "Iniciando descarga del video..." "INFO"
     
     local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
+
+    # Mostrar el comando que se va a ejecutar
+    msg "🔍 Ejecutando comando:" "DEBUG"
+    msg "$comando" "DEBUG"
+    echo ""
     
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
@@ -584,6 +771,11 @@ descargar_video_batch() {
     msg "Descargando: ${titulo_video}" "INFO"
     
     local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
+
+    # Mostrar el comando que se va a ejecutar
+    msg "🔍 Ejecutando comando:" "DEBUG"
+    msg "$comando" "DEBUG"
+    echo ""
     
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
@@ -951,7 +1143,11 @@ else
         echo -e "${BYellow}4)${Color_Off} Descargar por lotes (archivo con URLs)"
         echo -e "${BYellow}5)${Color_Off} Ver historial de descargas"
         echo -e "${BYellow}6)${Color_Off} Eliminar historial de descargas"
-        echo -e "${BYellow}7)${Color_Off} Salir"
+        echo -e "${BGray}────────────────────────────────────────${Color_Off}"
+        echo -e "${BCyan}7)${Color_Off} 🔍 Verificar versión de yt-dlp"
+        echo -e "${BCyan}8)${Color_Off} 🔄 Actualizar yt-dlp"
+        echo -e "${BGray}────────────────────────────────────────${Color_Off}"
+        echo -e "${BYellow}9)${Color_Off} Salir"
         echo ""
         read -p "Opción: " opcion </dev/tty
         
@@ -1001,6 +1197,15 @@ else
                 clear
                 ;;
             7)
+                verificar_version_ytdlp
+                pause_continue
+                clear
+                ;;
+            8)
+                actualizar_ytdlp
+                clear
+                ;;
+            9)
                 echo -e "${BGreen}¡Hasta luego! 👋${Color_Off}"
                 exit 0
                 ;;
