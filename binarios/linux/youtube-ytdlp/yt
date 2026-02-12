@@ -3,14 +3,14 @@
 # Script de Descarga de Videos de YouTube - Versión Mejorada
 # Autor: Cesar Auris
 # Web: solucionessystem.com
-# Versión: 4.2.1 - Nuevas funciones: Actualizar y verificar versión de yt-dlp
+# Versión: 4.2.2 - Nuevas funciones: Actualizar y verificar versión de yt-dlp
 # ============================================================================
 
 # =============================================================================
 # 📋 SECTION: Variables Globales y Configuración
 # =============================================================================
 
-VERSION_SCRIPT="4.2.1"
+VERSION_SCRIPT="4.2.2"
 
 # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
@@ -217,9 +217,9 @@ verificar_espacio_disco() {
     local ruta="$1"
     local espacio_libre_kb=$(df -k "$ruta" 2>/dev/null | awk 'NR==2 {print $4}')
     local espacio_libre_gb=$((espacio_libre_kb / 1024 / 1024))
-    
+
     msg "Espacio disponible: ${espacio_libre_gb}GB" "INFO"
-    
+
     if [ "$espacio_libre_gb" -lt 1 ]; then
         msg "⚠️ ADVERTENCIA: Menos de 1GB de espacio libre" "WARNING"
         read -p "¿Continuar de todas formas? (s/n): " resp </dev/tty
@@ -228,7 +228,7 @@ verificar_espacio_disco() {
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -237,60 +237,60 @@ guardar_historial() {
     local titulo="$2"
     local tipo="$3"
     local fecha=$(date "+%Y-%m-%d %H:%M:%S")
-    
+
     echo "${fecha}|${tipo}|${titulo}|${url}" >> "$HISTORIAL_FILE"
     msg "Descarga registrada en historial" "DEBUG"
 }
 
 verificar_descarga_previa() {
     local url="$1"
-    
+
     if [ ! -f "$HISTORIAL_FILE" ]; then
         return 1
     fi
-    
+
     if grep -q "$url" "$HISTORIAL_FILE"; then
         msg "⚠️ Esta URL ya fue descargada anteriormente" "WARNING"
         local ultima_descarga=$(grep "$url" "$HISTORIAL_FILE" | tail -1)
         local fecha=$(echo "$ultima_descarga" | cut -d'|' -f1)
         local titulo=$(echo "$ultima_descarga" | cut -d'|' -f3)
-        
+
         echo -e "${Gray}Última descarga: ${fecha}${Color_Off}"
         echo -e "${Gray}Título: ${titulo}${Color_Off}"
-        
+
         read -p "¿Descargar nuevamente? (s/n): " resp </dev/tty
         if [[ ! "$resp" =~ ^[sS]$ ]]; then
             return 0
         fi
     fi
-    
+
     return 1
 }
 
 mostrar_info_video() {
     local url="$1"
-    
+
     msg "Obteniendo información del video..." "INFO"
-    
+
     local info=$(yt-dlp --print "%(title)s|||%(duration_string)s|||%(filesize_approx)s|||%(uploader)s" "$url" 2>/dev/null)
-    
+
     if [ -z "$info" ]; then
         msg "No se pudo obtener información del video" "ERROR"
         return 1
     fi
-    
+
     local titulo=$(echo "$info" | cut -d'|' -f1)
     local duracion=$(echo "$info" | cut -d'|' -f4)
     local tamano=$(echo "$info" | cut -d'|' -f7)
     local autor=$(echo "$info" | cut -d'|' -f10)
-    
+
     if [ -n "$tamano" ] && [ "$tamano" != "NA" ] && [ "$tamano" != "" ]; then
         local tamano_mb=$((tamano / 1024 / 1024))
         tamano="${tamano_mb}MB"
     else
         tamano="Desconocido"
     fi
-    
+
     echo ""
     echo -e "${BCyan}╔═══════════════════════════════════════╗${Color_Off}"
     echo -e "${BCyan}║${Color_Off}     ${BWhite}INFORMACIÓN DEL VIDEO${Color_Off}             ${BCyan}║${Color_Off}"
@@ -302,7 +302,7 @@ mostrar_info_video() {
     echo -e "${BCyan}║${Color_Off} ${Gray}💾 Tamaño aprox:${Color_Off} ${BPurple}${tamano}${Color_Off}"
     echo -e "${BCyan}╚═══════════════════════════════════════╝${Color_Off}"
     echo ""
-    
+
     return 0
 }
 
@@ -317,7 +317,7 @@ seleccionar_calidad_video() {
     echo -e "${BYellow}6)${Color_Off} Mejor calidad disponible MKV (video+audio)"
     echo -e "${BYellow}7)${Color_Off} Personalizado (formato separado) ${Gray}[Avanzado]${Color_Off}"
     read -p "Opción [1]: " calidad_opcion </dev/tty
-    
+
     case ${calidad_opcion:-1} in
         1)
             FORMATO_VIDEO="best[ext=mp4]/best"
@@ -347,7 +347,7 @@ seleccionar_calidad_video() {
         6)
             FORMATO_VIDEO="bestvideo+bestaudio/best"
             FORMATO_CONTENEDOR="mkv"
-            msg "Formato: Mejor calidad MKV" "DEBUG"
+            msg "Formato: Mejor calidad MKV (unificado)" "DEBUG"
             ;;
         7)
             FORMATO_VIDEO="bestvideo+bestaudio"
@@ -369,7 +369,7 @@ descargar_con_reintentos() {
 
     while [ $intento -le $max_intentos ]; do
         msg "Intento $intento de $max_intentos..." "INFO"
-        
+
         if eval "$comando"; then
             msg "Descarga completada exitosamente" "SUCCESS"
             return 0
@@ -382,10 +382,10 @@ descargar_con_reintentos() {
                 return 1
             fi
         fi
-        
+
         ((intento++))
     done
-    
+
     return 1
 }
 
@@ -397,7 +397,7 @@ seleccionar_formato_audio() {
     echo -e "${BYellow}3)${Color_Off} OPUS"
     echo -e "${BYellow}4)${Color_Off} WAV"
     read -p "Opción [1]: " formato_opcion </dev/tty
-    
+
     case ${formato_opcion:-1} in
         1) FORMATO_AUDIO="mp3" ;;
         2) FORMATO_AUDIO="m4a" ;;
@@ -405,13 +405,13 @@ seleccionar_formato_audio() {
         4) FORMATO_AUDIO="wav" ;;
         *) FORMATO_AUDIO="mp3" ;;
     esac
-    
+
     msg "Formato de audio seleccionado: ${FORMATO_AUDIO}" "DEBUG"
 }
 
 configurar_subtitulos() {
     read -p "¿Descargar subtítulos? (s/n) [n]: " resp_sub </dev/tty
-    
+
     if [[ "$resp_sub" =~ ^[sS]$ ]]; then
         SUBTITULOS_PARAMS="--write-auto-sub --sub-lang es,en --convert-subs srt --embed-subs"
         msg "Subtítulos activados (ES, EN)" "INFO"
@@ -425,14 +425,41 @@ configurar_subtitulos() {
 # =============================================================================
 
 verificar_dependencias() {
+    local tiene_error=0
+
     if ! command -v yt-dlp &> /dev/null; then
         msg "yt-dlp no está instalado. Por favor instálalo primero." "ERROR"
         msg "Instalación: pip install yt-dlp o visita https://github.com/yt-dlp/yt-dlp" "INFO"
+        tiene_error=1
+    else
+        local version=$(yt-dlp --version 2>/dev/null)
+        msg "Usando yt-dlp versión: ${version}" "DEBUG"
+    fi
+
+    if ! command -v ffmpeg &> /dev/null; then
+        msg "⚠️ ADVERTENCIA: ffmpeg no está instalado" "WARNING"
+        msg "ffmpeg es necesario para fusionar video+audio en un solo archivo" "WARNING"
+        msg "Sin ffmpeg, los archivos MKV se descargarán como video y audio separados" "WARNING"
+        echo ""
+        msg "Instalación de ffmpeg:" "INFO"
+        msg "  - Ubuntu/Debian: sudo apt install ffmpeg" "INFO"
+        msg "  - Red Hat/Fedora: sudo dnf install ffmpeg" "INFO"
+        msg "  - macOS: brew install ffmpeg" "INFO"
+        msg "  - Termux (Android): pkg install ffmpeg" "INFO"
+        msg "  - Windows: descarga desde https://ffmpeg.org/download.html" "INFO"
+        echo ""
+        read -p "¿Deseas continuar sin ffmpeg? (s/n): " resp </dev/tty
+        if [[ ! "$resp" =~ ^[sS]$ ]]; then
+            exit 1
+        fi
+    else
+        local ffmpeg_version=$(ffmpeg -version 2>/dev/null | head -1)
+        msg "Usando $ffmpeg_version" "DEBUG"
+    fi
+
+    if [ $tiene_error -eq 1 ]; then
         exit 1
     fi
-    
-    local version=$(yt-dlp --version 2>/dev/null)
-    msg "Usando yt-dlp versión: ${version}" "DEBUG"
 }
 
 verificar_version_ytdlp() {
@@ -654,11 +681,11 @@ solicitar_ruta_descarga() {
         echo -e "  ${BYellow}${DOWNLOADS_PATH}${Color_Off}"
         echo ""
         read -p "$(echo -e "${Gray}¿Deseas cambiar la ruta? (s/n) [n]:${Color_Off} ")" cambiar_ruta </dev/tty
-        
+
         if [[ "$cambiar_ruta" =~ ^[sS]$ ]]; then
             echo ""
             read -p "$(echo -e "${Gray}Nueva ruta de descarga (o '.' para carpeta actual):${Color_Off} ")" input_path </dev/tty
-            
+
             if [[ -n "$input_path" ]]; then
                 if [[ "$input_path" == "." ]]; then
                     DOWNLOADS_PATH="$(pwd)"
@@ -694,7 +721,7 @@ solicitar_ruta_descarga() {
     fi
 
     guardar_ultima_ruta "$DOWNLOADS_PATH"
-    
+
     verificar_espacio_disco "$DOWNLOADS_PATH" || exit 1
 
     echo -e "${BGreen}✅ Descargando en: ${BWhite}$DOWNLOADS_PATH${Color_Off}"
@@ -709,36 +736,36 @@ extraer_url_video() {
 descargar_video() {
     local url="$1"
     local solo_video=$(extraer_url_video "$url")
-    
+
     if verificar_descarga_previa "$solo_video"; then
         msg "Operación cancelada - Video ya descargado previamente" "INFO"
         return 0
     fi
-    
+
     mostrar_info_video "$solo_video" || return 1
-    
+
     seleccionar_calidad_video
-    
+
     configurar_subtitulos
-    
+
     titulo_video=$(yt-dlp --get-title "$solo_video" 2>/dev/null)
-    
+
     if [[ -z "$titulo_video" ]]; then
         msg "No se pudo obtener el título del video. Verifica la URL." "ERROR"
         return 1
     fi
-    
+
     titulo_video_format=$(string_slugify "$titulo_video" title)
-    
+
     msg "Iniciando descarga del video..." "INFO"
-    
+
     local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
 
     # Mostrar el comando que se va a ejecutar
     msg "🔍 Ejecutando comando:" "DEBUG"
     msg "$comando" "DEBUG"
     echo ""
-    
+
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
         if [[ -n "$file_name_path" ]]; then
@@ -750,7 +777,7 @@ descargar_video() {
     else
         return 1
     fi
-    
+
     pause_continue "Descarga completada"
 }
 
@@ -758,25 +785,25 @@ descargar_video() {
 descargar_video_batch() {
     local url="$1"
     local solo_video=$(extraer_url_video "$url")
-    
+
     titulo_video=$(yt-dlp --get-title "$solo_video" 2>/dev/null)
-    
+
     if [[ -z "$titulo_video" ]]; then
         msg "No se pudo obtener el título del video. Verifica la URL." "ERROR"
         return 1
     fi
-    
+
     titulo_video_format=$(string_slugify "$titulo_video" title)
-    
+
     msg "Descargando: ${titulo_video}" "INFO"
-    
+
     local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
 
     # Mostrar el comando que se va a ejecutar
     msg "🔍 Ejecutando comando:" "DEBUG"
     msg "$comando" "DEBUG"
     echo ""
-    
+
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
         if [[ -n "$file_name_path" ]]; then
@@ -796,20 +823,20 @@ descargar_video_batch() {
 descargar_audio_batch() {
     local url="$1"
     local solo_audio=$(extraer_url_video "$url")
-    
+
     titulo_audio=$(yt-dlp --get-title "$solo_audio" 2>/dev/null)
-    
+
     if [[ -z "$titulo_audio" ]]; then
         msg "No se pudo obtener el título del audio. Verifica la URL." "ERROR"
         return 1
     fi
-    
+
     titulo_audio_format=$(string_slugify "$titulo_audio" title)
-    
+
     msg "Descargando audio: ${titulo_audio}" "INFO"
-    
+
     local comando="yt-dlp -c -f \"bestaudio\" --extract-audio --audio-format ${FORMATO_AUDIO} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s\" \"$solo_audio\""
-    
+
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_audio_format}*" | tail -n 1)
         if [[ -n "$file_name_path" ]]; then
@@ -827,24 +854,24 @@ descargar_audio_batch() {
 
 descargar_playlist() {
     local url="$1"
-    
+
     msg "Obteniendo información de la playlist..." "INFO"
-    
+
     seleccionar_calidad_video
-    
+
     configurar_subtitulos
-    
+
     msg "Iniciando descarga de playlist..." "INFO"
-    
+
     local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --yes-playlist --progress --newline -o \"${DOWNLOADS_PATH}/%(playlist_index)02d-%(title)s.%(ext)s\" \"$url\""
-    
+
     if descargar_con_reintentos "$comando"; then
         msg "Playlist descargado exitosamente" "SUCCESS"
         guardar_historial "$url" "PLAYLIST" "PLAYLIST"
     else
         return 1
     fi
-    
+
     echo ""
     read -p "¿Deseas renombrar los archivos descargados a formato slug? (s/n): " resp </dev/tty
     if [[ "$resp" =~ ^[sS]$ ]]; then
@@ -869,36 +896,36 @@ descargar_playlist() {
             msg "No se encontraron archivos para renombrar" "WARNING"
         fi
     fi
-    
+
     pause_continue "Descarga de playlist completada"
 }
 
 descargar_audio() {
     local url="$1"
     local solo_audio=$(extraer_url_video "$url")
-    
+
     if verificar_descarga_previa "$solo_audio"; then
         msg "Operación cancelada - Audio ya descargado previamente" "INFO"
         return 0
     fi
-    
+
     mostrar_info_video "$solo_audio" || return 1
-    
+
     seleccionar_formato_audio
-    
+
     titulo_audio=$(yt-dlp --get-title "$solo_audio" 2>/dev/null)
-    
+
     if [[ -z "$titulo_audio" ]]; then
         msg "No se pudo obtener el título del audio. Verifica la URL." "ERROR"
         return 1
     fi
-    
+
     titulo_audio_format=$(string_slugify "$titulo_audio" title)
-    
+
     msg "Iniciando descarga del audio..." "INFO"
-    
+
     local comando="yt-dlp -c -f \"bestaudio\" --extract-audio --audio-format ${FORMATO_AUDIO} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s\" \"$solo_audio\""
-    
+
     if descargar_con_reintentos "$comando"; then
         file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_audio_format}*" | tail -n 1)
         if [[ -n "$file_name_path" ]]; then
@@ -910,7 +937,7 @@ descargar_audio() {
     else
         return 1
     fi
-    
+
     pause_continue "Descarga completada"
 }
 
@@ -926,28 +953,28 @@ descargar_por_lotes() {
     echo -e "${Gray}  https://youtube.com/watch?v=...${Color_Off}"
     echo ""
     read -p "Ruta del archivo con URLs: " archivo_urls </dev/tty
-    
+
     if [[ ! -f "$archivo_urls" ]]; then
         msg "El archivo no existe: $archivo_urls" "ERROR"
         return 1
     fi
-    
+
     # Contar URLs válidas
     local total_urls=$(grep -v "^#" "$archivo_urls" | grep -v "^$" | grep "^https\?://" | wc -l)
-    
+
     if [ "$total_urls" -eq 0 ]; then
         msg "No se encontraron URLs válidas en el archivo" "ERROR"
         return 1
     fi
-    
+
     msg "Se encontraron $total_urls URLs para descargar" "INFO"
-    
+
     echo ""
     echo -e "${BBlue}¿Qué tipo de contenido deseas descargar?${Color_Off}"
     echo -e "${BYellow}1)${Color_Off} Videos"
     echo -e "${BYellow}2)${Color_Off} Solo audio"
     read -p "Opción [1]: " tipo_descarga </dev/tty
-    
+
     # Configuración única para todas las descargas
     if [[ "${tipo_descarga:-1}" == "1" ]]; then
         seleccionar_calidad_video
@@ -955,33 +982,33 @@ descargar_por_lotes() {
     else
         seleccionar_formato_audio
     fi
-    
+
     local contador=0
     local exitosos=0
     local fallidos=0
-    
+
     echo ""
     msg "═══════════════════════════════════════" "INFO"
     msg "Iniciando descarga por lotes..." "INFO"
     msg "═══════════════════════════════════════" "INFO"
-    
+
     # Leer archivo usando redirección de archivo para evitar conflictos
     while IFS= read -r url || [ -n "$url" ]; do
         # Saltar líneas vacías y comentarios
         [[ -z "$url" ]] && continue
         [[ "$url" =~ ^[[:space:]]*# ]] && continue
         [[ ! "$url" =~ ^https?:// ]] && continue
-        
+
         # Limpiar espacios
         url=$(echo "$url" | tr -d '[:space:]')
-        
+
         ((contador++))
         echo ""
         msg "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "INFO"
         msg "📥 Procesando URL $contador de $total_urls" "INFO"
         msg "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "INFO"
         echo -e "${Gray}URL: ${url}${Color_Off}"
-        
+
         # Usar funciones batch que no tienen interacciones
         if [[ "${tipo_descarga:-1}" == "1" ]]; then
             if descargar_video_batch "$url"; then
@@ -998,9 +1025,9 @@ descargar_por_lotes() {
                 msg "✗ Error al descargar audio #$contador" "ERROR"
             fi
         fi
-        
+
     done < "$archivo_urls"
-    
+
     echo ""
     msg "═══════════════════════════════════════" "SUCCESS"
     msg "RESUMEN DE DESCARGA POR LOTES" "SUCCESS"
@@ -1008,7 +1035,7 @@ descargar_por_lotes() {
     msg "Total procesadas: $total_urls" "INFO"
     msg "Exitosas: $exitosos" "SUCCESS"
     msg "Fallidas: $fallidos" "ERROR"
-    
+
     if [ $exitosos -eq $total_urls ]; then
         msg "🎉 ¡Todas las descargas se completaron exitosamente!" "SUCCESS"
     elif [ $exitosos -gt 0 ]; then
@@ -1016,7 +1043,7 @@ descargar_por_lotes() {
     else
         msg "❌ No se pudo completar ninguna descarga" "ERROR"
     fi
-    
+
     pause_continue "Descarga por lotes completada"
 }
 
@@ -1026,34 +1053,34 @@ ver_historial() {
     echo -e "${BCyan}║${Color_Off}  ${BWhite}📊 HISTORIAL DE DESCARGAS${Color_Off}          ${BCyan}║${Color_Off}"
     echo -e "${BCyan}╚═══════════════════════════════════════╝${Color_Off}"
     echo ""
-    
+
     if [[ ! -f "$HISTORIAL_FILE" ]]; then
         msg "No hay historial de descargas" "WARNING"
         return 0
     fi
-    
+
     local total_lineas=$(wc -l < "$HISTORIAL_FILE" 2>/dev/null || echo 0)
-    
+
     if [ "$total_lineas" -eq 0 ]; then
         msg "El historial está vacío" "WARNING"
         return 0
     fi
-    
+
     msg "Total de descargas: $total_lineas" "INFO"
     echo ""
-    
+
     echo -e "${Gray}Últimas 10 descargas:${Color_Off}"
     echo -e "${Gray}────────────────────────────────────────${Color_Off}"
-    
+
     tail -n 10 "$HISTORIAL_FILE" | while IFS='|' read -r fecha tipo titulo url; do
         echo -e "${BYellow}[$tipo]${Color_Off} ${fecha}"
         echo -e "  ${Gray}${titulo}${Color_Off}"
         echo ""
     done
-    
+
     echo ""
     read -p "¿Deseas ver el historial completo? (s/n): " ver_completo </dev/tty
-    
+
     if [[ "$ver_completo" =~ ^[sS]$ ]]; then
         if command -v less &> /dev/null; then
             less "$HISTORIAL_FILE"
@@ -1080,7 +1107,7 @@ fi
 
 mkdir -p "$DOWNLOADS_PATH"
 
-# verificar_dependencias
+verificar_dependencias
 
 clear
 
