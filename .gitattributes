@@ -1,2 +1,446 @@
-binarios/linux/sonarqube/sonarqube-9.6.1.59531.zip filter=lfs diff=lfs merge=lfs -text
-binarios/utilitarios/AcroRdrDC1500720033_MUI.exe filter=lfs diff=lfs merge=lfs -text
+# ═══════════════════════════════════════════════════════════════════════════════
+#  .gitattributes — Configuración universal multi-proyecto
+#  Cubre: Web, Node, Python, PHP, Java, Go, Rust, C/C++, C#, Mobile, DevOps
+#  Principio: el repo SIEMPRE guarda LF. Windows recibe lo que necesita al checkout.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+#  REGLA BASE
+#  text=auto  → Git detecta si es texto y normaliza LF al hacer commit.
+#               Es la única línea indispensable. Todo lo demás es refinamiento.
+# ───────────────────────────────────────────────────────────────────────────────
+* text=auto eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 1 — SCRIPTS Y ARCHIVOS DE SISTEMA OPERATIVO
+#  Los .bat/.cmd DEBEN tener CRLF para ejecutarse en Windows.
+#  Los .sh/.bash DEBEN tener LF para ejecutarse en Unix/Linux/Mac/Docker.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Windows — siempre CRLF (requerido por el intérprete de Windows)
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+*.ps1           text eol=crlf
+*.psm1          text eol=crlf
+*.psd1          text eol=crlf
+
+# Unix/Linux/Mac/Docker — siempre LF
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.zsh           text eol=lf
+*.fish          text eol=lf
+*.ksh           text eol=lf
+Makefile        text eol=lf
+makefile        text eol=lf
+*.mk            text eol=lf
+Dockerfile      text eol=lf
+*.dockerfile    text eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 2 — CÓDIGO FUENTE (todos LF)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Web / Frontend ────────────────────────────────────────────────────────────
+*.html          text eol=lf diff=html
+*.htm           text eol=lf diff=html
+*.xhtml         text eol=lf diff=html
+*.css           text eol=lf diff=css
+*.scss          text eol=lf
+*.sass          text eol=lf
+*.less          text eol=lf
+*.styl          text eol=lf
+
+# JavaScript / TypeScript
+*.js            text eol=lf
+*.jsx           text eol=lf
+*.ts            text eol=lf
+*.tsx           text eol=lf
+*.mjs           text eol=lf
+*.cjs           text eol=lf
+*.vue           text eol=lf
+*.svelte        text eol=lf
+
+# ── Backend / Lenguajes de servidor ───────────────────────────────────────────
+
+# Python
+*.py            text eol=lf diff=python
+*.pyw           text eol=lf
+*.pyi           text eol=lf
+*.ipynb         text eol=lf
+
+# PHP
+*.php           text eol=lf diff=php
+*.phtml         text eol=lf diff=php
+*.php3          text eol=lf diff=php
+*.php4          text eol=lf diff=php
+*.php5          text eol=lf diff=php
+
+# Ruby
+*.rb            text eol=lf diff=ruby
+*.rake          text eol=lf
+*.gemspec       text eol=lf
+Rakefile        text eol=lf
+Gemfile         text eol=lf
+
+# Java
+*.java          text eol=lf diff=java
+*.class         binary
+*.jar           binary
+*.war           binary
+*.ear           binary
+mvnw            text eol=lf
+gradlew         text eol=lf
+mvnw.cmd        text eol=crlf
+gradlew.bat     text eol=crlf
+
+# Kotlin
+*.kt            text eol=lf
+*.kts           text eol=lf
+
+# Scala
+*.scala         text eol=lf
+*.sbt           text eol=lf
+
+# Go
+*.go            text eol=lf
+
+# Rust
+*.rs            text eol=lf
+*.toml          text eol=lf
+
+# C / C++
+*.c             text eol=lf diff=cpp
+*.cc            text eol=lf diff=cpp
+*.cpp           text eol=lf diff=cpp
+*.cxx           text eol=lf diff=cpp
+*.c++           text eol=lf diff=cpp
+*.h             text eol=lf diff=cpp
+*.hh            text eol=lf diff=cpp
+*.hpp           text eol=lf diff=cpp
+*.hxx           text eol=lf diff=cpp
+
+# C#
+*.cs            text eol=lf diff=csharp
+*.csx           text eol=lf diff=csharp
+*.sln           text eol=crlf
+*.csproj        text eol=lf
+*.vbproj        text eol=lf
+*.vcxproj       text eol=lf
+*.vcproj        text eol=lf
+
+# Swift / Objective-C (iOS / macOS)
+*.swift         text eol=lf
+*.m             text eol=lf
+*.mm            text eol=lf
+
+# Dart / Flutter
+*.dart          text eol=lf
+
+# Elixir
+*.ex            text eol=lf
+*.exs           text eol=lf
+
+# Erlang
+*.erl           text eol=lf
+*.hrl           text eol=lf
+
+# Haskell
+*.hs            text eol=lf
+*.lhs           text eol=lf
+
+# Lua
+*.lua           text eol=lf
+
+# Perl
+*.pl            text eol=lf diff=perl
+*.pm            text eol=lf diff=perl
+
+# R
+*.r             text eol=lf
+*.R             text eol=lf
+*.Rmd           text eol=lf
+
+# SQL
+*.sql           text eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 3 — CONFIGURACIÓN Y DATOS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# JSON / JSONC
+*.json          text eol=lf
+*.jsonc         text eol=lf
+*.json5         text eol=lf
+
+# YAML
+*.yml           text eol=lf
+*.yaml          text eol=lf
+
+# TOML
+*.toml          text eol=lf
+
+# XML
+*.xml           text eol=lf
+*.xsd           text eol=lf
+*.xsl           text eol=lf
+*.xslt          text eol=lf
+*.wsdl          text eol=lf
+
+# INI / Config
+*.ini           text eol=lf
+*.cfg           text eol=lf
+*.conf          text eol=lf
+*.config        text eol=lf
+*.env           text eol=lf
+*.env.*         text eol=lf
+.env            text eol=lf
+.env.example    text eol=lf
+.editorconfig   text eol=lf
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.gitmodules     text eol=lf
+
+# Dotfiles comunes
+.bashrc         text eol=lf
+.bash_profile   text eol=lf
+.bash_aliases   text eol=lf
+.zshrc          text eol=lf
+.profile        text eol=lf
+.vimrc          text eol=lf
+.eslintrc       text eol=lf
+.prettierrc     text eol=lf
+.babelrc        text eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 4 — DOCUMENTACIÓN Y TEXTOS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+*.md            text eol=lf
+*.mdx           text eol=lf
+*.markdown      text eol=lf
+*.txt           text eol=lf
+*.rst           text eol=lf
+*.adoc          text eol=lf
+*.tex           text eol=lf
+*.csv           text eol=lf
+*.tsv           text eol=lf
+*.log           text eol=lf
+*.po            text eol=lf
+*.pot           text eol=lf
+LICENSE         text eol=lf
+README          text eol=lf
+CHANGELOG       text eol=lf
+CONTRIBUTING    text eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 5 — TEMPLATES / MOTORES DE PLANTILLAS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+*.hbs           text eol=lf
+*.handlebars    text eol=lf
+*.mustache      text eol=lf
+*.twig          text eol=lf
+*.jinja         text eol=lf
+*.jinja2        text eol=lf
+*.j2            text eol=lf
+*.ejs           text eol=lf
+*.erb           text eol=lf
+*.haml          text eol=lf
+*.pug           text eol=lf
+*.jade          text eol=lf
+*.liquid        text eol=lf
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 6 — BINARIOS
+#  Estos archivos NO deben ser modificados por Git bajo ninguna circunstancia.
+#  "binary" es alias de "-text -diff"
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Imágenes raster
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.bmp           binary
+*.tiff          binary
+*.tif           binary
+*.ico           binary
+*.webp          binary
+*.avif          binary
+*.heic          binary
+*.heif          binary
+*.psd           binary
+*.ai            binary
+*.raw           binary
+
+# Imágenes vectoriales (SVG es texto, pero tratar como binario evita diffs ruidosos)
+# Si prefieres ver diffs de SVG, comenta la línea siguiente
+*.svg           binary
+
+# Fuentes
+*.woff          binary
+*.woff2         binary
+*.ttf           binary
+*.otf           binary
+*.eot           binary
+
+# Audio / Video
+*.mp3           binary
+*.mp4           binary
+*.mov           binary
+*.avi           binary
+*.mkv           binary
+*.webm          binary
+*.ogg           binary
+*.wav           binary
+*.flac          binary
+*.aac           binary
+*.m4a           binary
+*.m4v           binary
+
+# Documentos ofimáticos
+*.pdf           binary
+*.doc           binary
+*.docx          binary
+*.xls           binary
+*.xlsx          binary
+*.ppt           binary
+*.pptx          binary
+*.odt           binary
+*.ods           binary
+
+# Archivos comprimidos
+*.zip           binary
+*.tar           binary
+*.gz            binary
+*.tgz           binary
+*.bz2           binary
+*.7z            binary
+*.rar           binary
+*.xz            binary
+*.zst           binary
+
+# Ejecutables / Bibliotecas compiladas
+*.exe           binary
+*.dll           binary
+*.so            binary
+*.dylib         binary
+*.lib           binary
+*.a             binary
+*.o             binary
+*.obj           binary
+*.pyc           binary
+*.pyo           binary
+*.class         binary
+
+# Bases de datos / datos binarios
+*.db            binary
+*.sqlite        binary
+*.sqlite3       binary
+*.mdb           binary
+
+# Certificados y llaves (binarios; no diff por seguridad)
+*.der           binary
+*.crt           binary
+*.cer           binary
+*.p12           binary
+*.pfx           binary
+*.keystore      binary
+
+# Android / iOS builds
+*.apk           binary
+*.ipa           binary
+*.aab           binary
+*.dex           binary
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 7 — GIT LFS  (descomenta si usas Git Large File Storage)
+#  Requiere: git lfs install  (una vez por máquina)
+#  Ventaja: los binarios no se guardan dentro del repo, sino en LFS.
+#           Solo se descarga la versión más reciente al clonar.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# *.png    filter=lfs diff=lfs merge=lfs -text
+# *.jpg    filter=lfs diff=lfs merge=lfs -text
+# *.jpeg   filter=lfs diff=lfs merge=lfs -text
+# *.gif    filter=lfs diff=lfs merge=lfs -text
+# *.webp   filter=lfs diff=lfs merge=lfs -text
+# *.ico    filter=lfs diff=lfs merge=lfs -text
+# *.psd    filter=lfs diff=lfs merge=lfs -text
+# *.woff2  filter=lfs diff=lfs merge=lfs -text
+# *.mp4    filter=lfs diff=lfs merge=lfs -text
+# *.mp3    filter=lfs diff=lfs merge=lfs -text
+# *.pdf    filter=lfs diff=lfs merge=lfs -text
+# *.zip    filter=lfs diff=lfs merge=lfs -text
+# *.gz     filter=lfs diff=lfs merge=lfs -text
+# *.tar    filter=lfs diff=lfs merge=lfs -text
+# *.7z     filter=lfs diff=lfs merge=lfs -text
+# *.exe    filter=lfs diff=lfs merge=lfs -text
+# *.dll    filter=lfs diff=lfs merge=lfs -text
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 8 — EXPORT-IGNORE
+#  Archivos que NO se incluyen en git archive / zip exports del repo.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+.gitattributes          export-ignore
+.gitignore              export-ignore
+.gitmodules             export-ignore
+.github/                export-ignore
+.gitlab-ci.yml          export-ignore
+.travis.yml             export-ignore
+.editorconfig           export-ignore
+.eslintrc*              export-ignore
+.prettierrc*            export-ignore
+*.test.*                export-ignore
+tests/                  export-ignore
+__tests__/              export-ignore
+spec/                   export-ignore
+docs/                   export-ignore
+node_modules/           export-ignore
+dist/                   export-ignore
+build/                  export-ignore
+coverage/               export-ignore
+.env                    export-ignore
+.env.*                  export-ignore
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SECCIÓN 9 — MERGE STRATEGIES
+#  Archivos generados automáticamente que NO deben tener conflictos de merge.
+#  "ours" = en caso de conflicto, mantener la versión de la rama actual.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+package-lock.json       merge=ours
+yarn.lock               merge=ours
+pnpm-lock.yaml          merge=ours
+composer.lock           merge=ours
+Gemfile.lock            merge=ours
+Pipfile.lock            merge=ours
+poetry.lock             merge=ours
+Cargo.lock              merge=ours
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CÓMO APLICAR ESTO EN UN REPO EXISTENTE
+# ───────────────────────────────────────────────────────────────────────────────
+#  1. Copia este archivo a la raíz de tu proyecto como ".gitattributes"
+#  2. Ejecuta:
+#       git add .gitattributes
+#       git add --renormalize .
+#       git status              ← muestra los archivos que se normalizarán
+#       git commit -m "chore: normalizar saltos de línea a LF"
+#       git push
+#
+#  Config recomendada en tu máquina Windows (una vez):
+#       git config --global core.autocrlf input
+# ═══════════════════════════════════════════════════════════════════════════════
