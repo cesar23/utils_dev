@@ -1,328 +1,372 @@
 #!/bin/bash
-VERSION_SCRIPT="2.0.1"
-
-set -e  # Detiene el script si ocurre un error
-
-#:::::::::: colores
-Color_Off='\e[0m'       # Text Reset
-# Regular Colors
-Black='\e[0;30m'        # Black
-Red='\e[0;31m'          # Red #a9222a
-Green='\e[0;32m'        # Green
-Yellow='\e[0;33m'       # Yellow
-Blue='\e[0;34m'         # Blue
-Purple='\e[0;35m'       # Purple
-Cyan='\e[0;36m'         # Cyan
-White='\e[0;37m'        # White
-Gray='\e[1;30m'         # Gray
-
-
+VERSION_SCRIPT="2.0.2"
 # ==============================================================================
-# 📝 Función: check_dependencies
+# 📦 Script: setup_nvim.sh
+# 📝 Descripción: Instala y configura Neovim con plugins, fuentes y acceso rápido.
+#                 Ejecución completamente desatendida (sin intervención del usuario).
+# ==============================================================================
+
+set -euo pipefail   # -e: salir al primer error | -u: variables no definidas = error | -o pipefail: pipe falla si cualquier parte falla
+
+# =============================================================================
+# 🎨 SECTION: Colores
+# =============================================================================
+Color_Off='\033[0m'
+Black='\033[0;30m';  Red='\033[0;31m';    Green='\033[0;32m'
+Yellow='\033[0;33m'; Blue='\033[0;34m';   Purple='\033[0;35m'
+Cyan='\033[0;36m';   White='\033[0;37m';  Gray='\033[0;90m'
+
+BBlack='\033[1;30m'; BRed='\033[1;31m';   BGreen='\033[1;32m'
+BYellow='\033[1;33m';BBlue='\033[1;34m';  BPurple='\033[1;35m'
+BCyan='\033[1;36m';  BWhite='\033[1;37m'; BGray='\033[1;90m'
+
+# =============================================================================
+# ⚙️ SECTION: Variables del entorno
+# =============================================================================
+PATH_SCRIPT=$(readlink -f "${BASH_SOURCE:-$0}")
+SCRIPT_NAME=$(basename "$PATH_SCRIPT")
+CURRENT_DIR=$(dirname "$PATH_SCRIPT")
+CURRENT_USER=$(id -un)
+CURRENT_PC_NAME=$(hostname)
+
+NVIM_CONFIG_DIR="${HOME}/.config/nvim"
+NVIM_COLORS_DIR="${NVIM_CONFIG_DIR}/colors"
+NVIM_INIT="${NVIM_CONFIG_DIR}/init.vim"
+NVIM_PLUG_DIR="${HOME}/.local/share/nvim/site/autoload/plug.vim"
+NVIM_SWAP_DIR="${HOME}/.local/share/nvim/swap"
+FONTS_DIR="${HOME}/.local/share/fonts"
+
+FIRACODE_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/FiraCode.zip"
+FIRACODE_ZIP="/tmp/FiraCode.zip"
+
+# =============================================================================
+# 📝 SECTION: Funciones de utilidad
+# =============================================================================
+
 # ------------------------------------------------------------------------------
-# ✅ Descripción:
-#   Verifica si los comandos/dependencias pasados como argumentos están instalados
-#   en el sistema. Si falta alguno, muestra un mensaje de error y termina el script.
-#
-# 🔧 Parámetros:
-#   $@ - Lista de comandos/dependencias a verificar (ejemplo: nvim git curl unzip wget)
-#
-# 💡 Uso:
-#   check_dependencies nvim git curl unzip wget
-#
-# 📦 Ejemplo en el script:
-#   check_dependencies nvim git curl unzip wget
-#
-# 🛠️ Notas:
-#   - Si el nombre del comando y el paquete son iguales, no es necesario agregarlo al mapeo.
-#   - Solo agrega excepciones al array asociativo `pkg_map`.
-# ==============================================================================
-check_dependencies() {
-  # Mapeo de comandos a paquetes (solo excepciones)
-  declare -A pkg_map=( [nvim]="neovim" )
-  local missing_cmds=()
-  local missing_pkgs=()
-
-  echo -e "${Cyan}Cheking depedencies...${Color_Off}";
-  sleep 1
-
-  # Verifica cada comando recibido
-  for cmd in "$@"; do
-    if ! command -v "$cmd" &> /dev/null; then
-      missing_cmds+=("$cmd")
-      # Usa el mapeo si existe, si no, usa el mismo nombre
-      missing_pkgs+=("${pkg_map[$cmd]:-$cmd}")
-    fi
-  done
-
-  # Si falta algún comando, muestra mensaje y termina
-  if [ ${#missing_cmds[@]} -ne 0 ]; then
-    echo -e "${Red}Error:${Color_Off} Los siguientes comandos no están instalados: ${missing_cmds[*]}"
-    echo -e "${Red}Por favor, instálalos antes de continuar.${Color_Off}"
-    echo -e "${Yellow}Ejecuta el comando:${Color_Off} sudo apt install ${missing_pkgs[*]} -y${Color_Off}"
-    exit 1
-  fi
-}
-
-# ==============================================================================
-# 📝 Función: msg
+# msg: Imprime mensajes con colores según el nivel
+# Uso: msg "texto" "INFO|WARNING|ERROR|SUCCESS|DEBUG"
 # ------------------------------------------------------------------------------
-# ✅ Descripción:
-#   Imprime un mensaje con formato estándar, incluyendo:
-#   - Marca de tiempo en UTC-5 (Perú)
-#   - Tipo de mensaje (INFO, WARNING, ERROR, o personalizado)
-#   - Colores para terminal (si están definidos previamente)
-#
-# 🔧 Parámetros:
-#   $1 - Mensaje a mostrar (texto)
-#   $2 - Tipo de mensaje (INFO | WARNING | ERROR | otro) [opcional, por defecto: INFO]
-#
-# 💡 Uso:
-#   msg "Inicio del proceso"               # Por defecto: INFO
-#   msg "Plugin no instalado" "WARNING"
-#   msg "Error de conexión" "ERROR"
-#   msg "Mensaje personalizado" "DEBUG"
-#
-# 🎨 Requiere:
-#   Variables de color: BBlue, BYellow, BRed, BWhite, BGray, Color_Off
-# ==============================================================================
-
 msg() {
   local message="$1"
-  local level="${2:-INFO}"
+  local level="${2:-OTHER}"
   local timestamp
-  timestamp=$(date -u -d "-5 hours" "+%Y-%m-%d %H:%M:%S")
+  timestamp=$(date "+%H:%M:%S")
 
   case "$level" in
-    INFO) echo -e "${BBlue}${timestamp} ${BWhite}- [INFO]${Color_Off} ${message}" ;;
-    WARNING) echo -e "${BYellow}${timestamp} ${BWhite}- [WARNING]${Color_Off} ${message}" ;;
-    ERROR) echo -e "${BRed}${timestamp} ${BWhite}- [ERROR]${Color_Off} ${message}" ;;
-    SUCCESS) echo -e "${BGreen}${timestamp} ${BWhite}- [SUCCESS]${Color_Off} ${message}" ;;
-    *) echo -e "${BGray}${timestamp} ${BWhite}- [${level}]${Color_Off} ${message}" ;;
+    INFO)    echo -e "${BBlue}[${timestamp}] ℹ  ${message}${Color_Off}" ;;
+    WARNING) echo -e "${BYellow}[${timestamp}] ⚠  ${message}${Color_Off}" ;;
+    DEBUG)   echo -e "${BPurple}[${timestamp}] 🔍 ${message}${Color_Off}" ;;
+    ERROR)   echo -e "${BRed}[${timestamp}] ✗  ${message}${Color_Off}" >&2 ;;
+    SUCCESS) echo -e "${BGreen}[${timestamp}] ✔  ${message}${Color_Off}" ;;
+    STEP)    echo -e "\n${BCyan}[${timestamp}] ══ ${message} ══${Color_Off}" ;;
+    *)       echo -e "${BGray}[${timestamp}]    ${message}${Color_Off}" ;;
   esac
 }
 
+# ------------------------------------------------------------------------------
+# run_cmd: Muestra y ejecuta un comando. Retorna el exit code del comando.
+# Uso: run_cmd apt-get install -y neovim
+# ------------------------------------------------------------------------------
+run_cmd() {
+  echo -e "  ${BGray}›${Color_Off} ${BYellow}$*${Color_Off}"
+  "$@"
+  local exit_code=$?
+  return $exit_code
+}
+
+# ------------------------------------------------------------------------------
+# run_cmd_silent: Ejecuta el comando suprimiendo stdout (stderr visible).
+# Uso: run_cmd_silent fc-cache -fv
+# ------------------------------------------------------------------------------
+run_cmd_silent() {
+  echo -e "  ${BGray}›${Color_Off} ${BYellow}$*${Color_Off} ${BGray}(silencioso)${Color_Off}"
+  "$@" > /dev/null
+  local exit_code=$?
+  return $exit_code
+}
+
+# ------------------------------------------------------------------------------
+# check_cmd: Verifica si un comando existe en el PATH
+# Uso: check_cmd nvim || exit 1
+# ------------------------------------------------------------------------------
+check_cmd() {
+  if command -v "$1" &>/dev/null; then
+    msg "'$1' encontrado: $(command -v "$1")" "DEBUG"
+    return 0
+  else
+    msg "'$1' no encontrado en PATH." "WARNING"
+    return 1
+  fi
+}
+
+# =============================================================================
+# 🛡️ SECTION: Manejador Global de Errores
+# =============================================================================
+
+handle_error() {
+  local exit_code=$1
+  local line_number=$2
+  msg "=================================================" "ERROR"
+  msg "💥 ERROR CRÍTICO NO MANEJADO" "ERROR"
+  msg "=================================================" "ERROR"
+  msg "Código de salida : ${exit_code}" "ERROR"
+  msg "Línea del error  : ${line_number}" "ERROR"
+  msg "Comando          : ${BASH_COMMAND:-N/A}" "ERROR"
+  msg "Script           : ${PATH_SCRIPT}" "ERROR"
+  msg "Función          : ${FUNCNAME[1]:-main}" "ERROR"
+  msg "Usuario          : ${CURRENT_USER}@${CURRENT_PC_NAME}" "ERROR"
+  msg "=================================================" "ERROR"
+  exit "${exit_code}"
+}
+
+cleanup_on_exit() {
+  local exit_code=$?
+  [[ -f "${FIRACODE_ZIP}" ]] && rm -f "${FIRACODE_ZIP}" 2>/dev/null || true
+  if [[ $exit_code -ne 0 ]]; then
+    msg "Script finalizado con errores (código: ${exit_code})." "ERROR"
+  fi
+}
+
+trap 'handle_error $? $LINENO' ERR
+trap 'cleanup_on_exit'          EXIT
+
+# =============================================================================
+# 🚦 SECTION: Validaciones previas
+# =============================================================================
+
+msg "Iniciando configuración de Neovim — Usuario: ${CURRENT_USER}@${CURRENT_PC_NAME}" "STEP"
+
+# No ejecutar como root directamente (opcional: quitar si lo necesitas)
+if [[ $EUID -eq 0 ]]; then
+  msg "Este script NO debe ejecutarse como root. Usa un usuario normal con sudo." "ERROR"
+  exit 1
+fi
+
+# Verificar sudo disponible
+if ! sudo -n true 2>/dev/null; then
+  msg "Verificando privilegios sudo (se pedirá contraseña una sola vez)..." "INFO"
+  sudo -v
+fi
+
+# Mantener sudo activo mientras corre el script
+while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done 2>/dev/null &
+SUDO_REFRESH_PID=$!
+trap 'kill $SUDO_REFRESH_PID 2>/dev/null || true' EXIT
 
 # =============================================================================
 # 🔥 SECTION: Main Code
 # =============================================================================
 
-msg "${Gray}=======================================================${Color_Off}"
-msg "${Gray}Ejecutando script para la configuración de Neovim...${Color_Off}"
-msg "${Gray}    Version: ${VERSION_SCRIPT}${Color_Off}"
-msg "${Gray}=======================================================${Color_Off}"
+msg "=======================================================" "INFO"
+msg "Ejecutando script para la configuración de Neovim..." "INFO"
+msg "    Version: ${VERSION_SCRIPT}" "INFO"
+msg "=======================================================" "INFO"
 sleep 3
 
+# =============================================================================
+# 📦 PASO 1: Instalar paquetes necesarios
+# =============================================================================
 
-check_dependencies nvim git curl unzip
+msg "PASO 1/5 — Instalando paquetes necesarios" "STEP"
 
-# Paso 2: Crear directorios de configuración de Neovim
-msg "${Cyan}Creando directorios de configuración...${Color_Off}"
-mkdir -p ~/.config/nvim
-mkdir -p ~/.config/nvim/colors
+export DEBIAN_FRONTEND=noninteractive
 
+run_cmd sudo apt-get update -qq
 
-# Paso 3: Instalar el esquema de color onedark.vim
-msg "${Cyan}Descargando esquema de color 'onedark.vim'...${Color_Off}"
-curl -fLo ~/.config/nvim/colors/onedark.vim --create-dirs \
-    https://raw.githubusercontent.com/joshdick/onedark.vim/main/colors/onedark.vim
+PACKAGES=(neovim git curl unzip wget fontconfig xclip)
+msg "Paquetes a instalar: ${PACKAGES[*]}" "INFO"
 
-# Paso 4: Instalar y configurar vim-plug
-msg "${Cyan}Instalando 'vim-plug' para la gestión de plugins...${Color_Off}"
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+if run_cmd sudo apt-get install -y -qq "${PACKAGES[@]}"; then
+  msg "Paquetes instalados correctamente." "SUCCESS"
+else
+  msg "Fallo al instalar paquetes." "ERROR"
+  exit 1
+fi
 
+# Verificar que nvim quedó disponible
+if ! check_cmd nvim; then
+  msg "nvim no está disponible tras la instalación. Verifica los repositorios." "ERROR"
+  exit 1
+fi
+msg "Neovim versión: $(nvim --version | head -1)" "SUCCESS"
 
+# =============================================================================
+# 📁 PASO 2: Crear estructura de directorios
+# =============================================================================
 
-# Paso 5: Configurar init.vim
-msg "${Cyan}Agregando configuración inicial a 'init.vim'...${Color_Off}"
-cat > ~/.config/nvim/init.vim << 'EOF'
-" init.vim - Archivo de configuración de Neovim
+msg "PASO 2/5 — Creando directorios de configuración" "STEP"
+
+for dir in "${NVIM_CONFIG_DIR}" "${NVIM_SWAP_DIR}" "${FONTS_DIR}"; do
+  if run_cmd mkdir -p "${dir}"; then
+    msg "Directorio listo: ${dir}" "DEBUG"
+  else
+    msg "No se pudo crear: ${dir}" "ERROR"
+    exit 1
+  fi
+done
+msg "Estructura de directorios creada." "SUCCESS"
+
+# =============================================================================
+# 🔌 PASO 3: Instalar vim-plug
+# =============================================================================
+# NOTA: onedark.vim NO se descarga manualmente aquí.
+# vim-plug clona el plugin completo (incluyendo autoload/) durante :PlugInstall.
+# Descargarlo manualmente solo instala colors/onedark.vim sin las funciones
+# autoload/onedark.vim#GetColors(), lo que provoca errores E117/E121.
+
+msg "PASO 3/5 — Instalando 'vim-plug'" "STEP"
+
+VIM_PLUG_URL="https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+
+if run_cmd curl -fsSL "${VIM_PLUG_URL}" -o "${NVIM_PLUG_DIR}" --create-dirs; then
+  msg "vim-plug instalado en: ${NVIM_PLUG_DIR}" "SUCCESS"
+else
+  msg "Fallo al instalar vim-plug." "ERROR"
+  exit 1
+fi
+
+# =============================================================================
+# ⚙️ PASO 5: Escribir init.vim
+# =============================================================================
+
+msg "PASO 4/5 — Escribiendo configuración init.vim" "STEP"
+
+cat > "${NVIM_INIT}" << 'VIMEOF'
+" init.vim — Configuración de Neovim
 
 " -----------------------------------------
-" -- Configuración de vim-plug para gestionar plugins
+" vim-plug: gestión de plugins
 " -----------------------------------------
 call plug#begin('~/.local/share/nvim/plugged')
 
-" Esquema de color onedark
 Plug 'joshdick/onedark.vim'
-
-" Explorador de archivos NERDTree
 Plug 'preservim/nerdtree'
-
-" Fuzzy finder fzf
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-
-" Barra de estado avanzada lightline
 Plug 'itchyny/lightline.vim'
-
-" Agregar íconos a NERDTree
 Plug 'ryanoasis/vim-devicons'
-
-" Sintaxis múltiple
 Plug 'sheerun/vim-polyglot'
-
-" Autocompletado de llaves, corchetes, etc.
 Plug 'jiangmiao/auto-pairs'
-
-" Encerrar palabras en paréntesis, corchetes, llaves, etc.
 Plug 'tpope/vim-surround'
-
-" Emmet para desarrollo web
 Plug 'mattn/emmet-vim'
-
-" Visualiza la indentación en el código
 Plug 'Yggdroot/indentLine'
 
 call plug#end()
 
 " -----------------------------------------
-" -- Configuración de tabulaciones y espacios
+" Tabulaciones y espacios
 " -----------------------------------------
-set expandtab           " Usa espacios en lugar de tabulaciones
-set tabstop=4           " Número de espacios que una tabulación representa
-set shiftwidth=4        " Tamaño de la indentación
-set softtabstop=4       " Número de espacios al usar la tecla de tabulación
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
 
 " -----------------------------------------
-" -- Apariencia
+" Apariencia
 " -----------------------------------------
-set cursorline          " Resalta la línea actual
-set number              " Muestra número de línea
-set relativenumber      " Muestra números de línea relativos
-syntax on               " Activa el resaltado de sintaxis
-set background=dark     " Usa fondo oscuro
-set termguicolors       " Habilita colores verdaderos
-colorscheme onedark     " Configura el esquema de color onedark
+set cursorline
+set number
+set relativenumber
+syntax on
+set background=dark
+set termguicolors
+silent! colorscheme onedark     " silent!: evita errores si el plugin aún no está instalado
 
-" Usa una fuente monoespaciada (si la terminal lo soporta)
 if has("gui_running")
-    set guifont=Monospace\ 12
+    set guifont=FiraCode\ Nerd\ Font\ Mono\ 12
 endif
 
 " -----------------------------------------
-" -- Configuración de búsqueda
+" Búsqueda
 " -----------------------------------------
-set incsearch           " Búsqueda incremental
-set hlsearch            " Resalta coincidencias
-set ignorecase          " Ignora mayúsculas en la búsqueda
-set smartcase           " No ignora mayúsculas si la búsqueda contiene mayúsculas
+set incsearch
+set hlsearch
+set ignorecase
+set smartcase
 
 " -----------------------------------------
-" -- Configuración del portapapeles y edición
+" Portapapeles y edición
 " -----------------------------------------
-set clipboard=unnamedplus   " Usa el portapapeles del sistema
-set visualbell              " Desactiva la campana visual
+set clipboard=unnamedplus
+set visualbell
 
 " -----------------------------------------
-" -- Autocomandos
+" Autocomandos
 " -----------------------------------------
-" Restaurar la posición del cursor al abrir un archivo
 autocmd BufReadPost *
     \ if line("'\"") > 1 && line("'\"") <= line("$") |
     \   exe "normal! g'\"" |
     \ endif
 
 " -----------------------------------------
-" -- Configuración de archivos de intercambio (swap)
+" Swap files
 " -----------------------------------------
-set swapfile                             " Habilita archivos de intercambio
-set directory=~/.local/share/nvim/swap// " Directorio para archivos de intercambio
+set swapfile
+set directory=~/.local/share/nvim/swap//
 
 " -----------------------------------------
-" -- Mapas de teclas personalizados
+" Mapas de teclas
 " -----------------------------------------
-let mapleader=" "          " Configura la tecla líder
+let mapleader=" "
 
-" Guardar, salir y guardar y salir
 nnoremap <leader>w :w<CR>
 nnoremap <leader>q :q<CR>
 nnoremap <leader>x :wq<CR>
 
-" Mover líneas de código hacia arriba y abajo
 nnoremap <A-j> :m .+1<CR>==
 nnoremap <A-k> :m .-2<CR>==
 vnoremap <A-j> :m '>+1<CR>gv=gv
 vnoremap <A-k> :m '<-2<CR>gv=gv
 
-" Copiar y pegar desde/para el portapapeles del sistema
 vnoremap <leader>y "+y
 nnoremap <leader>Y gg"+yG
 vnoremap <leader>p "+p
 nnoremap <leader>P gg"+p
 
-" Abrir y cerrar el explorador de archivos NERDTree (espacio+e)
 nnoremap <leader>e :NERDTreeToggle<CR>
-
-" Mostrar archivos ocultos en NERDTree
 let NERDTreeShowHidden=1
 
-" Navegar entre buffers
 nnoremap <leader>bn :bnext<CR>
 nnoremap <leader>bp :bprevious<CR>
 
-" Divisiones de ventana
 nnoremap <leader>sv :vsplit<CR>
 nnoremap <leader>sh :split<CR>
 nnoremap <leader>sc :close<CR>
 
-" Ajustar tamaño de ventanas
-nnoremap <C-w><left> :vertical resize -2<CR>
+nnoremap <C-w><left>  :vertical resize -2<CR>
 nnoremap <C-w><right> :vertical resize +2<CR>
-nnoremap <C-w><up> :resize +2<CR>
-nnoremap <C-w><down> :resize -2<CR>
+nnoremap <C-w><up>    :resize +2<CR>
+nnoremap <C-w><down>  :resize -2<CR>
 
 " -----------------------------------------
-" -- Configuración de FZF
+" FZF
 " -----------------------------------------
-
-" Mapas de teclas para fzf
-
-" Buscar archivos en el proyecto
 nnoremap <leader>f :Files<CR>
-" Buscar archivos en el repositorio Git
 nnoremap <leader>g :GFiles<CR>
-" Buscar buffers abiertos
 nnoremap <leader>b :Buffers<CR>
-" Buscar líneas en el archivo actual
 nnoremap <leader>l :Lines<CR>
-" Buscar en el historial de comandos
 nnoremap <leader>h :History<CR>
-" Buscar comandos de Neovim
 nnoremap <leader>c :Commands<CR>
 
-" Opciones de fzf
-let g:fzf_layout = { 'down': '40%' }  " Muestra fzf en la parte inferior ocupando el 40% de la pantalla
-
-" ------------------------------------
-" Abrir en nueva pestaña
-" Ctrl-t para abrir en nueva pestaña
-" Ctrl-x para abrir en split horizontal
-" Ctrl-v para abrir en split vertical
+let g:fzf_layout = { 'down': '40%' }
 let g:fzf_action = {
-    \ 'enter': 'tabedit',
+    \ 'enter':  'tabedit',
     \ 'ctrl-t': 'tabedit',
     \ 'ctrl-x': 'split',
     \ 'ctrl-v': 'vsplit'
     \ }
 
 " -----------------------------------------
-" -- Configuración para Python 3
+" Python 3
 " -----------------------------------------
 let g:python3_host_prog = '/usr/bin/python3'
 
 " -----------------------------------------
-" -- Otros ajustes
+" lightline
 " -----------------------------------------
-set showmode             " Muestra el modo actual en la barra de estado
+set showmode
 
-" Configura el esquema de color
-colorscheme onedark
-
-" -----------------------------------------
-" -- Configuración de lightline
-" -----------------------------------------
 let g:lightline = {
       \ 'colorscheme': 'onedark',
       \ 'active': {
@@ -338,59 +382,133 @@ function! LightlineFilename()
     return expand('%:t')
 endfunction
 
-" Para darle la sintaxys a los  ficheros (.cnf, 50-server.cnf , my.cnf)
+" Sintaxis para archivos de configuración
 autocmd BufRead,BufNewFile *.cnf,*.cf,*.local,*.allow,*.deny set filetype=dosini
+VIMEOF
 
-EOF
+msg "init.vim escrito correctamente: ${NVIM_INIT}" "SUCCESS"
 
+# =============================================================================
+# 🔌 PASO 6a: Instalar plugins con :PlugInstall (modo headless)
+# =============================================================================
 
-msg "${Cyan}Descargando e instalando la fuente FiraCode Nerd Font...${Color_Off}"
-wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/FiraCode.zip -O /tmp/FiraCode.zip
-unzip -qo /tmp/FiraCode.zip -d ~/.local/share/fonts
-msg "${Green}Actualizando caché de fuentes...${Color_Off}"
-rm /tmp/FiraCode.zip
+msg "PASO 5a/5 — Ejecutando :PlugInstall en modo headless" "STEP"
+msg "Esto puede tardar unos minutos mientras se clonan los plugins..." "INFO"
 
-
-
-
-#-----------------------------------------------------------
-#------ creando fichero  nv para acceso rápido de nvim
-#-----------------------------------------------------------
-# Crear el directorio si no existe
-mkdir -p ~/.local/bin
-msg "${Cyan}Creando el script auxiliar 'vi' para un acceso rápido a Neovim...${Color_Off}"
-
-# Crear el script auxiliar 'vi' en ~/.local/bin
-cat > ~/.local/bin/vi << 'EOF'
-# Función para mostrar el uso del script
-mostrar_uso() {
-  echo "Uso: vi [archivo]"
+# --headless: sin UI  |  +PlugInstall: instala plugins  |  +qa!: cierra al terminar
+PLUG_OUTPUT=$(nvim --headless +PlugInstall +qa! 2>&1) || {
+  msg ":PlugInstall falló. Revisa tu conexión a internet o la configuración de init.vim." "ERROR"
+  echo "${PLUG_OUTPUT}"
+  exit 1
 }
 
-# Comprueba si se proporciona un argumento
-if [ $# -eq 0 ]; then
-  nvim
+# Mostrar output de PlugInstall para visibilidad
+echo "${PLUG_OUTPUT}"
+
+# Detectar errores vim críticos en la salida (E117 ya no debería aparecer)
+if echo "${PLUG_OUTPUT}" | grep -qE "^E[0-9]+:"; then
+  VIM_ERRORS=$(echo "${PLUG_OUTPUT}" | grep -E "^E[0-9]+:" | head -5)
+  msg "Advertencias de Vim durante PlugInstall (no críticas):" "WARNING"
+  echo "${VIM_ERRORS}"
+fi
+
+msg ":PlugInstall completado." "SUCCESS"
+
+# Verificar que al menos un plugin fue instalado
+if [[ -d "${HOME}/.local/share/nvim/plugged" ]] && \
+   [[ $(ls -1 "${HOME}/.local/share/nvim/plugged" 2>/dev/null | wc -l) -gt 0 ]]; then
+  PLUGIN_COUNT=$(ls -1 "${HOME}/.local/share/nvim/plugged" | wc -l)
+  msg "${PLUGIN_COUNT} plugin(s) instalados en ~/.local/share/nvim/plugged" "SUCCESS"
 else
-  if [ -e "$1" ]; then
-    nvim "$1"
+  msg "No se encontraron plugins instalados. Verifica la salida de :PlugInstall." "WARNING"
+fi
+
+# =============================================================================
+# 🔤 PASO 6b: Instalar fuente FiraCode Nerd Font
+# =============================================================================
+
+msg "PASO 5b/5 — Descargando FiraCode Nerd Font" "STEP"
+
+if run_cmd wget -q "${FIRACODE_URL}" -O "${FIRACODE_ZIP}"; then
+  msg "Fuente descargada: ${FIRACODE_ZIP}" "DEBUG"
+else
+  msg "Fallo al descargar FiraCode. Continuando sin instalar la fuente." "WARNING"
+  # No hacemos exit 1 aquí porque la fuente no es crítica para Neovim
+fi
+
+if [[ -f "${FIRACODE_ZIP}" ]]; then
+  if run_cmd unzip -qo "${FIRACODE_ZIP}" -d "${FONTS_DIR}"; then
+    msg "Fuente descomprimida en: ${FONTS_DIR}" "DEBUG"
   else
-    echo "Error: El archivo '$1' no existe."
+    msg "Fallo al descomprimir FiraCode.zip" "WARNING"
+  fi
+
+  msg "Actualizando caché de fuentes..." "INFO"
+  if check_cmd fc-cache; then
+    run_cmd_silent fc-cache -fv
+    msg "Caché de fuentes actualizado." "SUCCESS"
+  else
+    msg "fc-cache no disponible. Instala 'fontconfig': sudo apt install fontconfig" "WARNING"
+  fi
+
+  rm -f "${FIRACODE_ZIP}"
+fi
+
+# =============================================================================
+# 🚀 PASO 6c: Crear alias 'nv' para acceso rápido a Neovim
+# =============================================================================
+
+msg "PASO 5c/5 — Creando script auxiliar 'nv'" "STEP"
+
+NV_SCRIPT_PATH="/usr/local/bin/nv"
+
+sudo tee "${NV_SCRIPT_PATH}" > /dev/null << 'NVEOF'
+#!/bin/bash
+# nv — Acceso rápido a Neovim con validación de archivo
+
+Red='\033[0;31m'
+Color_Off='\033[0m'
+
+mostrar_uso() {
+  echo "Uso: nv [archivo]"
+  echo "     nv          → abre Neovim sin archivo"
+  echo "     nv archivo  → abre Neovim con el archivo indicado"
+}
+
+if [[ $# -eq 0 ]]; then
+  exec nvim
+elif [[ $# -eq 1 ]]; then
+  if [[ -e "$1" ]]; then
+    exec nvim "$1"
+  else
+    echo -e "${Red}Error: El archivo '$1' no existe.${Color_Off}"
     mostrar_uso
     exit 1
   fi
+else
+  # Múltiples archivos
+  exec nvim "$@"
 fi
-EOF
+NVEOF
 
-chmod +x ~/.local/bin/vi
+run_cmd sudo chmod +x "${NV_SCRIPT_PATH}"
+msg "Script 'nv' instalado en ${NV_SCRIPT_PATH}" "SUCCESS"
 
-# Mensaje para recordar agregar ~/.local/bin al PATH si no está
-if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-  echo "Se agregó ~/.local/bin al PATH en ~/.bashrc. Reinicia la terminal para aplicar los cambios."
-fi
+# =============================================================================
+# ✅ Resumen final
+# =============================================================================
 
-# Mensaje final
-msg "================================================================"
-msg "${Green}Configuración completada.${Color_Off}"
-msg "${Gray}- Puedes usar el comando vi para usar noevim.${Color_Off}"
-msg "${Yellow}- Abre Neovim y ejecuta ':PlugInstall' para instalar los plugins.${Color_Off}"
+echo ""
+echo -e "${BGreen}╔══════════════════════════════════════════════════╗${Color_Off}"
+echo -e "${BGreen}║       ✔  Configuración completada con éxito      ║${Color_Off}"
+echo -e "${BGreen}╚══════════════════════════════════════════════════╝${Color_Off}"
+echo ""
+msg "Neovim       : $(nvim --version | head -1)" "SUCCESS"
+msg "Config       : ${NVIM_INIT}" "SUCCESS"
+msg "Plugins dir  : ${HOME}/.local/share/nvim/plugged" "SUCCESS"
+msg "Acceso rápido: nv  o  nv <archivo>" "SUCCESS"
+echo ""
+msg "Para actualizar plugins en el futuro: nvim --headless +PlugUpdate +qa!" "INFO"
+echo ""
+
+exit 0
