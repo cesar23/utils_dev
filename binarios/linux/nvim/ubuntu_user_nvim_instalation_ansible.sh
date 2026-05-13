@@ -6,7 +6,7 @@ VERSION_SCRIPT="2.0.2"
 #                 Ejecución completamente desatendida (sin intervención del usuario).
 # ==============================================================================
 
-set -euo pipefail   # -e: salir al primer error | -u: variables no definidas = error | -o pipefail: pipe falla si cualquier parte falla
+# set -euo pipefail   # -e: salir al primer error | -u: variables no definidas = error | -o pipefail: pipe falla si cualquier parte falla
 
 # =============================================================================
 # 🎨 SECTION: Colores
