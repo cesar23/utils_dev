@@ -3,10 +3,14 @@ VERSION_SCRIPT="2.0.2"
 # ==============================================================================
 # 📦 Script: setup_nvim.sh
 # 📝 Descripción: Instala y configura Neovim con plugins, fuentes y acceso rápido.
-#                 Ejecución completamente desatendida (sin intervención del usuario).
+#                 Diseñado para ejecución desatendida desde Ansible (sin TTY).
+#
+# ⚙️  Compatibilidad Ansible:
+#   - Corre como root con HOME/USER sobreescritos via environment en el playbook.
+#   - Sin set -euo pipefail para evitar salidas abruptas en entornos sin TTY.
+#   - Colores desactivados automáticamente cuando no hay terminal interactiva.
+#   - PASO 1 instala nvim y dependencias antes de usarlos.
 # ==============================================================================
-
-# set -euo pipefail   # -e: salir al primer error | -u: variables no definidas = error | -o pipefail: pipe falla si cualquier parte falla
 
 # =============================================================================
 # 🎨 SECTION: Colores
@@ -158,16 +162,43 @@ msg "=======================================================" "INFO"
 msg "Ejecutando script para la configuración de Neovim..." "INFO"
 msg "    Version: ${VERSION_SCRIPT}" "INFO"
 msg "=======================================================" "INFO"
-sleep 3
 
+# =============================================================================
+# 📦 PASO 1: Instalar nvim y dependencias del sistema
+# =============================================================================
+# Se hace aquí y no en el playbook porque el script es la unidad autónoma.
+# Ansible llama al script como root (HOME/USER sobreescritos via environment),
+# así que apt-get funciona sin sudo adicional.
+#
+# Paquetes requeridos:
+#   neovim      → editor principal
+#   git         → vim-plug clona plugins con git
+#   curl        → descarga vim-plug y FiraCode
+#   unzip       → descomprime FiraCode.zip
+#   wget        → descarga FiraCode desde GitHub
+#   fontconfig  → fc-cache para actualizar caché de fuentes
+#   xclip       → portapapeles del sistema (clipboard=unnamedplus en init.vim)
+#   python3-pynvim → soporte Python para plugins nvim
 
+msg "PASO 1/5 — Instalando nvim y dependencias del sistema" "STEP"
 
-# Verificar que nvim quedó disponible
-#if ! check_cmd nvim; then
-#  msg "nvim no está disponible tras la instalación. Verifica los repositorios." "ERROR"
-#  exit 1
-#fi
-#msg "Neovim versión: $(nvim --version | head -1)" "SUCCESS"
+PACKAGES="neovim git curl unzip wget fontconfig xclip python3-pynvim"
+
+msg "Paquetes a instalar: ${PACKAGES}" "INFO"
+run_cmd apt-get update -qq
+if run_cmd apt-get install -y -qq ${PACKAGES}; then
+  msg "Paquetes instalados correctamente." "SUCCESS"
+else
+  msg "Fallo al instalar paquetes. Verifica los repositorios apt." "ERROR"
+  exit 1
+fi
+
+# Verificar que nvim quedó disponible tras la instalación
+if ! check_cmd nvim; then
+  msg "nvim no está disponible tras la instalación. Verifica los repositorios." "ERROR"
+  exit 1
+fi
+msg "Neovim versión: $(nvim --version | head -1)" "SUCCESS"
 
 # =============================================================================
 # 📁 PASO 2: Crear estructura de directorios
@@ -440,7 +471,10 @@ msg "PASO 5c/5 — Creando script auxiliar 'nv'" "STEP"
 
 NV_SCRIPT_PATH="/usr/local/bin/nv"
 
-sudo tee "${NV_SCRIPT_PATH}" > /dev/null << 'NVEOF'
+# tee sin sudo — el script corre como root vía Ansible (become: yes en el playbook)
+# sudo dentro de un proceso root es redundante y puede fallar si sudoers no está
+# configurado para el usuario que llama al script.
+tee "${NV_SCRIPT_PATH}" > /dev/null << 'NVEOF'
 #!/bin/bash
 # nv — Acceso rápido a Neovim con validación de archivo
 
@@ -469,7 +503,7 @@ else
 fi
 NVEOF
 
-run_cmd sudo chmod +x "${NV_SCRIPT_PATH}"
+run_cmd chmod +x "${NV_SCRIPT_PATH}"
 msg "Script 'nv' instalado en ${NV_SCRIPT_PATH}" "SUCCESS"
 
 # =============================================================================
