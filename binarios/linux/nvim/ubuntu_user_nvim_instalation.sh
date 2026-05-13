@@ -19,6 +19,15 @@ Cyan='\033[0;36m';   White='\033[0;37m';  Gray='\033[0;90m'
 BBlack='\033[1;30m'; BRed='\033[1;31m';   BGreen='\033[1;32m'
 BYellow='\033[1;33m';BBlue='\033[1;34m';  BPurple='\033[1;35m'
 BCyan='\033[1;36m';  BWhite='\033[1;37m'; BGray='\033[1;90m'
+# ── Si no hay terminal interactiva (ej: Ansible), desactivar colores ──────────
+if [ ! -t 1 ]; then
+    Color_Off=''; Black='';   Red='';    Green=''
+    Yellow='';    Blue='';    Purple=''; Cyan='';   White=''; Gray=''
+    BBlack='';    BRed='';    BGreen=''
+    BYellow='';   BBlue='';   BPurple=''
+    BCyan='';     BWhite='';  BGray=''
+fi
+
 
 # =============================================================================
 # ⚙️ SECTION: Variables del entorno
