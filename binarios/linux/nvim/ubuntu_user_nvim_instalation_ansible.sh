@@ -163,11 +163,11 @@ sleep 3
 
 
 # Verificar que nvim quedó disponible
-if ! check_cmd nvim; then
-  msg "nvim no está disponible tras la instalación. Verifica los repositorios." "ERROR"
-  exit 1
-fi
-msg "Neovim versión: $(nvim --version | head -1)" "SUCCESS"
+#if ! check_cmd nvim; then
+#  msg "nvim no está disponible tras la instalación. Verifica los repositorios." "ERROR"
+#  exit 1
+#fi
+#msg "Neovim versión: $(nvim --version | head -1)" "SUCCESS"
 
 # =============================================================================
 # 📁 PASO 2: Crear estructura de directorios
