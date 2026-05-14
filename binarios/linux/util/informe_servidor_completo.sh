@@ -3,10 +3,13 @@
 # ============================================================
 #  INFORME COMPLETO DE SERVIDOR LINUX
 #  Autor  : Ingeniero César Auris
-#  Versión: 2.0 - General (sin dependencias de terceros)
 #  Web    : https://solucionessystem.com
 #  Tel    : 937516027
 # ============================================================
+
+VERSION="2.1"
+VERSION_FECHA="2026-05-13"
+VERSION_DESC="General multi-distro (Arch, Debian, RHEL)"
 
 # -------------------------------------------------------
 # 🎨 COLORES
@@ -112,11 +115,15 @@ sudo_run() {
 # 📝 ENCABEZADO DEL INFORME
 # -------------------------------------------------------
 echo -e "${BYellow}Iniciando generación del informe del servidor...${Color_Off}"
+echo -e "${BCyan}  Versión : ${BWhite}v${VERSION}${BCyan} (${VERSION_FECHA}) — ${VERSION_DESC}${Color_Off}"
 echo ""
 
 cat > "$INFORME" <<EOF
 ╔═══════════════════════════════════════════════════════╗
 ║         INFORME COMPLETO DE SERVIDOR LINUX            ║
+╠═══════════════════════════════════════════════════════╣
+║  Versión      : $VERSION ($VERSION_FECHA)
+║  Descripción  : $VERSION_DESC
 ╠═══════════════════════════════════════════════════════╣
 ║  Fecha local  : $DATE_LOCAL
 ║  Fecha Perú   : $DATE_PE
@@ -670,6 +677,7 @@ echo -e "${BGreen}╔═══════════════════�
 echo -e "${BGreen}║   ✔  Informe generado exitosamente            ║${Color_Off}"
 echo -e "${BGreen}╚═══════════════════════════════════════════════╝${Color_Off}"
 echo ""
+echo -e "${BCyan}  Versión : ${BWhite}v${VERSION}${BCyan} (${VERSION_FECHA})${Color_Off}"
 echo -e "${BYellow}📄 Archivo : ${BWhite}$(realpath "$INFORME")${Color_Off}"
 echo -e "${BYellow}📦 Tamaño  : ${BWhite}$(du -sh "$INFORME" | cut -f1)${Color_Off}"
 echo ""
