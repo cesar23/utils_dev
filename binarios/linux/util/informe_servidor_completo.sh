@@ -22,7 +22,16 @@ Color_Off='\033[0m'
 # 🕒 FECHAS
 # -------------------------------------------------------
 DATE_LOCAL=$(date "+%Y-%m-%d_%H:%M:%S")
-DATE_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || date -u "+%Y-%m-%d_%H:%M:%S")
+# Calcular UTC-5 (Perú) de forma portable sin depender de 'date -d'
+_ts=$(date -u +%s 2>/dev/null)
+if [ -n "$_ts" ]; then
+  _ts_pe=$(( _ts - 5 * 3600 ))
+  DATE_PE=$(date -u -d "@${_ts_pe}" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null \
+         || date -r "${_ts_pe}" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null \
+         || date -u "+%Y-%m-%d_%H:%M:%S")
+else
+  DATE_PE=$(date -u "+%Y-%m-%d_%H:%M:%S")
+fi
 INFORME="informe_linux_${DATE_PE}.log"
 
 # -------------------------------------------------------
@@ -62,6 +71,24 @@ leer_archivo() {
     echo "  ⚠ Archivo no encontrado: $archivo" >> "$INFORME"
   fi
   echo "" >> "$INFORME"
+}
+
+# Hostname portátil: Arch no incluye 'hostname' por defecto (paquete inetutils)
+get_hostname() {
+  if command -v hostname &>/dev/null; then
+    hostname
+  elif [ -f /etc/hostname ]; then
+    cat /etc/hostname
+  else
+    uname -n
+  fi
+}
+get_fqdn() {
+  if command -v hostname &>/dev/null; then
+    hostname -f 2>/dev/null || get_hostname
+  else
+    get_hostname
+  fi
 }
 
 # Detecta si hay sudo disponible sin contraseña
@@ -107,8 +134,8 @@ EOF
 titulo "1. IDENTIFICACIÓN DEL SISTEMA"
 
 echo -e "▶ Hostname y sistema operativo:" >> "$INFORME"
-echo "  Hostname  : $(hostname)" >> "$INFORME"
-echo "  FQDN      : $(hostname -f 2>/dev/null || echo 'N/D')" >> "$INFORME"
+echo "  Hostname  : $(get_hostname)" >> "$INFORME"
+echo "  FQDN      : $(get_fqdn)" >> "$INFORME"
 echo "" >> "$INFORME"
 
 leer_archivo "OS Release" "/etc/os-release"
@@ -532,7 +559,20 @@ separador
 titulo "14. PAQUETES Y SOFTWARE INSTALADO"
 
 echo -e "▶ Gestor de paquetes y versiones instaladas:" >> "$INFORME"
-if command -v apt &>/dev/null; then
+if command -v pacman &>/dev/null; then
+  echo "  Gestor: Pacman (Arch Linux / Manjaro)" >> "$INFORME"
+  echo "  Paquetes instalados: $(pacman -Q 2>/dev/null | wc -l)" >> "$INFORME"
+  echo "" >> "$INFORME"
+  echo "  Actualizaciones disponibles (checkupdates):" >> "$INFORME"
+  if command -v checkupdates &>/dev/null; then
+    checkupdates 2>/dev/null | head -20 >> "$INFORME" || echo "  Sin actualizaciones pendientes o no disponible." >> "$INFORME"
+  else
+    echo "  (instala 'pacman-contrib' para usar checkupdates)" >> "$INFORME"
+  fi
+  echo "" >> "$INFORME"
+  echo "  Paquetes instalados explícitamente (últimos 20):" >> "$INFORME"
+  pacman -Qe 2>/dev/null | tail -20 >> "$INFORME"
+elif command -v apt &>/dev/null; then
   echo "  Gestor: APT (Debian/Ubuntu)" >> "$INFORME"
   echo "  Paquetes instalados: $(dpkg -l 2>/dev/null | grep -c "^ii")" >> "$INFORME"
   echo "" >> "$INFORME"
@@ -619,7 +659,7 @@ separador
 echo -e "\n\n════════════════════════════════════════════════" >> "$INFORME"
 echo -e "  Informe generado el: $(date)" >> "$INFORME"
 echo -e "  Usuario que ejecutó: $(whoami)" >> "$INFORME"
-echo -e "  Hostname            : $(hostname)" >> "$INFORME"
+echo -e "  Hostname            : $(get_hostname)" >> "$INFORME"
 echo -e "════════════════════════════════════════════════" >> "$INFORME"
 
 # ============================================================
@@ -634,5 +674,12 @@ echo -e "${BYellow}📄 Archivo : ${BWhite}$(realpath "$INFORME")${Color_Off}"
 echo -e "${BYellow}📦 Tamaño  : ${BWhite}$(du -sh "$INFORME" | cut -f1)${Color_Off}"
 echo ""
 echo -e "${BCyan}Secciones incluidas:${Color_Off}"
-grep "^titulo" "$0" | sed 's/titulo "//;s/"//' | awk '{print "  •", $0}'
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+if [ -f "$SCRIPT_PATH" ]; then
+  grep -E '^titulo "[0-9]+\.' "$SCRIPT_PATH" | sed 's/titulo "//;s/".*//' | while read -r linea; do
+    echo "  • $linea"
+  done
+else
+  echo "  • Ver secciones en el archivo de log generado."
+fi
 echo ""
