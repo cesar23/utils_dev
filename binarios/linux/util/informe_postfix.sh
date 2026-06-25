@@ -390,8 +390,9 @@ echo '```' >> "$INFORME"
     echo "No se encontró smtpd_tls_cert_file o el archivo no existe: $CERT"
   fi
 } >> "$INFORME"
-echo '```' >> "$INFORME"
+
 echo "" >> "$INFORME"
+echo '```' >> "$INFORME"
 
 # Certificados del mapa SSL si existe
 if [ -f /etc/postfix/vmail_ssl.map ]; then
