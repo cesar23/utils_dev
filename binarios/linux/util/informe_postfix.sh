@@ -11,7 +11,7 @@
 #
 # ============================================================
 
-VERSION="2.2"
+VERSION="2.3"
 VERSION_FECHA="2026-05-13"
 VERSION_DESC="General multi-distro (Debian)"
 # -------------------------------------------------------
@@ -397,6 +397,7 @@ echo '```' >> "$INFORME"
 # Certificados del mapa SSL si existe
 if [ -f /etc/postfix/vmail_ssl.map ]; then
 echo "Certificados en vmail_ssl.map:" >> "$INFORME"
+echo '```' >> "$INFORME"
 while read -r linea; do
 [[ "$linea" =~ ^# ]] && continue
 [[ -z "$linea" ]] && continue
