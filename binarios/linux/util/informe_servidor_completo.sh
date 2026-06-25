@@ -5,6 +5,9 @@
 #  Autor  : Ingeniero César Auris
 #  Web    : https://solucionessystem.com
 #  Tel    : 937516027
+#
+# curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/informe_servidor_completo.sh | bash
+#
 # ============================================================
 
 VERSION="2.1"

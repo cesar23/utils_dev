@@ -114,3 +114,29 @@ matches:
         type: text
       - name: opcion2
         type: text
+
+  - trigger: "..pm"
+    label: "carga la documentacion proyecto"
+    replace: |
+      Analiza mi proyecto lo realicé para {{form1.proyecto}}.
+      Analiza todos los ficheros y ten todo el contexto.
+      El proyecto esta hecho en el lenguaje {{form1.lenguaje}}. espera mi siguiente  instrucion
+    vars:
+      - name: "form1"
+        type: form
+        params:
+          layout: "este proyecto es para: [[proyecto]] \nLenguaje utilizado: [[lenguaje]]"
+          fields:
+            proyecto:
+              type: text
+            lenguaje:
+              type: choice # or `choice`
+              values:
+                - Spring boot
+                - java
+                - JavaScript
+                - TypeScript
+                - Python
+                - Java
+                - PHP
+              default: "Spring boot"
