@@ -299,10 +299,10 @@ seccion "7. Logs de Correo (/var/log/mail.log)"
 
 LOG_MAIL="/var/log/mail.log"
 
-subseccion "7.1 Últimas 50 líneas del log"
+subseccion "77.1 Últimas 75 líneas del log"
 echo '```' >> "$INFORME"
 if [ -f "$LOG_MAIL" ]; then
-  tail -50 "$LOG_MAIL" >> "$INFORME"
+  tail -75 "$LOG_MAIL" >> "$INFORME"
 else
   echo "⚠ No se encontró $LOG_MAIL" >> "$INFORME"
 fi
@@ -313,7 +313,7 @@ subseccion "7.2 Errores recientes (últimas 24h)"
 echo '```' >> "$INFORME"
 if [ -f "$LOG_MAIL" ]; then
   grep -iE 'error|fatal|panic|reject|refused|timeout|bounced|failed' "$LOG_MAIL" \
-    | tail -50 >> "$INFORME"
+    | tail -75 >> "$INFORME"
 else
   echo "⚠ Log no disponible." >> "$INFORME"
 fi
@@ -324,7 +324,7 @@ subseccion "7.3 Intentos de autenticación fallidos"
 echo '```' >> "$INFORME"
 if [ -f "$LOG_MAIL" ]; then
   grep -iE 'authentication failed|SASL.*failed|535|LOGIN.*failed' "$LOG_MAIL" \
-    | tail -30 >> "$INFORME" \
+    | tail -50 >> "$INFORME" \
     || echo "Sin intentos fallidos recientes." >> "$INFORME"
 else
   echo "⚠ Log no disponible." >> "$INFORME"
@@ -335,7 +335,7 @@ echo "" >> "$INFORME"
 subseccion "7.4 Correos enviados exitosamente (status=sent)"
 echo '```' >> "$INFORME"
 if [ -f "$LOG_MAIL" ]; then
-  grep 'status=sent' "$LOG_MAIL" | tail -20 >> "$INFORME" \
+  grep 'status=sent' "$LOG_MAIL" | tail -40 >> "$INFORME" \
     || echo "Sin registros de envíos recientes." >> "$INFORME"
 else
   echo "⚠ Log no disponible." >> "$INFORME"
@@ -346,7 +346,7 @@ echo "" >> "$INFORME"
 subseccion "7.5 Correos rechazados (reject)"
 echo '```' >> "$INFORME"
 if [ -f "$LOG_MAIL" ]; then
-  grep ' reject:' "$LOG_MAIL" | tail -20 >> "$INFORME" \
+  grep ' reject:' "$LOG_MAIL" | tail -40 >> "$INFORME" \
     || echo "Sin rechazos recientes." >> "$INFORME"
 else
   echo "⚠ Log no disponible." >> "$INFORME"
