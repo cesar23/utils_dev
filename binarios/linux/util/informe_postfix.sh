@@ -381,14 +381,16 @@ echo "" >> "$INFORME"
 
 subseccion "8.2 Vencimiento de certificados TLS"
 echo '```' >> "$INFORME"
-# Certificado principal de Postfix
-CERT=$(postconf smtpd_tls_cert_file 2>/dev/null | awk '{print $3}')
-if [ -n "$CERT" ] && [ -f "$CERT" ]; then
-echo "Certificado: $CERT"
-openssl x509 -in "$CERT" -noout -subject -issuer -dates 2>/dev/null
-else
-echo "No se encontró smtpd_tls_cert_file o el archivo no existe: $CERT"
-fi
+{
+  CERT=$(postconf smtpd_tls_cert_file 2>/dev/null | awk '{print $3}')
+  if [ -n "$CERT" ] && [ -f "$CERT" ]; then
+    echo "Certificado: $CERT"
+    openssl x509 -in "$CERT" -noout -subject -issuer -dates 2>/dev/null
+  else
+    echo "No se encontró smtpd_tls_cert_file o el archivo no existe: $CERT"
+  fi
+} >> "$INFORME"
+echo '```' >> "$INFORME"
 echo "" >> "$INFORME"
 
 # Certificados del mapa SSL si existe
@@ -511,9 +513,11 @@ echo "" >> "$INFORME"
 seccion "11. Reglas de Firewall — Puertos de Correo"
 
 echo '```' >> "$INFORME"
-iptables -L -n -v 2>/dev/null \
-  | grep -E ':25|:587|:465|:143|:993|:110|:995' \
-  || echo "No se encontraron reglas de correo en iptables."
+{
+  iptables -L -n -v 2>/dev/null \
+    | grep -E ':25|:587|:465|:143|:993|:110|:995' \
+    || echo "No se encontraron reglas de correo en iptables."
+} >> "$INFORME"
 echo '```' >> "$INFORME"
 echo "" >> "$INFORME"
 
