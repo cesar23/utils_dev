@@ -622,9 +622,12 @@ echo " aquí se vuelca el contenido completo disponible del log)" >> "$INFORME"
 echo "---------------------------------------------" >> "$INFORME"
 if [ -f "${LSWS_HOME}/logs/error.log" ]; then
   if $TIENE_SUDO; then
-    sudo cat "${LSWS_HOME}/logs/error.log" >> "$INFORME" 2>&1
+#    sudo cat "${LSWS_HOME}/logs/error.log" >> "$INFORME" 2>&1
+    leer_archivo_tail "Log de errores del  litespeed" "${CYBERPANEL_LOG_DIR}/error-logs.txt" 60
   else
-    cat "${LSWS_HOME}/logs/error.log" >> "$INFORME" 2>&1
+#    cat "${LSWS_HOME}/logs/error.log" >> "$INFORME" 2>&1
+    leer_archivo_tail "Log de errores del  litespeed" "${CYBERPANEL_LOG_DIR}/error-logs.txt" 60
+
   fi
 else
   echo "⚠ Archivo no encontrado." >> "$INFORME"
