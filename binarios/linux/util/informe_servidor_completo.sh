@@ -8,6 +8,10 @@
 #
 # curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/informe_servidor_completo.sh | bash
 #
+# Si el disco esta bloqueado contra escritura ejecutar este comando escribe en memoria no en el disco
+#     curl -sSL https://raw.githubusercontent.com/cesar23/utils_dev/master/binarios/linux/util/informe_servidor_completo.sh -o /dev/shm/informe.sh
+#     cd /dev/shm && bash informe.sh
+#
 # ============================================================
 
 VERSION="2.1"

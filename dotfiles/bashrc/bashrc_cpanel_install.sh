@@ -13,7 +13,7 @@ echo "" > $BASHRC_PATH
 
 # Escribir el nuevo contenido en .bashrc
 cat > "$BASHRC_PATH" << 'EOF'
-VERSION_BASHRC=4.7.3
+VERSION_BASHRC=4.8.0
 VERSION_PLATFORM='(CPanel)'
 
 # ::::::::::::: START CONSTANT ::::::::::::::
@@ -1376,11 +1376,12 @@ vi() {
         return 1
     fi
 }
-
 # ================================================
 # funcion requiere lnav
 # ================================================
 log() {
+    local LOG_TZ="${LOG_TZ:-America/Lima}"
+
     # 1) Requiere al menos un argumento
     if [ $# -eq 0 ]; then
         echo -e "--- ${Yellow}Advertencia:${Color_Off} no se proporcionaron rutas."
@@ -1412,13 +1413,16 @@ log() {
     if [ ${#found[@]} -eq 0 ]; then
         echo -e "--- ${Red}Error:${Color_Off} no hay rutas válidas para abrir."
         echo -e "Uso: log <archivo|directorio> [más_rutas...]"
-          echo -e "Ej.:  log /var/log/mail.log /var/log/lfd.log /var/log"
+        echo -e "Ej.:  log /var/log/mail.log /var/log/lfd.log /var/log"
         return 1
     fi
 
-    # 5) Ejecutar lnav en zona horaria America/Lima
+    # 5) Limpiar sesión vieja para evitar formatos/filtros cacheados incorrectos
+    rm -f ~/.lnav/session
+
+    # 6) Ejecutar lnav en la zona horaria configurada
     #    Nota: no modifica archivos; solo cambia la visualización.
-    TZ=America/Lima lnav "${found[@]}"
+    TZ="$LOG_TZ" lnav "${found[@]}"
 }
 
 
