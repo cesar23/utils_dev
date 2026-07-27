@@ -1436,7 +1436,6 @@ log() {
     if [ ${#found[@]} -eq 0 ]; then
         echo -e "--- ${Red}Error:${Color_Off} no hay rutas válidas para abrir."
         echo -e "Uso: log <archivo|directorio> [más_rutas...]"
-        echo -e "Uso: log <archivo|directorio> [más_rutas...]"
         echo -e "Ej.:  log /var/log/mail.log /var/log/lfd.log /var/log"
         return 1
     fi
@@ -1907,45 +1906,73 @@ entrar_contenedor() {
     fi
 }
 
-dlogin(){
-  cls 2>/dev/null || clear
+dlogin() {
+    cls 2>/dev/null || clear
 
-    # Flujo principal del script
+    # 1) Listar contenedores
     listar_contenedores
+    echo ""
 
+    # 2) Pedir contenedor
     echo -e "${Yellow}"
-    read -p "Ingrese el nombre o ID del contenedor: " CONTAINER
+    read -rp "Ingrese el nombre o ID del contenedor: " CONTAINER
     echo -e "${Color_Off}"
 
-    # Validar entrada del usuario
     if [ -z "$CONTAINER" ]; then
         echo -e "${Red}Error: No se ingresó un nombre o ID de contenedor.${Color_Off}"
         return 1
     fi
 
-    # Intentar entrar al contenedor
-    entrar_contenedor "$CONTAINER"
+    # Verificar que el contenedor exista/esté corriendo
+    if ! docker ps --format '{{.Names}} {{.ID}}' | grep -qw "$CONTAINER"; then
+        echo -e "${Yellow}Aviso: no se encontró '${CONTAINER}' entre los contenedores en ejecución (se intentará igual).${Color_Off}"
+    fi
+
+    # 3) Menú de usuario
+    echo -e "${Cyan}Seleccione el usuario:${Color_Off}"
+    echo -e "  ${Green}1)${Color_Off} Usuario por defecto del contenedor"
+    echo -e "  ${Green}2)${Color_Off} root"
+    read -rp "Opción [1-2] (Enter = 1): " OPT_USER
+
+    local USER_FLAGS=()
+    case "$OPT_USER" in
+        2)
+            USER_FLAGS=(--user root)
+            ;;
+        *)
+            USER_FLAGS=()
+            ;;
+    esac
+
+    # 4) Menú de shell
+    echo -e "${Cyan}Seleccione el shell:${Color_Off}"
+    echo -e "  ${Green}1)${Color_Off} bash"
+    echo -e "  ${Green}2)${Color_Off} sh"
+    echo -e "  ${Green}3)${Color_Off} /bin/bash"
+    echo -e "  ${Green}4)${Color_Off} /bin/sh"
+    read -rp "Opción [1-4] (Enter = 1): " OPT_SHELL
+
+    local SHELL_BIN="bash"
+    case "$OPT_SHELL" in
+        2) SHELL_BIN="sh" ;;
+        3) SHELL_BIN="/bin/bash" ;;
+        4) SHELL_BIN="/bin/sh" ;;
+        *) SHELL_BIN="bash" ;;
+    esac
+
+    # 5) Mostrar y ejecutar comando final
+    echo ""
+    echo -e "${Gray}docker exec -it ${USER_FLAGS[*]} \"$CONTAINER\" $SHELL_BIN${Color_Off}"
+    docker exec -it "${USER_FLAGS[@]}" "$CONTAINER" "$SHELL_BIN"
     RET=$?
 
-    # Mensaje final según el resultado
+    # 6) Mensaje final
     if [ $RET -eq 0 ]; then
         echo -e "${Green}Sesión del contenedor finalizada correctamente.${Color_Off}"
     else
-        echo -e "${Red}Hubo un problema al intentar acceder al contenedor.${Color_Off}"
+        echo -e "${Red}Hubo un problema al intentar acceder al contenedor (código: $RET).${Color_Off}"
     fi
-
-
 }
-droot() {
-    listar_contenedores
-    echo -e "${Yellow}"
-    read -p "Ingrese el nombre o ID del contenedor: " CONTAINER
-    echo -e "${Color_Off}"
-
-    docker exec -it --user root "$CONTAINER" bash
-
-}
-
 dcrestart() {
     docker-compose down && docker-compose up -d
 }
