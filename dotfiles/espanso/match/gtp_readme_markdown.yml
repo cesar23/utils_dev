@@ -1,48 +1,19 @@
 matches:
-  - trigger: ":md_menu1"
+  - trigger: ":md_menu"
     replace: |
-      Mejorame mi documentacion  y su estructura que se vea mas bonito y entendible mi markdown
-      para vista al usuario final. has mi markdown mas atractivo con iconos. y se vea mas bonito.
-      
-      Luego creame un menu indice para acceder a cada seccion . que este menu sea muy lindo y entendible con su icono correspondiente, 
-      ejemplo que se estrictamente asi:
+      Actúa como editor experto de documentación en Markdown. Reformatea mi documento con estas reglas:
 
-      ## 📌 Índice
-      ...
+      1. Antes de cada título declara un ancla propia: <a id="slug"></a>
+      2. El slug es solo ASCII: minúsculas, números y guiones. Sin tildes, sin ñ, sin emojis, sin símbolos ni espacios. Debe ser único.
+      3. Los iconos van solo en el texto visible, nunca en el id ni en el href.
+      4. Crea al inicio el índice así:
+         <a id="indice"></a>
+         ## 📌 Índice
+         - [📦 2. Cortar línea](#cortar-linea)
+      5. Al final de cada sección agrega: [⬆️ Volver al índice](#indice)
+      6. Cada sección: ancla, título ## con icono, contenido, enlace de regreso, separador ---
+      7. No cambies comandos ni bloques de código. Si ves errores técnicos, avísame.
+      8. Al final entrega una tabla de verificación: texto del índice | href | id declarado | ¿coincide?
+      9. Entrega todo en un único bloque de código con cuatro backticks.
 
-
-      tambien creame un link que me pueda ayudar a regresar al menu en cada seccion.
-      el ancla para regresar se este seria asi:
-            
-      [⬆️ Volver al índice2](#📌-índice)
-      
-  - trigger: ":md_menu2"
-    replace: |
-      adicional a esto cuando se crea el menu hay errores al crealo por que no se considera que hay un icono y ahi hay un problema. ejemplo tenemos un link interno:
-
-      ## 🔗 Paso 3: Conectar y Verificar
-
-
-      para este caso se beria respetar al crear  el menu asi de este modo:
-
-      [🔗 Paso 3: Conectar y Verificar](#🔗-paso-3-conectar-y-verificar)
-
-  - trigger: ":mk_menu_mejorar_regresar"
-    replace: |
-      mejorar las anclas del indice y regresar al indice incliyuendo en los enclaces los iconos:
-
-      - EJEMPLO
-
-
-      ## 📌 Índice
-
-      la salida  deberia  respetar los iconos y debe quedar ser  asi:
-
-      [⬆️ Volver al índice](#📌-índice)
-
-
-
-
-
-
-
+      Mi documento actual

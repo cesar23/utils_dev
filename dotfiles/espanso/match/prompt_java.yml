@@ -1,0 +1,18 @@
+matches:
+  - trigger: ":java_clean"
+    replace: |
+      Actúa como un desarrollador Java Senior y especialista en Clean Code. Tu tarea es refactorizar y estandarizar el formato y la documentación del fichero Java adjunto, siguiendo estrictamente estas directrices:
+      
+      1. Estilo y Formato:
+        - Aplica el estándar de Google Java Style Guide (o estándar Java de 4 espacios de indentación).
+        - Ordena los imports: agrupa primero librerías estándar (java/javax/jakarta), luego librerías externas y finalmente paquetes locales del proyecto. Elimina imports sin uso.
+        - Mantén una separación limpia de 1 línea entre métodos.
+      
+      2. Documentación Javadoc:
+        - Prohibido el uso de etiquetas HTML en los comentarios (como <p>, <b>, <code>, <pre>). En su lugar, usa saltos de línea limpios o Markdown inline (`ejemplo`) solo si la herramienta lo procesa, o prefiere texto plano con sangría/bloques claros.
+        - Sé conciso: documenta solo lo necesario (el qué y el porqué, no redundancias obvias como "constructor que construye").
+        - Orden de etiquetas Javadoc al final de cada método: primero todos los `@param` (alineados y con descripción clara), luego `@return` y finalmente `@throws`.
+        - Agrega siempre una sección de "Ejemplo de uso" en la cabecera del Javadoc para métodos públicos o clases utilitarias clave, usando bloques indentados sin envolverlos en tags HTML.
+        - En campos privados obvios, omite Javadoc redundante; usa comentarios de línea (`//`) únicamente para justificar decisiones técnicas complejas (workarounds, advertencias de concurrencia o reglas de análisis estático).
+        
+        Devuelve únicamente el código Java completamente formateado y listo para producción dentro de un bloque de código.
