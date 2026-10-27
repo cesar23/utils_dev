@@ -1,16 +1,17 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ============================================================================
-# Script de Descarga de Videos de YouTube - Versión Mejorada
+# Script de Descarga de Videos de YouTube - Versión Termux (Android)
 # Autor: Cesar Auris
 # Web: solucionessystem.com
-# Versión: 4.2.2 - Nuevas funciones: Actualizar y verificar versión de yt-dlp
+# Versión: 4.3.0 - Termux: cookies, runtime JS (node), formatos nuevos,
+#                  diagnóstico de errores, wake-lock y almacenamiento Android
 # ============================================================================
 
 # =============================================================================
 # 📋 SECTION: Variables Globales y Configuración
 # =============================================================================
 
-VERSION_SCRIPT="4.2.2"
+VERSION_SCRIPT="4.3.0"
 
 # Fecha y hora actual en formato: YYYY-MM-DD_HH:MM:SS (hora local)
 DATE_HOUR=$(date "+%Y-%m-%d_%H:%M:%S")
@@ -20,14 +21,15 @@ DATE_HOUR_PE=$(date -u -d "-5 hours" "+%Y-%m-%d_%H:%M:%S" 2>/dev/null || TZ="Ame
 
 CURRENT_USER=$(id -un)
 CURRENT_USER_HOME="${HOME:-$USERPROFILE}"
-CURRENT_PC_NAME=$(hostname)
+# En Termux 'hostname' no viene instalado por defecto
+CURRENT_PC_NAME=$(hostname 2>/dev/null || uname -n)
 MY_INFO="${CURRENT_USER}@${CURRENT_PC_NAME}"
 PATH_SCRIPT=$(readlink -f "${BASH_SOURCE:-$0}")
 SCRIPT_NAME=$(basename "$PATH_SCRIPT")
 CURRENT_DIR=$(dirname "$PATH_SCRIPT")
 NAME_DIR=$(basename "$CURRENT_DIR")
 TEMP_PATH_SCRIPT=$(echo "$PATH_SCRIPT" | sed 's/.sh/.tmp/g')
-TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')
+TEMP_PATH_SCRIPT_SYSTEM=$(echo "${TMPDIR:-$TMP}/${SCRIPT_NAME}" | sed 's/.sh/.tmp/g')
 ROOT_PATH=$(realpath -m "${CURRENT_DIR}/..")
 
 # Archivos de configuración
@@ -142,33 +144,315 @@ pause_continue() {
     fi
 
     msg "${Gray}"
-    read -p "$mensaje"
+    read -p "$mensaje" </dev/tty
     msg "${Color_Off}"
 }
 
+# =============================================================================
+# 📱 SECTION: Termux / Android
+# =============================================================================
+
+STORAGE_ROOT="/storage/emulated/0"
+COOKIES_FILE="${CONFIG_DIR}/cookies.txt"
+# Ubicación sugerida para importar cookies (accesible desde el gestor de archivos)
+COOKIES_IMPORT_DEFAULT="${STORAGE_ROOT}/Download/cookies.txt"
+
+SO_SYSTEM=""
+JS_RUNTIME="none"
+JS_RUNTIME_ARGS=()
+YTDLP_COMMON=()
+SUBTITULOS_ARGS=()
+ARGS_RUTA=()
+ARCHIVO_DESCARGADO=""
+VIDEO_TITULO=""; VIDEO_AUTOR=""; VIDEO_DURACION=""; VIDEO_TAMANO=""; VIDEO_ID=""
+WAKELOCK_ACTIVO=0
+
+# Devuelve: termux | wsl | gitbash | ubuntu | redhat | unknown
 detect_system() {
     if [ -f /data/data/com.termux/files/usr/bin/pkg ]; then
         echo "termux"
-    elif grep -q Microsoft /proc/version 2>/dev/null; then
+    elif [ -n "$WSL_DISTRO_NAME" ] || [ -n "$WSL_INTEROP" ] || grep -qiE "microsoft|wsl" /proc/version 2>/dev/null; then
         echo "wsl"
-    elif [ -f /etc/os-release ]; then
-        source /etc/os-release
-        case $ID in
-            ubuntu|debian)
-                echo "ubuntu"
-                ;;
-            rhel|centos|fedora|rocky|almalinux)
-                echo "redhat"
-                ;;
-            *)
-                echo "unknown"
-                ;;
-        esac
     elif [ -n "$MSYSTEM" ]; then
         echo "gitbash"
+    elif [ -f /etc/os-release ]; then
+        local ids
+        ids=$( . /etc/os-release; echo "${ID} ${ID_LIKE}" )
+        case "$ids" in
+            *ubuntu*|*debian*) echo "ubuntu" ;;
+            *rhel*|*centos*|*fedora*|*rocky*|*almalinux*) echo "redhat" ;;
+            *) echo "unknown" ;;
+        esac
     else
         echo "unknown"
     fi
+}
+
+instalar_paquete() {
+    local paquete="$1"
+    if command -v pkg >/dev/null 2>&1; then
+        pkg install -y "$paquete"
+    else
+        msg "No se encontró 'pkg'. ¿Estás en Termux? Instala '$paquete' manualmente." "ERROR"
+        return 1
+    fi
+}
+
+# ¿Termux tiene acceso al almacenamiento compartido (/storage/emulated/0)?
+almacenamiento_disponible() {
+    [ -d "$STORAGE_ROOT" ] && [ -w "$STORAGE_ROOT" ]
+}
+
+verificar_almacenamiento() {
+    almacenamiento_disponible && return 0
+
+    msg "⚠️ Termux no tiene permiso para el almacenamiento del teléfono." "WARNING"
+    msg "   Sin él, los videos se guardarán dentro de Termux (no visibles en la galería)." "WARNING"
+
+    if command -v termux-setup-storage >/dev/null 2>&1; then
+        local resp
+        read -p "¿Conceder el permiso ahora (termux-setup-storage)? (s/n): " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            termux-setup-storage
+            read -p "Acepta el permiso en la ventana de Android y luego presiona [ENTER]..." </dev/tty
+        fi
+    fi
+
+    if almacenamiento_disponible; then
+        msg "✓ Almacenamiento disponible" "SUCCESS"
+        return 0
+    fi
+    return 1
+}
+
+ruta_descargas_defecto() {
+    if almacenamiento_disponible; then
+        echo "${STORAGE_ROOT}/Download/youtube"
+    else
+        echo "${CURRENT_USER_HOME}/downloads/youtube"
+    fi
+}
+
+# Evita que Android suspenda Termux durante descargas largas (no requiere Termux:API)
+activar_wakelock() {
+    [ "$WAKELOCK_ACTIVO" -eq 1 ] && return 0
+    if command -v termux-wake-lock >/dev/null 2>&1; then
+        termux-wake-lock >/dev/null 2>&1 && WAKELOCK_ACTIVO=1
+    fi
+    return 0
+}
+
+liberar_wakelock() {
+    if [ "$WAKELOCK_ACTIVO" -eq 1 ] && command -v termux-wake-unlock >/dev/null 2>&1; then
+        termux-wake-unlock >/dev/null 2>&1
+    fi
+    WAKELOCK_ACTIVO=0
+    return 0
+}
+
+trap liberar_wakelock EXIT
+
+# -----------------------------------------------------------------------------
+# JavaScript runtime (YouTube exige resolver desafíos JS)
+# En Termux no hay Deno oficial: se usa Node.js (pkg install nodejs)
+# -----------------------------------------------------------------------------
+
+detectar_js_runtime() {
+    JS_RUNTIME="none"
+    JS_RUNTIME_ARGS=()
+
+    if command -v deno >/dev/null 2>&1; then
+        JS_RUNTIME="deno"                      # yt-dlp lo usa por defecto
+    elif command -v node >/dev/null 2>&1; then
+        local major
+        major=$(node -v 2>/dev/null | sed 's/^v//; s/\..*//')
+        if [[ "$major" =~ ^[0-9]+$ ]] && [ "$major" -ge 20 ]; then
+            JS_RUNTIME="node"
+            JS_RUNTIME_ARGS=(--js-runtimes node)
+        fi
+    fi
+
+    if [ "$JS_RUNTIME" = "none" ]; then
+        local q
+        for q in qjs quickjs; do
+            if command -v "$q" >/dev/null 2>&1; then
+                JS_RUNTIME="quickjs"
+                JS_RUNTIME_ARGS=(--js-runtimes quickjs)
+                break
+            fi
+        done
+    fi
+}
+
+instalar_runtime_js() {
+    msg "Instalando Node.js (runtime JavaScript para YouTube)..." "INFO"
+    if instalar_paquete nodejs; then
+        hash -r
+        detectar_js_runtime
+        if [ "$JS_RUNTIME" != "none" ]; then
+            msg "✓ Runtime JavaScript listo: ${JS_RUNTIME} ($(node -v 2>/dev/null))" "SUCCESS"
+            preparar_args_ytdlp
+            return 0
+        fi
+        msg "Node.js instalado pero es menor a v20. Prueba: pkg upgrade" "WARNING"
+    fi
+    msg "No se pudo preparar el runtime JavaScript" "ERROR"
+    return 1
+}
+
+# -----------------------------------------------------------------------------
+# Cookies (para "Sign in to confirm you're not a bot")
+# -----------------------------------------------------------------------------
+
+# Valida formato Netscape: cabecera típica o líneas con 7 campos separados por TAB
+cookies_validas() {
+    local f="$1"
+    [ -s "$f" ] || return 1
+    head -n 5 "$f" | grep -qiE "Netscape HTTP Cookie File|^# HTTP Cookie File" && return 0
+    awk -F'\t' 'NF>=7 { ok=1; exit } END { exit !ok }' "$f"
+}
+
+estado_cookies() {
+    if [ -s "$COOKIES_FILE" ]; then
+        local n fecha
+        n=$(grep -c "youtube.com" "$COOKIES_FILE" 2>/dev/null)
+        fecha=$(date -r "$COOKIES_FILE" "+%Y-%m-%d %H:%M" 2>/dev/null)
+        echo "activas (${n} de youtube.com, importadas ${fecha})"
+    else
+        echo "no configuradas"
+    fi
+}
+
+importar_cookies() {
+    local origen="$1" resp
+
+    if [ ! -f "$origen" ]; then
+        msg "No existe el archivo: $origen" "ERROR"
+        return 1
+    fi
+
+    if ! cookies_validas "$origen"; then
+        msg "El archivo no parece estar en formato Netscape (cookies.txt)" "ERROR"
+        return 1
+    fi
+
+    if ! grep -q "youtube.com" "$origen"; then
+        msg "⚠️ El archivo no contiene cookies de youtube.com" "WARNING"
+        read -p "¿Importarlo de todas formas? (s/n): " resp </dev/tty
+        [[ "$resp" =~ ^[sS]$ ]] || return 1
+    fi
+
+    if cp "$origen" "$COOKIES_FILE"; then
+        chmod 600 "$COOKIES_FILE"
+        msg "✓ Cookies importadas en ${COOKIES_FILE}" "SUCCESS"
+        preparar_args_ytdlp
+    else
+        msg "No se pudieron copiar las cookies" "ERROR"
+        return 1
+    fi
+
+    # La carpeta Download es legible por otras apps: ofrecer borrar la copia
+    if [[ "$origen" == /storage/* || "$origen" == /sdcard/* ]]; then
+        msg "La copia en el almacenamiento del teléfono contiene tu sesión de YouTube." "WARNING"
+        read -p "¿Borrar esa copia ahora? (s/n) [n]: " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            rm -f "$origen" && msg "Copia borrada: $origen" "SUCCESS"
+        fi
+    fi
+    return 0
+}
+
+mostrar_ayuda_cookies() {
+    echo ""
+    msg "Cómo obtener tus cookies de YouTube:" "INFO"
+    echo -e "${Gray}1. En el navegador, abre una ventana privada/incógnito e inicia sesión en youtube.com${Color_Off}"
+    echo -e "${Gray}2. Exporta las cookies con una extensión de formato 'cookies.txt' (Netscape),${Color_Off}"
+    echo -e "${Gray}   p.ej. 'Get cookies.txt LOCALLY' en el PC o una extensión equivalente en Firefox Android${Color_Off}"
+    echo -e "${Gray}3. Cierra la ventana privada (así YouTube no invalida esas cookies)${Color_Off}"
+    echo -e "${Gray}4. Copia el archivo al teléfono como: ${BYellow}${COOKIES_IMPORT_DEFAULT}${Color_Off}"
+    echo -e "${Gray}5. Usa la opción 'Importar' de este menú${Color_Off}"
+    echo ""
+    msg "Nota: las cookies caducan. Si vuelve el error de 'bot', expórtalas de nuevo." "WARNING"
+}
+
+gestionar_cookies() {
+    local op ruta resp
+    while true; do
+        echo ""
+        echo -e "${BCyan}╔═══════════════════════════════════════╗${Color_Off}"
+        echo -e "${BCyan}║${Color_Off}  ${BWhite}🍪 COOKIES DE YOUTUBE${Color_Off}              ${BCyan}║${Color_Off}"
+        echo -e "${BCyan}╚═══════════════════════════════════════╝${Color_Off}"
+        echo -e "${Gray}Estado: ${BWhite}$(estado_cookies)${Color_Off}"
+        echo ""
+        echo -e "${BYellow}1)${Color_Off} Importar cookies desde archivo"
+        echo -e "${BYellow}2)${Color_Off} Eliminar cookies"
+        echo -e "${BYellow}3)${Color_Off} ¿Cómo obtener las cookies?"
+        echo -e "${BYellow}4)${Color_Off} Volver"
+        read -p "Opción: " op </dev/tty
+
+        case $op in
+            1)
+                read -p "Ruta del archivo [${COOKIES_IMPORT_DEFAULT}]: " ruta </dev/tty
+                importar_cookies "${ruta:-$COOKIES_IMPORT_DEFAULT}"
+                ;;
+            2)
+                if [ -f "$COOKIES_FILE" ]; then
+                    read -p "¿Eliminar las cookies guardadas? (s/n): " resp </dev/tty
+                    if [[ "$resp" =~ ^[sS]$ ]]; then
+                        rm -f "$COOKIES_FILE"
+                        preparar_args_ytdlp
+                        msg "Cookies eliminadas" "SUCCESS"
+                    fi
+                else
+                    msg "No hay cookies guardadas" "WARNING"
+                fi
+                ;;
+            3) mostrar_ayuda_cookies ;;
+            *) return 0 ;;
+        esac
+    done
+}
+
+# Argumentos comunes a todas las llamadas a yt-dlp
+preparar_args_ytdlp() {
+    YTDLP_COMMON=("${JS_RUNTIME_ARGS[@]}")
+    if [ -s "$COOKIES_FILE" ]; then
+        YTDLP_COMMON+=(--cookies "$COOKIES_FILE")
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Instalación / antigüedad de yt-dlp
+# -----------------------------------------------------------------------------
+
+# Días desde la fecha de la versión (yt-dlp usa AAAA.MM.DD)
+ytdlp_dias_antiguedad() {
+    local v ts_v ts_now
+    v=$(echo "$1" | cut -d. -f1-3 | tr . -)
+    ts_v=$(date -d "$v" +%s 2>/dev/null) || return 1
+    ts_now=$(date +%s)
+    echo $(( (ts_now - ts_v) / 86400 ))
+}
+
+instalar_ytdlp() {
+    if ! command -v python >/dev/null 2>&1; then
+        msg "yt-dlp necesita Python. Instalándolo..." "INFO"
+        instalar_paquete python || return 1
+    fi
+
+    msg "Instalando/actualizando yt-dlp con pip..." "INFO"
+    if ! pip install --upgrade "yt-dlp[default]"; then
+        # Alguna dependencia opcional puede no compilar en Android
+        msg "Falló yt-dlp[default]. Instalando yt-dlp + yt-dlp-ejs..." "WARNING"
+        pip install --upgrade yt-dlp yt-dlp-ejs || pip install --upgrade yt-dlp || {
+            msg "Error al instalar yt-dlp" "ERROR"
+            return 1
+        }
+    fi
+
+    hash -r
+    msg "✓ yt-dlp listo: $(yt-dlp --version 2>/dev/null) ($(command -v yt-dlp))" "SUCCESS"
+    return 0
 }
 
 string_slugify() {
@@ -215,7 +499,9 @@ string_slugify() {
 
 verificar_espacio_disco() {
     local ruta="$1"
-    local espacio_libre_kb=$(df -k "$ruta" 2>/dev/null | awk 'NR==2 {print $4}')
+    local espacio_libre_kb
+    espacio_libre_kb=$(df -k "$ruta" 2>/dev/null | awk 'NR==2 {print $4}')
+    [[ "$espacio_libre_kb" =~ ^[0-9]+$ ]] || espacio_libre_kb=0
     local espacio_libre_gb=$((espacio_libre_kb / 1024 / 1024))
 
     msg "Espacio disponible: ${espacio_libre_gb}GB" "INFO"
@@ -236,7 +522,8 @@ guardar_historial() {
     local url="$1"
     local titulo="$2"
     local tipo="$3"
-    local fecha=$(date "+%Y-%m-%d %H:%M:%S")
+    local fecha
+    fecha=$(date "+%Y-%m-%d %H:%M:%S")
 
     echo "${fecha}|${tipo}|${titulo}|${url}" >> "$HISTORIAL_FILE"
     msg "Descarga registrada en historial" "DEBUG"
@@ -249,11 +536,13 @@ verificar_descarga_previa() {
         return 1
     fi
 
-    if grep -q "$url" "$HISTORIAL_FILE"; then
+    # -F: la URL contiene '?' y '.', que en regex significan otra cosa
+    if grep -qF "$url" "$HISTORIAL_FILE"; then
         msg "⚠️ Esta URL ya fue descargada anteriormente" "WARNING"
-        local ultima_descarga=$(grep "$url" "$HISTORIAL_FILE" | tail -1)
-        local fecha=$(echo "$ultima_descarga" | cut -d'|' -f1)
-        local titulo=$(echo "$ultima_descarga" | cut -d'|' -f3)
+        local ultima_descarga fecha titulo
+        ultima_descarga=$(grep -F "$url" "$HISTORIAL_FILE" | tail -1)
+        fecha=$(echo "$ultima_descarga" | cut -d'|' -f1)
+        titulo=$(echo "$ultima_descarga" | cut -d'|' -f3)
 
         echo -e "${Gray}Última descarga: ${fecha}${Color_Off}"
         echo -e "${Gray}Título: ${titulo}${Color_Off}"
@@ -267,126 +556,135 @@ verificar_descarga_previa() {
     return 1
 }
 
-mostrar_info_video() {
-    local url="$1"
+# =============================================================================
+# 🎬 SECTION: Información, calidad y ejecución de yt-dlp
+# =============================================================================
 
+limpiar_na() {
+    [ "$1" = "NA" ] && echo "" || echo "$1"
+}
+
+# Una sola llamada a yt-dlp -> rellena las variables VIDEO_*
+obtener_info_video() {
+    local url="$1" errlog salida bytes
+    local -a l
+
+    VIDEO_TITULO=""; VIDEO_AUTOR=""; VIDEO_DURACION=""; VIDEO_TAMANO=""; VIDEO_ID=""
     msg "Obteniendo información del video..." "INFO"
 
-    local info=$(yt-dlp --print "%(title)s|||%(duration_string)s|||%(filesize_approx)s|||%(uploader)s" "$url" 2>/dev/null)
+    errlog=$(mktemp)
+    salida=$(yt-dlp "${YTDLP_COMMON[@]}" --no-playlist --skip-download --ignore-no-formats-error --no-warnings \
+        --print "%(title)s" --print "%(uploader)s" --print "%(duration_string)s" \
+        --print "%(filesize_approx)s" --print "%(id)s" "$url" 2>"$errlog" </dev/null)
+    mapfile -t l <<< "$salida"
 
-    if [ -z "$info" ]; then
+    VIDEO_TITULO=$(limpiar_na "${l[0]}")
+    VIDEO_AUTOR=$(limpiar_na "${l[1]}")
+    VIDEO_DURACION=$(limpiar_na "${l[2]}")
+    bytes=$(limpiar_na "${l[3]}")
+    VIDEO_ID=$(limpiar_na "${l[4]}")
+
+    if [[ "$bytes" =~ ^[0-9]+$ ]] && [ "$bytes" -gt 0 ]; then
+        VIDEO_TAMANO="$((bytes / 1024 / 1024))MB"
+    else
+        VIDEO_TAMANO="Desconocido"
+    fi
+
+    if [ -z "$VIDEO_ID" ] && [ -z "$VIDEO_TITULO" ]; then
         msg "No se pudo obtener información del video" "ERROR"
+        grep -E "ERROR" "$errlog" | tail -n 3 | while IFS= read -r linea; do
+            msg "  ${linea}" "WARNING"
+        done
+        if grep -qiE "Sign in to confirm|not a bot" "$errlog"; then
+            msg "  → YouTube pide verificación: configura tus cookies (opción C del menú)" "INFO"
+        fi
+        rm -f "$errlog"
         return 1
     fi
 
-    local titulo=$(echo "$info" | cut -d'|' -f1)
-    local duracion=$(echo "$info" | cut -d'|' -f4)
-    local tamano=$(echo "$info" | cut -d'|' -f7)
-    local autor=$(echo "$info" | cut -d'|' -f10)
+    rm -f "$errlog"
+    [ -z "$VIDEO_TITULO" ] && VIDEO_TITULO="video-${VIDEO_ID}"
+    return 0
+}
 
-    if [ -n "$tamano" ] && [ "$tamano" != "NA" ] && [ "$tamano" != "" ]; then
-        local tamano_mb=$((tamano / 1024 / 1024))
-        tamano="${tamano_mb}MB"
-    else
-        tamano="Desconocido"
-    fi
-
+mostrar_info_video() {
     echo ""
     echo -e "${BCyan}╔═══════════════════════════════════════╗${Color_Off}"
     echo -e "${BCyan}║${Color_Off}     ${BWhite}INFORMACIÓN DEL VIDEO${Color_Off}             ${BCyan}║${Color_Off}"
     echo -e "${BCyan}╠═══════════════════════════════════════╣${Color_Off}"
     echo -e "${BCyan}║${Color_Off} ${Gray}📺 Título:${Color_Off}"
-    echo -e "${BCyan}║${Color_Off}    ${BWhite}${titulo:0:35}${Color_Off}"
-    echo -e "${BCyan}║${Color_Off} ${Gray}👤 Autor:${Color_Off} ${BYellow}${autor}${Color_Off}"
-    echo -e "${BCyan}║${Color_Off} ${Gray}⏱️ Duración:${Color_Off} ${BGreen}${duracion}${Color_Off}"
-    echo -e "${BCyan}║${Color_Off} ${Gray}💾 Tamaño aprox:${Color_Off} ${BPurple}${tamano}${Color_Off}"
+    echo -e "${BCyan}║${Color_Off}    ${BWhite}${VIDEO_TITULO:0:35}${Color_Off}"
+    echo -e "${BCyan}║${Color_Off} ${Gray}👤 Autor:${Color_Off} ${BYellow}${VIDEO_AUTOR:-Desconocido}${Color_Off}"
+    echo -e "${BCyan}║${Color_Off} ${Gray}⏱️ Duración:${Color_Off} ${BGreen}${VIDEO_DURACION:-Desconocida}${Color_Off}"
+    echo -e "${BCyan}║${Color_Off} ${Gray}💾 Tamaño aprox:${Color_Off} ${BPurple}${VIDEO_TAMANO}${Color_Off}"
     echo -e "${BCyan}╚═══════════════════════════════════════╝${Color_Off}"
     echo ""
+}
 
-    return 0
+slug_titulo_video() {
+    local slug
+    slug=$(string_slugify "$VIDEO_TITULO" title)
+    [ -z "$slug" ] && slug="video-${VIDEO_ID:-$(date +%s)}"
+    echo "$slug"
+}
+
+# YouTube casi no ofrece "video+audio" ya unidos: se piden pistas separadas y
+# ffmpeg las une. Se prefiere H.264 + AAC (lo reproduce cualquier móvil).
+formato_mp4() {
+    local h="$1" hf=""
+    [ -n "$h" ] && hf="[height<=${h}]"
+    echo "bv*${hf}[vcodec^=avc1]+ba[ext=m4a]/bv*${hf}[ext=mp4]+ba[ext=m4a]/bv*${hf}+ba/b${hf}/b"
 }
 
 seleccionar_calidad_video() {
     echo ""
     echo -e "${BBlue}Selecciona la calidad y formato de descarga:${Color_Off}"
-    echo -e "${BYellow}1)${Color_Off} Mejor calidad MP4 (video+audio unificado) ${BGreen}[RECOMENDADO]${Color_Off}"
-    echo -e "${BYellow}2)${Color_Off} 1080p MP4 (video+audio unificado)"
-    echo -e "${BYellow}3)${Color_Off} 720p MP4 (video+audio unificado)"
-    echo -e "${BYellow}4)${Color_Off} 480p MP4 (video+audio unificado)"
-    echo -e "${BYellow}5)${Color_Off} 360p MP4 (video+audio unificado)"
-    echo -e "${BYellow}6)${Color_Off} Mejor calidad disponible MKV (video+audio)"
-    echo -e "${BYellow}7)${Color_Off} Personalizado (formato separado) ${Gray}[Avanzado]${Color_Off}"
+    echo -e "${BYellow}1)${Color_Off} Mejor calidad MP4 (H.264+AAC, compatible) ${BGreen}[RECOMENDADO]${Color_Off}"
+    echo -e "${BYellow}2)${Color_Off} Hasta 1080p MP4"
+    echo -e "${BYellow}3)${Color_Off} Hasta 720p MP4"
+    echo -e "${BYellow}4)${Color_Off} Hasta 480p MP4 ${Gray}(ahorra datos)${Color_Off}"
+    echo -e "${BYellow}5)${Color_Off} Hasta 360p MP4 ${Gray}(ahorra datos)${Color_Off}"
+    echo -e "${BYellow}6)${Color_Off} Mejor calidad absoluta MKV (puede ser VP9/AV1)"
+    echo -e "${BYellow}7)${Color_Off} Personalizado (elegir formato de la lista) ${Gray}[Avanzado]${Color_Off}"
     read -p "Opción [1]: " calidad_opcion </dev/tty
 
+    FORMATO_CONTENEDOR="mp4"
     case ${calidad_opcion:-1} in
-        1)
-            FORMATO_VIDEO="best[ext=mp4]/best"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: Mejor calidad MP4 unificado" "DEBUG"
-            ;;
-        2)
-            FORMATO_VIDEO="best[height<=1080][ext=mp4]/best[height<=1080]"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: 1080p MP4 unificado" "DEBUG"
-            ;;
-        3)
-            FORMATO_VIDEO="best[height<=720][ext=mp4]/best[height<=720]"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: 720p MP4 unificado" "DEBUG"
-            ;;
-        4)
-            FORMATO_VIDEO="best[height<=480][ext=mp4]/best[height<=480]"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: 480p MP4 unificado" "DEBUG"
-            ;;
-        5)
-            FORMATO_VIDEO="best[height<=360][ext=mp4]/best[height<=360]"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: 360p MP4 unificado" "DEBUG"
-            ;;
+        1) FORMATO_VIDEO=$(formato_mp4 "");     msg "Formato: Mejor calidad MP4" "DEBUG" ;;
+        2) FORMATO_VIDEO=$(formato_mp4 1080);   msg "Formato: hasta 1080p MP4" "DEBUG" ;;
+        3) FORMATO_VIDEO=$(formato_mp4 720);    msg "Formato: hasta 720p MP4" "DEBUG" ;;
+        4) FORMATO_VIDEO=$(formato_mp4 480);    msg "Formato: hasta 480p MP4" "DEBUG" ;;
+        5) FORMATO_VIDEO=$(formato_mp4 360);    msg "Formato: hasta 360p MP4" "DEBUG" ;;
         6)
-            FORMATO_VIDEO="bestvideo+bestaudio/best"
+            FORMATO_VIDEO="bv*+ba/b"
             FORMATO_CONTENEDOR="mkv"
-            msg "Formato: Mejor calidad MKV (unificado)" "DEBUG"
+            msg "Formato: Mejor calidad MKV" "DEBUG"
             ;;
         7)
-            FORMATO_VIDEO="bestvideo+bestaudio"
-            FORMATO_CONTENEDOR="mp4"
-            msg "Formato: Personalizado (puede generar archivos separados)" "WARNING"
+            if [ -n "$URL_ACTUAL" ]; then
+                msg "Formatos disponibles:" "INFO"
+                yt-dlp "${YTDLP_COMMON[@]}" --no-playlist -F "$URL_ACTUAL" </dev/null
+            fi
+            echo -e "${Gray}Ejemplos: 137+140  |  bv*[height<=1080]+ba  |  18${Color_Off}"
+            read -p "Código/selector de formato [bv*+ba/b]: " FORMATO_VIDEO </dev/tty
+            FORMATO_VIDEO="${FORMATO_VIDEO:-bv*+ba/b}"
+            read -p "Contenedor de salida (mp4/mkv/webm) [mkv]: " FORMATO_CONTENEDOR </dev/tty
+            FORMATO_CONTENEDOR="${FORMATO_CONTENEDOR:-mkv}"
+            msg "Formato personalizado: ${FORMATO_VIDEO} → ${FORMATO_CONTENEDOR}" "WARNING"
             ;;
-        *)
-            FORMATO_VIDEO="best[ext=mp4]/best"
-            FORMATO_CONTENEDOR="mp4"
-            ;;
+        *) FORMATO_VIDEO=$(formato_mp4 "") ;;
     esac
 }
 
-descargar_con_reintentos() {
-    local comando="$1"
-    local max_intentos=3
-    local intento=1
+configurar_subtitulos() {
+    read -p "¿Descargar subtítulos? (s/n) [n]: " resp_sub </dev/tty
 
-
-    while [ $intento -le $max_intentos ]; do
-        msg "Intento $intento de $max_intentos..." "INFO"
-
-        if eval "$comando"; then
-            msg "Descarga completada exitosamente" "SUCCESS"
-            return 0
-        else
-            if [ $intento -lt $max_intentos ]; then
-                msg "Error en la descarga. Reintentando en 5 segundos..." "WARNING"
-                sleep 5
-            else
-                msg "Error: Se agotaron los intentos de descarga" "ERROR"
-                return 1
-            fi
-        fi
-
-        ((intento++))
-    done
-
-    return 1
+    if [[ "$resp_sub" =~ ^[sS]$ ]]; then
+        SUBTITULOS_ARGS=(--write-auto-sub --sub-lang "es,en" --convert-subs srt --embed-subs)
+        msg "Subtítulos activados (ES, EN)" "INFO"
+    else
+        SUBTITULOS_ARGS=()
+    fi
 }
 
 seleccionar_formato_audio() {
@@ -409,56 +707,198 @@ seleccionar_formato_audio() {
     msg "Formato de audio seleccionado: ${FORMATO_AUDIO}" "DEBUG"
 }
 
-configurar_subtitulos() {
-    read -p "¿Descargar subtítulos? (s/n) [n]: " resp_sub </dev/tty
+# -----------------------------------------------------------------------------
+# Ejecución con reintentos + diagnóstico del error real
+# -----------------------------------------------------------------------------
 
-    if [[ "$resp_sub" =~ ^[sS]$ ]]; then
-        SUBTITULOS_PARAMS="--write-auto-sub --sub-lang es,en --convert-subs srt --embed-subs"
-        msg "Subtítulos activados (ES, EN)" "INFO"
-    else
-        SUBTITULOS_PARAMS=""
+# Devuelve 0 si el error es "fatal" (reintentar no sirve) y 1 si vale la pena reintentar
+diagnosticar_error_ytdlp() {
+    local log="$1"
+
+    if grep -qi "Requested format is not available" "$log"; then
+        msg "❌ YouTube no devolvió formatos utilizables para este video." "ERROR"
+        msg "   Causas habituales: yt-dlp desactualizado o falta un runtime de JavaScript." "WARNING"
+        msg "   Runtime JS detectado: ${JS_RUNTIME}" "WARNING"
+        msg "   → Usa el menú 8 (actualizar yt-dlp / instalar Node.js)" "INFO"
+        msg "   → Para ver qué formatos hay: yt-dlp -F URL" "INFO"
+        return 0
+    elif grep -qiE "Sign in to confirm|not a bot" "$log"; then
+        msg "❌ YouTube pide verificación (anti-bot)." "ERROR"
+        if [ -s "$COOKIES_FILE" ]; then
+            msg "   Ya usas cookies, pero probablemente caducaron: vuelve a exportarlas." "WARNING"
+        else
+            msg "   Exporta tus cookies (formato Netscape) e impórtalas con la opción C del menú." "WARNING"
+        fi
+        msg "   Archivo usado por el script: ${COOKIES_FILE}" "INFO"
+        return 0
+    elif grep -qiE "cookies are no longer valid" "$log"; then
+        msg "⚠️ Las cookies guardadas ya no son válidas: vuelve a exportarlas (opción C)." "WARNING"
+        return 1
+    elif grep -qiE "Private video|Video unavailable|members-only|has been removed|confirm your age|age-restricted" "$log"; then
+        msg "❌ El video no está disponible (privado, eliminado, con restricción de edad o solo miembros)." "ERROR"
+        msg "   Si es por edad o solo miembros, las cookies de una cuenta con acceso pueden ayudar." "INFO"
+        return 0
+    elif grep -qiE "ffmpeg is not installed|ffprobe and ffmpeg not found|ffmpeg not found" "$log"; then
+        msg "❌ Falta ffmpeg (necesario para unir video+audio o convertir audio)." "ERROR"
+        msg "   Instálalo con: pkg install ffmpeg" "INFO"
+        return 0
+    elif grep -qiE "Permission denied|Operation not permitted" "$log"; then
+        msg "❌ Sin permiso para escribir en: ${DOWNLOADS_PATH}" "ERROR"
+        msg "   Ejecuta: termux-setup-storage  (y acepta el permiso de Android)" "INFO"
+        return 0
+    elif grep -qi "HTTP Error 429" "$log"; then
+        msg "⚠️ YouTube está limitando las peticiones (429). Se esperará más antes de reintentar." "WARNING"
+        sleep 20
+        return 1
+    elif grep -qi "HTTP Error 403" "$log"; then
+        msg "⚠️ Error 403: normalmente se arregla actualizando yt-dlp (menú 8)." "WARNING"
+        return 1
+    fi
+
+    return 1
+}
+
+# Uso: ejecutar_con_reintentos yt-dlp [args...]   (comando como array, sin eval)
+ejecutar_con_reintentos() {
+    local rc
+    activar_wakelock
+    _ejecutar_con_reintentos "$@"
+    rc=$?
+    liberar_wakelock
+    return $rc
+}
+
+_ejecutar_con_reintentos() {
+    local max_intentos=3 intento=1 rc fatal log ejs_probado=0
+    local -a cmd=("$@")
+
+    log=$(mktemp)
+
+    msg "🔍 Ejecutando comando:" "DEBUG"
+    printf '%b%s%b\n\n' "$BPurple" "$(printf '%q ' "${cmd[@]}")" "$Color_Off"
+
+    while [ $intento -le $max_intentos ]; do
+        msg "Intento $intento de $max_intentos..." "INFO"
+
+        # </dev/null: evita que yt-dlp/ffmpeg consuman el stdin (rompía la lectura de lotes)
+        "${cmd[@]}" </dev/null 2>&1 | tee "$log"
+        rc=${PIPESTATUS[0]}
+
+        if [ $rc -eq 0 ]; then
+            rm -f "$log"
+            msg "Descarga completada exitosamente" "SUCCESS"
+            return 0
+        fi
+
+        # Si falla la resolución de desafíos JS, reintentar una vez descargando los scripts EJS
+        if [ $ejs_probado -eq 0 ] && grep -E "^(ERROR|WARNING)" "$log" | grep -qiE "ejs|challenge|n.?sig"; then
+            ejs_probado=1
+            cmd=("${cmd[0]}" --remote-components ejs:github "${cmd[@]:1}")
+            msg "Reintentando con --remote-components ejs:github ..." "WARNING"
+            continue
+        fi
+
+        diagnosticar_error_ytdlp "$log"
+        fatal=$?
+        if [ $fatal -eq 0 ]; then
+            rm -f "$log"
+            msg "Error: no tiene sentido reintentar. Corrige lo indicado arriba." "ERROR"
+            return 1
+        fi
+
+        if [ $intento -lt $max_intentos ]; then
+            msg "Error en la descarga. Reintentando en 5 segundos..." "WARNING"
+            sleep 5
+        else
+            msg "Error: Se agotaron los intentos de descarga" "ERROR"
+        fi
+        ((intento++))
+    done
+
+    rm -f "$log"
+    return 1
+}
+
+# Busca el archivo creado por esta descarga
+buscar_archivo_descargado() {
+    local slug="$1" marker="$2"
+    find "$DOWNLOADS_PATH" -maxdepth 1 -type f -newer "$marker" -name "${slug}*" \
+        ! -name "*.part" ! -name "*.ytdl" ! -name "*.srt" ! -name "*.vtt" 2>/dev/null | tail -n 1
+}
+
+# El almacenamiento compartido de Android no acepta caracteres como : ? " * |
+args_ruta() {
+    ARGS_RUTA=()
+    if [[ "$DOWNLOADS_PATH" == /storage/* || "$DOWNLOADS_PATH" == /sdcard* ]]; then
+        ARGS_RUTA=(--windows-filenames)
     fi
 }
 
 # =============================================================================
-# 🔧 SECTION: Funciones de Descarga
+# 🔧 SECTION: Dependencias y actualización de yt-dlp
 # =============================================================================
 
 verificar_dependencias() {
-    local tiene_error=0
+    local resp version dias
 
-    if ! command -v yt-dlp &> /dev/null; then
-        msg "yt-dlp no está instalado. Por favor instálalo primero." "ERROR"
-        msg "Instalación: pip install yt-dlp o visita https://github.com/yt-dlp/yt-dlp" "INFO"
-        tiene_error=1
-    else
-        local version=$(yt-dlp --version 2>/dev/null)
-        msg "Usando yt-dlp versión: ${version}" "DEBUG"
-    fi
-
-    if ! command -v ffmpeg &> /dev/null; then
-        msg "⚠️ ADVERTENCIA: ffmpeg no está instalado" "WARNING"
-        msg "ffmpeg es necesario para fusionar video+audio en un solo archivo" "WARNING"
-        msg "Sin ffmpeg, los archivos MKV se descargarán como video y audio separados" "WARNING"
-        echo ""
-        msg "Instalación de ffmpeg:" "INFO"
-        msg "  - Ubuntu/Debian: sudo apt install ffmpeg" "INFO"
-        msg "  - Red Hat/Fedora: sudo dnf install ffmpeg" "INFO"
-        msg "  - macOS: brew install ffmpeg" "INFO"
-        msg "  - Termux (Android): pkg install ffmpeg" "INFO"
-        msg "  - Windows: descarga desde https://ffmpeg.org/download.html" "INFO"
-        echo ""
-        read -p "¿Deseas continuar sin ffmpeg? (s/n): " resp </dev/tty
-        if [[ ! "$resp" =~ ^[sS]$ ]]; then
+    # --- yt-dlp ---
+    if ! command -v yt-dlp >/dev/null 2>&1; then
+        msg "yt-dlp no está instalado." "ERROR"
+        read -p "¿Instalarlo ahora? (s/n): " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            instalar_ytdlp || exit 1
+        else
             exit 1
         fi
-    else
-        local ffmpeg_version=$(ffmpeg -version 2>/dev/null | head -1)
-        msg "Usando $ffmpeg_version" "DEBUG"
     fi
 
-    if [ $tiene_error -eq 1 ]; then
-        exit 1
+    version=$(yt-dlp --version 2>/dev/null)
+    msg "Usando yt-dlp versión: ${version} ($(command -v yt-dlp))" "DEBUG"
+
+    dias=$(ytdlp_dias_antiguedad "$version")
+    if [[ "$dias" =~ ^[0-9]+$ ]] && [ "$dias" -gt 60 ]; then
+        msg "⚠️ Tu yt-dlp tiene ${dias} días. Si falla una descarga, actualízalo (menú 8)." "WARNING"
+    fi
+
+    # --- ffmpeg ---
+    if ! command -v ffmpeg >/dev/null 2>&1; then
+        msg "⚠️ ffmpeg no está instalado (necesario para unir video+audio y convertir audio)" "WARNING"
+        read -p "¿Instalar ffmpeg ahora? (s/n): " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            instalar_paquete ffmpeg
+            hash -r
+        fi
+
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+            read -p "¿Continuar sin ffmpeg? (s/n): " resp </dev/tty
+            [[ "$resp" =~ ^[sS]$ ]] || exit 1
+        fi
+    else
+        msg "Usando $(ffmpeg -version 2>/dev/null | head -1)" "DEBUG"
+    fi
+
+    # --- Runtime de JavaScript ---
+    detectar_js_runtime
+    if [ "$JS_RUNTIME" = "none" ]; then
+        msg "⚠️ No hay runtime de JavaScript (node). YouTube lo exige: sin él, yt-dlp" "WARNING"
+        msg "   solo ve una parte de los formatos y falla con 'Requested format is not available'." "WARNING"
+        read -p "¿Instalar Node.js ahora (pkg install nodejs)? (s/n): " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            instalar_runtime_js
+        fi
+    else
+        msg "Runtime JavaScript: ${JS_RUNTIME}" "DEBUG"
+    fi
+
+    # --- Cookies: si hay un cookies.txt en Download y aún no se importó ---
+    if [ ! -s "$COOKIES_FILE" ] && [ -f "$COOKIES_IMPORT_DEFAULT" ]; then
+        msg "🍪 Se encontró ${COOKIES_IMPORT_DEFAULT}" "INFO"
+        read -p "¿Importar esas cookies para YouTube? (s/n): " resp </dev/tty
+        if [[ "$resp" =~ ^[sS]$ ]]; then
+            importar_cookies "$COOKIES_IMPORT_DEFAULT"
+        fi
+    elif [ -s "$COOKIES_FILE" ]; then
+        msg "Cookies: $(estado_cookies)" "DEBUG"
     fi
 }
 
@@ -469,22 +909,33 @@ verificar_version_ytdlp() {
     msg "╚═══════════════════════════════════════╝" "INFO"
     echo ""
 
-    if ! command -v yt-dlp &> /dev/null; then
+    if ! command -v yt-dlp >/dev/null 2>&1; then
         msg "yt-dlp no está instalado" "ERROR"
         return 1
     fi
 
-    local version_actual=$(yt-dlp --version 2>/dev/null)
-    msg "Versión instalada: ${version_actual}" "INFO"
+    local version_actual ultima_version
+    version_actual=$(yt-dlp --version 2>/dev/null)
+    msg "Sistema detectado: ${SO_SYSTEM}" "INFO"
+    msg "Versión instalada: ${version_actual}  ($(command -v yt-dlp))" "INFO"
+    msg "Runtime JavaScript: ${JS_RUNTIME}" "INFO"
+    msg "Cookies: $(estado_cookies)" "INFO"
+    if command -v ffmpeg >/dev/null 2>&1; then
+        msg "ffmpeg: instalado" "INFO"
+    else
+        msg "ffmpeg: NO instalado" "WARNING"
+    fi
+    if almacenamiento_disponible; then
+        msg "Almacenamiento del teléfono: accesible" "INFO"
+    else
+        msg "Almacenamiento del teléfono: SIN permiso (ejecuta termux-setup-storage)" "WARNING"
+    fi
 
     echo ""
     msg "Consultando última versión disponible..." "INFO"
 
-    # Obtener la última versión desde GitHub
-    local ultima_version=$(curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+' || curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
-
-    # Limpiar comillas si quedaron
-    ultima_version=$(echo "$ultima_version" | tr -d '"' | tr -d ' ')
+    ultima_version=$(curl -fsS --max-time 10 https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest 2>/dev/null \
+        | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
 
     if [ -z "$ultima_version" ]; then
         msg "No se pudo obtener la última versión desde GitHub" "WARNING"
@@ -506,6 +957,15 @@ verificar_version_ytdlp() {
     return 0
 }
 
+mostrar_comandos_manuales() {
+    echo ""
+    msg "Comandos manuales (Termux):" "INFO"
+    echo -e "${BCyan}pkg update && pkg upgrade${Color_Off}"
+    echo -e "${BCyan}pkg install python ffmpeg nodejs${Color_Off}"
+    echo -e "${BCyan}pip install --upgrade \"yt-dlp[default]\"${Color_Off}"
+    echo -e "${BCyan}termux-setup-storage${Color_Off}   ${Gray}# permiso para guardar en Download${Color_Off}"
+}
+
 actualizar_ytdlp() {
     clear
     echo ""
@@ -514,7 +974,6 @@ actualizar_ytdlp() {
     msg "╚═══════════════════════════════════════╝" "INFO"
     echo ""
 
-    # Verificar versión actual
     verificar_version_ytdlp
 
     echo ""
@@ -523,129 +982,41 @@ actualizar_ytdlp() {
     msg "═══════════════════════════════════════" "INFO"
     echo ""
 
-    local sistema=$(detect_system)
+    echo -e "${BYellow}1)${Color_Off} pip install --upgrade \"yt-dlp[default]\" ${BGreen}[RECOMENDADO]${Color_Off}"
+    echo -e "${BYellow}2)${Color_Off} Instalar/actualizar Node.js (runtime JavaScript, necesario para YouTube)"
+    echo -e "${BYellow}3)${Color_Off} Todo: yt-dlp + Node.js + ffmpeg ${BGreen}[Si algo falla]${Color_Off}"
+    echo -e "${BYellow}4)${Color_Off} Mostrar comandos manuales"
+    echo -e "${BYellow}5)${Color_Off} Cancelar"
+    read -p "Opción [1]: " opcion_update </dev/tty
 
-    if [ "$sistema" = "termux" ]; then
-        msg "Sistema detectado: Termux" "DEBUG"
-        echo -e "${BYellow}1)${Color_Off} pip install --upgrade yt-dlp ${BGreen}[RECOMENDADO]${Color_Off}"
-        echo -e "${BYellow}2)${Color_Off} Visitar página de releases de GitHub"
-        echo -e "${BYellow}3)${Color_Off} Ejecutar manualmente [RECOMENDADO-cesar]"
-        echo -e "${BYellow}4)${Color_Off} Cancelar"
-        read -p "Opción: " opcion_update </dev/tty
-
-        case ${opcion_update:-1} in
-            1)
-                msg "Actualizando yt-dlp con pip..." "INFO"
-                pip install --upgrade yt-dlp
-                ;;
-            2)
-                msg "Abre este enlace en tu navegador:" "INFO"
-                echo -e "${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
-                ;;
-            3)
-                msg "sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp " "INFO"
-                msg "sudo chmod a+rx /usr/local/bin/yt-dlp" "INFO"
-                ;;
-            4)
-                msg "Actualización cancelada" "INFO"
-                ;;
-        esac
-
-    elif [ -n "$MSYSTEM" ] || grep -q Microsoft /proc/version 2>/dev/null; then
-        msg "Sistema detectado: Windows (WSL/Git Bash)" "DEBUG"
-        echo -e "${BYellow}1)${Color_Off} pip install --upgrade yt-dlp"
-        echo -e "${BYellow}2)${Color_Off} Descargar ejecutable (.exe) desde GitHub ${BGreen}[RECOMENDADO WINDOWS]${Color_Off}"
-        echo -e "${BYellow}3)${Color_Off} Cancelar"
-        read -p "Opción: " opcion_update </dev/tty
-
-        case ${opcion_update:-2} in
-            1)
-                msg "Actualizando yt-dlp con pip..." "INFO"
-                pip install --upgrade yt-dlp
-                ;;
-            2)
-                echo ""
-                msg "═══════════════════════════════════════" "INFO"
-                msg "INSTRUCCIONES PARA WINDOWS:" "INFO"
-                msg "═══════════════════════════════════════" "INFO"
-                echo ""
-                msg "1. Abre el siguiente enlace en tu navegador:" "INFO"
-                echo -e "   ${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
-                echo ""
-                msg "2. Descarga el archivo: ${BYellow}yt-dlp.exe${Color_Off}" "INFO"
-                echo ""
-                msg "3. Reemplaza el archivo antiguo en tu carpeta de instalación" "INFO"
-                echo ""
-                msg "4. O colócalo en una carpeta que esté en tu PATH" "INFO"
-                echo ""
-                ;;
-            3)
-                msg "Actualización cancelada" "INFO"
-                ;;
-        esac
-
-    else
-        msg "Sistema detectado: Linux" "DEBUG"
-        echo -e "${BYellow}1)${Color_Off} sudo curl + chmod ${BGreen}[RECOMENDADO LINUX]${Color_Off}"
-        echo -e "${BYellow}2)${Color_Off} pip install --upgrade yt-dlp"
-        echo -e "${BYellow}3)${Color_Off} Ejecutar manualmente [RECOMENDADO-cesar]"
-        echo -e "${BYellow}4)${Color_Off} Visitar página de releases de GitHub"
-        echo -e "${BYellow}5)${Color_Off} Cancelar"
-        read -p "Opción: " opcion_update </dev/tty
-
-        case ${opcion_update:-1} in
-            1)
-                echo ""
-                msg "Ejecutando actualización con curl..." "INFO"
-                echo ""
-                msg "Comando 1: Descargando última versión..." "DEBUG"
-                sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-
-                if [ $? -eq 0 ]; then
-                    msg "✓ Descarga completada" "SUCCESS"
-                    echo ""
-                    msg "Comando 2: Asignando permisos de ejecución..." "DEBUG"
-                    sudo chmod a+rx /usr/local/bin/yt-dlp
-
-                    if [ $? -eq 0 ]; then
-                        msg "✓ Permisos asignados correctamente" "SUCCESS"
-                        echo ""
-                        msg "═══════════════════════════════════════" "SUCCESS"
-                        msg "¡Actualización completada exitosamente!" "SUCCESS"
-                        msg "═══════════════════════════════════════" "SUCCESS"
-                        echo ""
-                        verificar_version_ytdlp
-                    else
-                        msg "Error al asignar permisos" "ERROR"
-                    fi
-                else
-                    msg "Error en la descarga" "ERROR"
-                fi
-                ;;
-            2)
-                msg "Actualizando yt-dlp con pip..." "INFO"
-                pip install --upgrade yt-dlp --break-system-packages
-                ;;
-            3)
-                msg "sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp " "INFO"
-                msg "sudo chmod a+rx /usr/local/bin/yt-dlp" "INFO"
-                ;;
-            4)
-                msg "Abre este enlace en tu navegador:" "INFO"
-                echo -e "${BCyan}https://github.com/yt-dlp/yt-dlp/releases/latest${Color_Off}"
-                ;;
-            5)
-                msg "Actualización cancelada" "INFO"
-                ;;
-        esac
-    fi
+    case ${opcion_update:-1} in
+        1)
+            instalar_ytdlp && { echo ""; verificar_version_ytdlp; }
+            ;;
+        2)
+            instalar_runtime_js
+            ;;
+        3)
+            instalar_ytdlp
+            instalar_runtime_js
+            command -v ffmpeg >/dev/null 2>&1 || { instalar_paquete ffmpeg; hash -r; }
+            echo ""
+            verificar_version_ytdlp
+            ;;
+        4)
+            mostrar_comandos_manuales
+            ;;
+        *)
+            msg "Actualización cancelada" "INFO"
+            ;;
+    esac
 
     pause_continue "Proceso de actualización finalizado"
 }
 
 validar_url() {
     local url="$1"
-    if [[ ! "$url" =~ ^https?://(www\.)?(youtube\.com|youtu\.be) ]]; then
+    if [[ ! "$url" =~ ^https?://(www\.|m\.|music\.)?(youtube\.com|youtu\.be) ]]; then
         msg "La URL no parece ser de YouTube" "WARNING"
         read -p "¿Continuar de todas formas? (s/n): " resp </dev/tty
         if [[ ! "$resp" =~ ^[sS]$ ]]; then
@@ -669,7 +1040,8 @@ guardar_ultima_ruta() {
 }
 
 solicitar_ruta_descarga() {
-    local ultima_ruta=$(leer_ultima_ruta)
+    local ultima_ruta
+    ultima_ruta=$(leer_ultima_ruta)
 
     if [[ -n "$ultima_ruta" ]] && [[ -d "$ultima_ruta" ]]; then
         DOWNLOADS_PATH="$ultima_ruta"
@@ -716,6 +1088,7 @@ solicitar_ruta_descarga() {
         echo -e "${BYellow}La carpeta no existe. Creando: ${BGreen}$DOWNLOADS_PATH${Color_Off}"
         if ! mkdir -p "$DOWNLOADS_PATH"; then
             msg "No se pudo crear el directorio: $DOWNLOADS_PATH" "ERROR"
+            [[ "$DOWNLOADS_PATH" == /storage/* ]] && msg "Ejecuta: termux-setup-storage" "INFO"
             exit 1
         fi
     fi
@@ -733,142 +1106,157 @@ extraer_url_video() {
     echo "$base_url"
 }
 
+# =============================================================================
+# 📥 SECTION: Funciones de Descarga
+# =============================================================================
+
+URL_ACTUAL=""
+
+# Núcleo común de video (interactivo y lotes): URL + nombre base sin extensión
+descargar_video_core() {
+    local url="$1" slug="$2" marker rc=1
+    marker=$(mktemp "${CONFIG_DIR}/marker.XXXXXX")
+    args_ruta
+
+    local -a cmd=(yt-dlp "${YTDLP_COMMON[@]}" --no-playlist -c --no-mtime
+        -f "$FORMATO_VIDEO" "${SUBTITULOS_ARGS[@]}"
+        --merge-output-format "$FORMATO_CONTENEDOR"
+        "${ARGS_RUTA[@]}" --progress --newline
+        -o "${DOWNLOADS_PATH}/${slug}.%(ext)s" "$url")
+
+    if ejecutar_con_reintentos "${cmd[@]}"; then
+        ARCHIVO_DESCARGADO=$(buscar_archivo_descargado "$slug" "$marker")
+        rc=0
+    fi
+    rm -f "$marker"
+    return $rc
+}
+
+descargar_audio_core() {
+    local url="$1" slug="$2" marker rc=1
+    marker=$(mktemp "${CONFIG_DIR}/marker.XXXXXX")
+    args_ruta
+
+    local -a cmd=(yt-dlp "${YTDLP_COMMON[@]}" --no-playlist -c --no-mtime
+        -f "ba/b" --extract-audio --audio-format "$FORMATO_AUDIO"
+        "${ARGS_RUTA[@]}" --progress --newline
+        -o "${DOWNLOADS_PATH}/${slug}.%(ext)s" "$url")
+
+    if ejecutar_con_reintentos "${cmd[@]}"; then
+        ARCHIVO_DESCARGADO=$(buscar_archivo_descargado "$slug" "$marker")
+        rc=0
+    fi
+    rm -f "$marker"
+    return $rc
+}
+
 descargar_video() {
     local url="$1"
-    local solo_video=$(extraer_url_video "$url")
+    local solo_video
+    solo_video=$(extraer_url_video "$url")
+    URL_ACTUAL="$solo_video"
 
     if verificar_descarga_previa "$solo_video"; then
         msg "Operación cancelada - Video ya descargado previamente" "INFO"
         return 0
     fi
 
-    mostrar_info_video "$solo_video" || return 1
+    obtener_info_video "$solo_video" || { pause_continue "No se pudo leer el video"; return 1; }
+    mostrar_info_video
 
     seleccionar_calidad_video
-
     configurar_subtitulos
 
-    titulo_video=$(yt-dlp --get-title "$solo_video" 2>/dev/null)
-
-    if [[ -z "$titulo_video" ]]; then
-        msg "No se pudo obtener el título del video. Verifica la URL." "ERROR"
-        return 1
-    fi
-
-    titulo_video_format=$(string_slugify "$titulo_video" title)
+    local slug
+    slug=$(slug_titulo_video)
 
     msg "Iniciando descarga del video..." "INFO"
 
-    local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
-
-    # Mostrar el comando que se va a ejecutar
-    msg "🔍 Ejecutando comando:" "DEBUG"
-    msg "$comando" "DEBUG"
-    echo ""
-
-    if descargar_con_reintentos "$comando"; then
-        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
-        if [[ -n "$file_name_path" ]]; then
-            msg "Fichero descargado en: ${file_name_path}" "SUCCESS"
-            guardar_historial "$solo_video" "$titulo_video" "VIDEO"
+    if descargar_video_core "$solo_video" "$slug"; then
+        if [[ -n "$ARCHIVO_DESCARGADO" ]]; then
+            msg "Fichero descargado en: ${ARCHIVO_DESCARGADO}" "SUCCESS"
+            guardar_historial "$solo_video" "$VIDEO_TITULO" "VIDEO"
         else
             msg "Video descargado pero no se encontró el archivo" "WARNING"
         fi
     else
+        pause_continue "La descarga falló"
         return 1
     fi
 
     pause_continue "Descarga completada"
 }
 
-# NUEVA FUNCIÓN: Descarga de video en modo lote (sin interacciones)
+# Descarga de video en modo lote (sin interacciones)
 descargar_video_batch() {
     local url="$1"
-    local solo_video=$(extraer_url_video "$url")
+    local solo_video
+    solo_video=$(extraer_url_video "$url")
+    URL_ACTUAL="$solo_video"
 
-    titulo_video=$(yt-dlp --get-title "$solo_video" 2>/dev/null)
+    obtener_info_video "$solo_video" || return 1
 
-    if [[ -z "$titulo_video" ]]; then
-        msg "No se pudo obtener el título del video. Verifica la URL." "ERROR"
-        return 1
-    fi
+    local slug
+    slug=$(slug_titulo_video)
+    msg "Descargando: ${VIDEO_TITULO}" "INFO"
 
-    titulo_video_format=$(string_slugify "$titulo_video" title)
-
-    msg "Descargando: ${titulo_video}" "INFO"
-
-    local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_video_format}.%(ext)s\" \"$solo_video\""
-
-    # Mostrar el comando que se va a ejecutar
-    msg "🔍 Ejecutando comando:" "DEBUG"
-    msg "$comando" "DEBUG"
-    echo ""
-
-    if descargar_con_reintentos "$comando"; then
-        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_video_format}*.${FORMATO_CONTENEDOR}" -o -name "${titulo_video_format}*.mp4" -o -name "${titulo_video_format}*.mkv" | tail -n 1)
-        if [[ -n "$file_name_path" ]]; then
-            msg "✓ Descargado: ${titulo_video_format}.${FORMATO_CONTENEDOR}" "SUCCESS"
-            guardar_historial "$solo_video" "$titulo_video" "VIDEO"
+    if descargar_video_core "$solo_video" "$slug"; then
+        if [[ -n "$ARCHIVO_DESCARGADO" ]]; then
+            msg "✓ Descargado: $(basename "$ARCHIVO_DESCARGADO")" "SUCCESS"
+            guardar_historial "$solo_video" "$VIDEO_TITULO" "VIDEO"
             return 0
-        else
-            msg "Video descargado pero no se encontró el archivo" "WARNING"
-            return 1
         fi
-    else
-        return 1
+        msg "Video descargado pero no se encontró el archivo" "WARNING"
     fi
+    return 1
 }
 
-# NUEVA FUNCIÓN: Descarga de audio en modo lote (sin interacciones)
+# Descarga de audio en modo lote (sin interacciones)
 descargar_audio_batch() {
     local url="$1"
-    local solo_audio=$(extraer_url_video "$url")
+    local solo_audio
+    solo_audio=$(extraer_url_video "$url")
 
-    titulo_audio=$(yt-dlp --get-title "$solo_audio" 2>/dev/null)
+    obtener_info_video "$solo_audio" || return 1
 
-    if [[ -z "$titulo_audio" ]]; then
-        msg "No se pudo obtener el título del audio. Verifica la URL." "ERROR"
-        return 1
-    fi
+    local slug
+    slug=$(slug_titulo_video)
+    msg "Descargando audio: ${VIDEO_TITULO}" "INFO"
 
-    titulo_audio_format=$(string_slugify "$titulo_audio" title)
-
-    msg "Descargando audio: ${titulo_audio}" "INFO"
-
-    local comando="yt-dlp -c -f \"bestaudio\" --extract-audio --audio-format ${FORMATO_AUDIO} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s\" \"$solo_audio\""
-
-    if descargar_con_reintentos "$comando"; then
-        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_audio_format}*" | tail -n 1)
-        if [[ -n "$file_name_path" ]]; then
-            msg "✓ Descargado: ${titulo_audio_format}.${FORMATO_AUDIO}" "SUCCESS"
-            guardar_historial "$solo_audio" "$titulo_audio" "AUDIO"
+    if descargar_audio_core "$solo_audio" "$slug"; then
+        if [[ -n "$ARCHIVO_DESCARGADO" ]]; then
+            msg "✓ Descargado: $(basename "$ARCHIVO_DESCARGADO")" "SUCCESS"
+            guardar_historial "$solo_audio" "$VIDEO_TITULO" "AUDIO"
             return 0
-        else
-            msg "Audio descargado pero no se encontró el archivo" "WARNING"
-            return 1
         fi
-    else
-        return 1
+        msg "Audio descargado pero no se encontró el archivo" "WARNING"
     fi
+    return 1
 }
 
 descargar_playlist() {
     local url="$1"
+    URL_ACTUAL=""
 
-    msg "Obteniendo información de la playlist..." "INFO"
+    msg "Preparando descarga de playlist..." "INFO"
 
     seleccionar_calidad_video
-
     configurar_subtitulos
 
     msg "Iniciando descarga de playlist..." "INFO"
+    args_ruta
 
-    local comando="yt-dlp -c -f \"${FORMATO_VIDEO}\" ${SUBTITULOS_PARAMS} --merge-output-format ${FORMATO_CONTENEDOR} --no-warnings --yes-playlist --progress --newline -o \"${DOWNLOADS_PATH}/%(playlist_index)02d-%(title)s.%(ext)s\" \"$url\""
+    local -a cmd=(yt-dlp "${YTDLP_COMMON[@]}" -c --no-mtime
+        -f "$FORMATO_VIDEO" "${SUBTITULOS_ARGS[@]}"
+        --merge-output-format "$FORMATO_CONTENEDOR"
+        --yes-playlist "${ARGS_RUTA[@]}" --progress --newline
+        -o "${DOWNLOADS_PATH}/%(playlist_index)02d-%(title)s.%(ext)s" "$url")
 
-    if descargar_con_reintentos "$comando"; then
+    if ejecutar_con_reintentos "${cmd[@]}"; then
         msg "Playlist descargado exitosamente" "SUCCESS"
         guardar_historial "$url" "PLAYLIST" "PLAYLIST"
     else
+        pause_continue "La descarga de la playlist falló"
         return 1
     fi
 
@@ -876,7 +1264,7 @@ descargar_playlist() {
     read -p "¿Deseas renombrar los archivos descargados a formato slug? (s/n): " resp </dev/tty
     if [[ "$resp" =~ ^[sS]$ ]]; then
         msg "Renombrando archivos a formato slug..." "INFO"
-        local count=0
+        local count=0 archivo nombre extension base slug nuevo
         for archivo in "${DOWNLOADS_PATH}"/*.{mp4,mkv,webm,flv}; do
             [ -e "$archivo" ] || continue
             nombre=$(basename "$archivo")
@@ -902,39 +1290,34 @@ descargar_playlist() {
 
 descargar_audio() {
     local url="$1"
-    local solo_audio=$(extraer_url_video "$url")
+    local solo_audio
+    solo_audio=$(extraer_url_video "$url")
+    URL_ACTUAL="$solo_audio"
 
     if verificar_descarga_previa "$solo_audio"; then
         msg "Operación cancelada - Audio ya descargado previamente" "INFO"
         return 0
     fi
 
-    mostrar_info_video "$solo_audio" || return 1
+    obtener_info_video "$solo_audio" || { pause_continue "No se pudo leer el video"; return 1; }
+    mostrar_info_video
 
     seleccionar_formato_audio
 
-    titulo_audio=$(yt-dlp --get-title "$solo_audio" 2>/dev/null)
-
-    if [[ -z "$titulo_audio" ]]; then
-        msg "No se pudo obtener el título del audio. Verifica la URL." "ERROR"
-        return 1
-    fi
-
-    titulo_audio_format=$(string_slugify "$titulo_audio" title)
+    local slug
+    slug=$(slug_titulo_video)
 
     msg "Iniciando descarga del audio..." "INFO"
 
-    local comando="yt-dlp -c -f \"bestaudio\" --extract-audio --audio-format ${FORMATO_AUDIO} --no-warnings --progress --newline -o \"${DOWNLOADS_PATH}/${titulo_audio_format}.%(ext)s\" \"$solo_audio\""
-
-    if descargar_con_reintentos "$comando"; then
-        file_name_path=$(find "${DOWNLOADS_PATH}" -type f -name "${titulo_audio_format}*" | tail -n 1)
-        if [[ -n "$file_name_path" ]]; then
-            msg "Fichero de audio descargado en: ${file_name_path}" "SUCCESS"
-            guardar_historial "$solo_audio" "$titulo_audio" "AUDIO"
+    if descargar_audio_core "$solo_audio" "$slug"; then
+        if [[ -n "$ARCHIVO_DESCARGADO" ]]; then
+            msg "Fichero de audio descargado en: ${ARCHIVO_DESCARGADO}" "SUCCESS"
+            guardar_historial "$solo_audio" "$VIDEO_TITULO" "AUDIO"
         else
             msg "Audio descargado pero no se encontró el archivo" "WARNING"
         fi
     else
+        pause_continue "La descarga falló"
         return 1
     fi
 
@@ -948,7 +1331,7 @@ descargar_por_lotes() {
     echo -e "${BCyan}╚═══════════════════════════════════════╝${Color_Off}"
     echo ""
     echo -e "${Gray}Crea un archivo de texto con URLs (una por línea)${Color_Off}"
-    echo -e "${Gray}Ejemplo de archivo 'urls.txt':${Color_Off}"
+    echo -e "${Gray}Ejemplo: ${STORAGE_ROOT}/Download/urls.txt${Color_Off}"
     echo -e "${Gray}  https://youtube.com/watch?v=...${Color_Off}"
     echo -e "${Gray}  https://youtube.com/watch?v=...${Color_Off}"
     echo ""
@@ -959,8 +1342,9 @@ descargar_por_lotes() {
         return 1
     fi
 
-    # Contar URLs válidas
-    local total_urls=$(grep -v "^#" "$archivo_urls" | grep -v "^$" | grep "^https\?://" | wc -l)
+    # Contar URLs válidas (tr -d '\r' por si el archivo se creó en Windows)
+    local total_urls
+    total_urls=$(tr -d '\r' < "$archivo_urls" | grep -v "^[[:space:]]*#" | grep -c "^[[:space:]]*https\?://")
 
     if [ "$total_urls" -eq 0 ]; then
         msg "No se encontraron URLs válidas en el archivo" "ERROR"
@@ -975,8 +1359,8 @@ descargar_por_lotes() {
     echo -e "${BYellow}2)${Color_Off} Solo audio"
     read -p "Opción [1]: " tipo_descarga </dev/tty
 
-    # Configuración única para todas las descargas
     if [[ "${tipo_descarga:-1}" == "1" ]]; then
+        URL_ACTUAL=""
         seleccionar_calidad_video
         configurar_subtitulos
     else
@@ -992,15 +1376,16 @@ descargar_por_lotes() {
     msg "Iniciando descarga por lotes..." "INFO"
     msg "═══════════════════════════════════════" "INFO"
 
-    # Leer archivo usando redirección de archivo para evitar conflictos
-    while IFS= read -r url || [ -n "$url" ]; do
-        # Saltar líneas vacías y comentarios
-        [[ -z "$url" ]] && continue
-        [[ "$url" =~ ^[[:space:]]*# ]] && continue
-        [[ ! "$url" =~ ^https?:// ]] && continue
+    # Wake-lock durante todo el lote (no solo por video)
+    activar_wakelock
 
-        # Limpiar espacios
+    while IFS= read -r url || [ -n "$url" ]; do
+        # Limpiar espacios y \r
         url=$(echo "$url" | tr -d '[:space:]')
+
+        [[ -z "$url" ]] && continue
+        [[ "$url" =~ ^# ]] && continue
+        [[ ! "$url" =~ ^https?:// ]] && continue
 
         ((contador++))
         echo ""
@@ -1009,7 +1394,6 @@ descargar_por_lotes() {
         msg "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "INFO"
         echo -e "${Gray}URL: ${url}${Color_Off}"
 
-        # Usar funciones batch que no tienen interacciones
         if [[ "${tipo_descarga:-1}" == "1" ]]; then
             if descargar_video_batch "$url"; then
                 ((exitosos++))
@@ -1025,8 +1409,12 @@ descargar_por_lotes() {
                 msg "✗ Error al descargar audio #$contador" "ERROR"
             fi
         fi
+        # ejecutar_con_reintentos libera el wake-lock al terminar cada video
+        activar_wakelock
 
     done < "$archivo_urls"
+
+    liberar_wakelock
 
     echo ""
     msg "═══════════════════════════════════════" "SUCCESS"
@@ -1059,7 +1447,8 @@ ver_historial() {
         return 0
     fi
 
-    local total_lineas=$(wc -l < "$HISTORIAL_FILE" 2>/dev/null || echo 0)
+    local total_lineas
+    total_lineas=$(wc -l < "$HISTORIAL_FILE" 2>/dev/null || echo 0)
 
     if [ "$total_lineas" -eq 0 ]; then
         msg "El historial está vacío" "WARNING"
@@ -1094,37 +1483,40 @@ ver_historial() {
 # 🎥 SECTION: Main Code
 # =============================================================================
 
-
-
-
 SO_SYSTEM=$(detect_system)
-DOWNLOADS_PATH="${CURRENT_USER_HOME}/Downloads/youtube"
-
-if [ -n "$SO_SYSTEM" ] && [ "$SO_SYSTEM" = "termux" ]; then
-    DOWNLOADS_PATH="/storage/emulated/0/Download/youtube"
-    mkdir -p $DOWNLOADS_PATH
+if [ "$SO_SYSTEM" != "termux" ]; then
+    msg "⚠️ Este script está pensado para Termux (Android). Sistema detectado: ${SO_SYSTEM}" "WARNING"
+    msg "   En Ubuntu/WSL usa yt.sh" "WARNING"
 fi
 
-mkdir -p "$DOWNLOADS_PATH"
+verificar_almacenamiento
+
+DOWNLOADS_PATH=$(ruta_descargas_defecto)
+if ! mkdir -p "$DOWNLOADS_PATH" 2>/dev/null; then
+    DOWNLOADS_PATH="${CURRENT_USER_HOME}/downloads/youtube"
+    mkdir -p "$DOWNLOADS_PATH"
+fi
 
 verificar_dependencias
+preparar_args_ytdlp
 
 clear
 
 echo ""
 echo -e "${BPurple}╔═══════════════════════════════════════╗${Color_Off}"
 echo -e "${BPurple}║${Color_Off}  ${BCyan}🎹 Descarga Videos YouTube${Color_Off}         ${BPurple}║${Color_Off}"
-echo -e "${BPurple}║${Color_Off}         ${BYellow}Versión ${VERSION_SCRIPT}${Color_Off}              ${BPurple}║${Color_Off}"
+echo -e "${BPurple}║${Color_Off}     ${BYellow}Versión ${VERSION_SCRIPT} (Termux)${Color_Off}         ${BPurple}║${Color_Off}"
 echo -e "${BPurple}╠═══════════════════════════════════════╣${Color_Off}"
 echo -e "${BPurple}║${Color_Off} ${Gray}👤 Autor:${Color_Off} ${BWhite}Cesar Auris${Color_Off}               ${BPurple}║${Color_Off}"
 echo -e "${BPurple}║${Color_Off} ${Gray}🌐 Web:${Color_Off} ${BCyan}solucionessystem.com${Color_Off}        ${BPurple}║${Color_Off}"
 echo -e "${BPurple}╚═══════════════════════════════════════╝${Color_Off}"
+echo -e "${Gray}📱 Sistema: ${SO_SYSTEM}  |  JS: ${JS_RUNTIME}  |  🍪 $(estado_cookies)${Color_Off}"
 echo ""
 
 if [ $# -eq 1 ]; then
     url="$1"
     validar_url "$url"
-    
+
     while true; do
         echo -e "${BBlue}Selecciona una opción:${Color_Off}"
         echo -e "${BYellow}1)${Color_Off} Descargar solo el video"
@@ -1132,7 +1524,7 @@ if [ $# -eq 1 ]; then
         echo -e "${BYellow}3)${Color_Off} Descargar solo el audio"
         echo -e "${BYellow}4)${Color_Off} Salir"
         read -p "Opción: " opcion </dev/tty
-        
+
         case $opcion in
             1)
                 solicitar_ruta_descarga
@@ -1173,18 +1565,19 @@ else
         echo -e "${BGray}────────────────────────────────────────${Color_Off}"
         echo -e "${BCyan}7)${Color_Off} 🔍 Verificar versión de yt-dlp"
         echo -e "${BCyan}8)${Color_Off} 🔄 Actualizar yt-dlp"
+        echo -e "${BCyan}C)${Color_Off} 🍪 Gestionar cookies de YouTube"
         echo -e "${BGray}────────────────────────────────────────${Color_Off}"
         echo -e "${BYellow}9)${Color_Off} Salir"
         echo ""
         read -p "Opción: " opcion </dev/tty
-        
+
         case $opcion in
             1|2|3)
                 echo ""
                 read -p "Ingresa la URL de YouTube: " url </dev/tty
                 validar_url "$url"
                 solicitar_ruta_descarga
-                
+
                 case $opcion in
                     1) descargar_video "$url" ;;
                     2) descargar_playlist "$url" ;;
@@ -1204,7 +1597,6 @@ else
                 if [[ ! -f "$HISTORIAL_FILE" ]] || [[ ! -s "$HISTORIAL_FILE" ]]; then
                     msg "No hay historial para eliminar" "WARNING"
                     pause_continue
-                    clear
                 else
                     echo ""
                     echo -e "${BRed}╔═══════════════════════════════════════╗${Color_Off}"
@@ -1213,13 +1605,12 @@ else
                     echo ""
                     read -p "$(echo -e "${BYellow}¿Estás seguro de eliminar todo el historial? (s/n):${Color_Off} ")" confirmar </dev/tty
                     if [[ "$confirmar" =~ ^[sS]$ ]]; then
-                        > "$HISTORIAL_FILE"
+                        : > "$HISTORIAL_FILE"
                         msg "Historial eliminado exitosamente" "SUCCESS"
                     else
                         msg "Operación cancelada" "INFO"
                     fi
                     pause_continue
-                    clear
                 fi
                 clear
                 ;;
@@ -1230,6 +1621,10 @@ else
                 ;;
             8)
                 actualizar_ytdlp
+                clear
+                ;;
+            c|C)
+                gestionar_cookies
                 clear
                 ;;
             9)
