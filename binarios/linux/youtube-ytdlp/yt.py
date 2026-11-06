@@ -505,16 +505,24 @@ class ProgresoDescarga:
     """Barras de progreso (video cian, audio magenta) alimentadas por yt-dlp."""
 
     def __init__(self):
-        self.progress = Progress(
-            TextColumn("{task.fields[etiqueta]}", style="bold"),
-            TextColumn(f"[{GRIS}]{{task.fields[detalle]}}"),
-            BarraColor(bar_width=None, style=FONDO_BARRA),
-            TextColumn(f"[{BLANCO}]{{task.percentage:>3.0f}}%"),
-            DownloadColumn(),
-            TransferSpeedColumn(),
-            TimeRemainingColumn(),
-            console=console,
-        )
+        if estrecho():  # móvil: etiqueta, barra, % y velocidad
+            columnas = (
+                TextColumn("{task.fields[etiqueta]}", style="bold"),
+                BarraColor(bar_width=None, style=FONDO_BARRA),
+                TextColumn(f"[{BLANCO}]{{task.percentage:>3.0f}}%"),
+                TransferSpeedColumn(),
+            )
+        else:
+            columnas = (
+                TextColumn("{task.fields[etiqueta]}", style="bold"),
+                TextColumn(f"[{GRIS}]{{task.fields[detalle]}}"),
+                BarraColor(bar_width=None, style=FONDO_BARRA),
+                TextColumn(f"[{BLANCO}]{{task.percentage:>3.0f}}%"),
+                DownloadColumn(),
+                TransferSpeedColumn(),
+                TimeRemainingColumn(),
+            )
+        self.progress = Progress(*columnas, console=console)
         self.tareas = {}
 
     def hook(self, d):
@@ -675,14 +683,16 @@ class ProgresoPlaylist:
         self.hechos = 0
         self.saltados = 0
         self.errores = []
-        self.progress = Progress(
+        self.largo_titulo = 12 if estrecho() else 38
+        columnas = [
             TextColumn("{task.fields[etiqueta]}", style="bold"),
             TextColumn(f"[{GRIS}]{{task.fields[detalle]}}"),
             BarraColor(bar_width=None, style=FONDO_BARRA),
             TextColumn(f"[{BLANCO}]{{task.percentage:>3.0f}}%"),
-            TextColumn(f"[{TEXTO}]{{task.fields[extra]}}"),
-            console=console,
-        )
+        ]
+        if not estrecho():
+            columnas.append(TextColumn(f"[{TEXTO}]{{task.fields[extra]}}"))
+        self.progress = Progress(*columnas, console=console)
         self.general = self.progress.add_task(
             "", etiqueta=f"[{LIMA}]LISTA ", detalle=f"0/{total}", color=LIMA,
             total=max(total, 1), extra="")
@@ -700,7 +710,7 @@ class ProgresoPlaylist:
         es_audio = info.get("vcodec") == "none"
         color = MAGENTA if es_audio else CIAN
         idx = info.get("playlist_index")
-        titulo = (info.get("title") or "")[:38]
+        titulo = (info.get("title") or "")[:self.largo_titulo]
         detalle = f"#{idx:02d} {titulo}" if isinstance(idx, int) else titulo
         if d.get("status") == "downloading":
             velocidad = d.get("speed")
@@ -819,6 +829,19 @@ def info(texto):
     console.print(f"  [{CIAN}]▸[/] [{GRIS}]{escape(texto)}[/]")
 
 
+def estrecho():
+    """Pantalla angosta (Termux en vertical, ventanas pequeñas)."""
+    return console.width < 72
+
+
+def relleno():
+    return (0, 1) if estrecho() else (1, 2)
+
+
+def ruta_corta(ruta):
+    return acortar_ruta(ruta, max(24, console.width - 22) if estrecho() else 60)
+
+
 def tecla(k, activo=False):
     if activo:
         return f"[bold black on {CIAN}] {k} [/]"
@@ -826,7 +849,7 @@ def tecla(k, activo=False):
 
 
 def opcion(k, texto, nota="", activo=False):
-    nota = f"   [{GRIS}]{nota}[/]" if nota else ""
+    nota = f"   [{GRIS}]{nota}[/]" if nota and not estrecho() else ""
     estilo = f"bold {BLANCO}" if activo else TEXTO
     console.print(f"  {tecla(k, activo)}  [{estilo}]{texto}[/]{nota}")
 
@@ -852,7 +875,7 @@ def cabecera(subtitulo="descargador de videos · yt-dlp + ffmpeg"):
 def texto_ytdlp(estado):
     dias = dias_desde_version(estado["ytdlp"])
     if dias is not None and dias > DIAS_AVISO:
-        return f"[{GRIS}]yt-dlp[/] [{AMBAR}]{estado['ytdlp']} ({dias} días · actualizar: 6)[/]"
+        return f"[{GRIS}]yt-dlp[/] [{AMBAR}]{estado['ytdlp']} ({dias} días · menú 6)[/]"
     return f"[{GRIS}]yt-dlp[/] [{TEXTO}]{estado['ytdlp']}[/]"
 
 
@@ -863,6 +886,18 @@ def linea_estado(estado, carpeta):
     else:
         cookies = f"[{AMBAR}]○ no configuradas[/]"
     rt = estado["runtime"]
+    if estrecho():
+        t = Table.grid(padding=(0, 2))
+        t.add_column(style=GRIS, no_wrap=True)
+        t.add_column(no_wrap=True, overflow="ellipsis")
+        t.add_row("carpeta", f"[{TEXTO}]{escape(ruta_corta(carpeta))}[/]")
+        t.add_row("ffmpeg", punto(estado["ffmpeg"]))
+        t.add_row("js", punto(rt != "none", rt))
+        t.add_row("cookies", cookies)
+        t.add_row("yt-dlp", texto_ytdlp(estado).split("[/] ", 1)[1])
+        t.add_row("sistema", f"[{TEXTO}]{SISTEMA}[/]")
+        console.print(t, style="", justify="left")
+        return
     partes = [
         f"[{GRIS}]carpeta[/] [{TEXTO}]{escape(acortar_ruta(carpeta))}[/]",
         f"[{GRIS}]ffmpeg[/] {punto(estado['ffmpeg'])}",
@@ -880,7 +915,8 @@ def panel_error(causa, solucion, detalle=""):
     if ultima:
         cuerpo.append(Text(ultima[-1][:160], style=GRIS))
     console.print(Panel(Group(*cuerpo), border_style=ROJO, box=box.ROUNDED,
-                        padding=(0, 2), title=f"[{ROJO}]error[/]", title_align="left"))
+                        padding=(0, 1 if estrecho() else 2), title=f"[{ROJO}]error[/]",
+                        title_align="left"))
 
 
 # ======================================================================
@@ -899,29 +935,69 @@ def mostrar_info(info, url):
     cabeza.add_column(justify="right")
     cabeza.add_row(Text("VIDEO", style=f"bold {CIAN}"), sello)
 
-    datos = Table.grid(padding=(0, 4))
-    for _ in range(5):
-        datos.add_column()
     vistas = f"{info['view_count']:,}" if info.get("view_count") is not None else "?"
-    datos.add_row(*(Text(t, style=GRIS) for t in ("autor", "duración", "fecha", "vistas", "sitio")))
-    datos.add_row(
-        Text(info.get("uploader") or info.get("channel") or "desconocido", style=TEXTO),
-        Text(duracion_legible(info.get("duration")), style=TEXTO),
-        Text(fecha_legible(info.get("upload_date")), style=TEXTO),
-        Text(vistas, style=TEXTO),
-        Text(info.get("extractor_key", "?"), style=TEXTO),
-    )
+    campos = [
+        ("autor", info.get("uploader") or info.get("channel") or "desconocido"),
+        ("duración", duracion_legible(info.get("duration"))),
+        ("fecha", fecha_legible(info.get("upload_date"))),
+        ("vistas", vistas),
+        ("sitio", info.get("extractor_key", "?")),
+    ]
+    if estrecho():
+        datos = Table.grid(padding=(0, 2))
+        datos.add_column(style=GRIS, no_wrap=True)
+        datos.add_column(style=TEXTO, overflow="ellipsis", no_wrap=True)
+        for etiqueta, valor in campos:
+            datos.add_row(etiqueta, Text(valor))
+    else:
+        datos = Table.grid(padding=(0, 4))
+        for _ in campos:
+            datos.add_column()
+        datos.add_row(*(Text(e, style=GRIS) for e, _ in campos))
+        datos.add_row(*(Text(v, style=TEXTO) for _, v in campos))
     titulo = Text(info.get("title", "desconocido"), style=f"bold {BLANCO}")
 
-    console.print(f"  [{MAGENTA}]❯[/] [{GRIS}]url[/] [{TEXTO}]{escape(url)}[/]")
+    if not estrecho():
+        console.print(f"  [{MAGENTA}]❯[/] [{GRIS}]url[/] [{TEXTO}]{escape(url)}[/]")
     console.print(Panel(Group(cabeza, titulo, Text(""), datos), border_style=BORDE,
-                        box=box.ROUNDED, padding=(1, 2)))
+                        box=box.ROUNDED, padding=relleno()))
 
 
 COLOR_TIPO = {"video+audio": LIMA, "solo video": CIAN, "solo audio": MAGENTA}
 
 
+TIPO_CORTO = {"video+audio": "v+a", "solo video": "video", "solo audio": "audio"}
+
+
+def mostrar_formatos_movil(formatos):
+    tabla = Table(box=box.SIMPLE_HEAD, border_style=BORDE, header_style=GRIS,
+                  row_styles=["", f"on {FONDO_FILA}"], pad_edge=False, padding=(0, 1))
+    for nombre, just in (("N°", "right"), ("CALIDAD", "left"), ("TAMAÑO", "right"),
+                         ("TIPO", "left")):
+        tabla.add_column(nombre, justify=just, no_wrap=True)
+    for i, f in enumerate(formatos, start=1):
+        tipo = tipo_formato(f)
+        if tipo == "solo audio":
+            calidad = f"{f.get('ext', '?')} {int(f['tbr'])}k" if f.get("tbr") else f.get("ext", "?")
+        else:
+            alto = f"{f['height']}p" if f.get("height") else (f.get("resolution") or "-")
+            fps = f"{int(f['fps'])}" if f.get("fps") and f["fps"] > 30 else ""
+            calidad = f"{alto}{fps} {f.get('ext', '')}".strip()
+        tabla.add_row(
+            Text(str(i), style=GRIS),
+            Text(calidad, style=f"bold {BLANCO}"),
+            Text(tamano_legible(f.get("filesize") or f.get("filesize_approx")), style=TEXTO),
+            Text(TIPO_CORTO[tipo], style=f"bold {COLOR_TIPO[tipo]}"),
+        )
+    console.print(tabla)
+    console.print(f"  {tecla('m', True)}  [bold {BLANCO}]mejor calidad[/]  [{AMBAR}]★[/]")
+    console.print(f"  {tecla('0')}  [{TEXTO}]cancelar[/]")
+
+
 def mostrar_formatos(formatos):
+    if estrecho():
+        mostrar_formatos_movil(formatos)
+        return
     tabla = Table(box=box.SIMPLE_HEAD, border_style=BORDE, header_style=GRIS,
                   row_styles=["", f"on {FONDO_FILA}"], pad_edge=False, padding=(0, 1))
     for nombre, just in (("N°", "right"), ("ID", "left"), ("EXT", "left"),
@@ -972,12 +1048,12 @@ def pantalla_resultado(ruta, carpeta):
     if ruta and ruta.exists():
         filas.add_row("archivo", escape(ruta.name))
         filas.add_row("tamaño", tamano_legible(ruta.stat().st_size))
-        filas.add_row("carpeta", escape(acortar_ruta(ruta.parent, 60)))
+        filas.add_row("carpeta", escape(ruta_corta(ruta.parent)))
     else:
         filas.add_row("carpeta", escape(str(carpeta)))
     console.print()
     console.print(Panel(Group(Text("✔ DESCARGA COMPLETA", style=f"bold {LIMA}"), Text(""), filas),
-                        border_style=LIMA, box=box.ROUNDED, padding=(1, 2)))
+                        border_style=LIMA, box=box.ROUNDED, padding=relleno()))
 
 
 def comprobar_espacio(carpeta):
@@ -1066,7 +1142,7 @@ def flujo_descarga(carpeta, estado, url=None):
         return
 
     console.print()
-    console.print(f"  [{CIAN}]▸[/] [{GRIS}]destino[/] [{TEXTO}]{escape(acortar_ruta(carpeta, 60))}[/]")
+    console.print(f"  [{CIAN}]▸[/] [{GRIS}]destino[/] [{TEXTO}]{escape(ruta_corta(carpeta))}[/]")
     if not comprobar_espacio(carpeta):
         return
     console.print()
@@ -1105,7 +1181,8 @@ def mostrar_info_playlist(info_lista, url):
 
     lista = Table.grid(padding=(0, 2))
     lista.add_column(style=GRIS, justify="right")
-    lista.add_column(style=TEXTO, overflow="ellipsis", no_wrap=True, max_width=58)
+    lista.add_column(style=TEXTO, overflow="ellipsis", no_wrap=True,
+                     max_width=max(16, console.width - 22) if estrecho() else 58)
     lista.add_column(style=GRIS, justify="right")
     for i, e in enumerate(entradas[:8], start=1):
         lista.add_row(f"{i:02d}", e.get("title") or e.get("id") or "?",
@@ -1113,9 +1190,10 @@ def mostrar_info_playlist(info_lista, url):
     if total > 8:
         lista.add_row("", Text(f"… y {total - 8} más", style=GRIS), "")
 
-    console.print(f"  [{MAGENTA}]❯[/] [{GRIS}]url[/] [{TEXTO}]{escape(url)}[/]")
+    if not estrecho():
+        console.print(f"  [{MAGENTA}]❯[/] [{GRIS}]url[/] [{TEXTO}]{escape(url)}[/]")
     console.print(Panel(Group(cabeza, titulo, Text(autor, style=GRIS), Text(""), lista),
-                        border_style=BORDE, box=box.ROUNDED, padding=(1, 2)))
+                        border_style=BORDE, box=box.ROUNDED, padding=relleno()))
     return total
 
 
@@ -1135,7 +1213,8 @@ def elegir_calidad_lista():
 
 
 def elegir_rango(total):
-    console.print(f"\n  [bold {BLANCO}]VIDEOS[/]   [{GRIS}]Enter = todos · ej: 1-10   5,8,12   20-[/]")
+    console.print(f"\n  [bold {BLANCO}]VIDEOS[/]")
+    console.print(f"  [{GRIS}]Enter = todos · ej: 1-10 · 5,8,12 · 20-[/]")
     while True:
         rango = pedir("rango")
         if not rango:
@@ -1158,7 +1237,7 @@ def pantalla_resumen_lista(barras, carpeta_lista):
     filas.add_row("ya existían", Text(str(barras.saltados), style=TEXTO))
     filas.add_row("fallidos", Text(str(len(barras.errores)),
                                    style=f"bold {ROJO}" if barras.errores else GRIS))
-    filas.add_row("carpeta", Text(acortar_ruta(carpeta_lista, 60), style=BLANCO))
+    filas.add_row("carpeta", Text(ruta_corta(carpeta_lista), style=BLANCO))
 
     if barras.errores and barras.hechos == 0:
         titulo, color = "✖ NO SE DESCARGÓ NINGÚN VIDEO", ROJO
@@ -1168,7 +1247,7 @@ def pantalla_resumen_lista(barras, carpeta_lista):
         titulo, color = "✔ PLAYLIST COMPLETA", LIMA
     console.print()
     console.print(Panel(Group(Text(titulo, style=f"bold {color}"), Text(""), filas),
-                        border_style=color, box=box.ROUNDED, padding=(1, 2)))
+                        border_style=color, box=box.ROUNDED, padding=relleno()))
     if barras.errores:
         causa, solucion, _, _ = diagnosticar(barras.errores[-1])
         info(f"Último error: {causa} → {solucion}")
@@ -1229,7 +1308,7 @@ def flujo_playlist(carpeta, estado, url=None):
         return
 
     console.print()
-    console.print(f"  [{CIAN}]▸[/] [{GRIS}]destino[/] [{TEXTO}]{escape(acortar_ruta(carpeta_lista, 60))}[/]")
+    console.print(f"  [{CIAN}]▸[/] [{GRIS}]destino[/] [{TEXTO}]{escape(ruta_corta(carpeta_lista))}[/]")
     console.print(f"  [{CIAN}]▸[/] [{GRIS}]videos[/]  [{TEXTO}]{cantidad} de {total}[/]")
     if not comprobar_espacio(carpeta):
         return
@@ -1492,11 +1571,14 @@ def tabla_estado(estado):
     t.add_row("", estado_yt)
     t.add_row("runtime js", Text(f"{rt} {version_rt}".strip() if rt != "none" else "○ no instalado",
                                  style=LIMA if rt != "none" else ROJO))
-    t.add_row("ffmpeg", Text(ffmpeg[:60] if ffmpeg else "○ no instalado",
+    partes_ff = ffmpeg.split()
+    if len(partes_ff) >= 3 and partes_ff[1] == "version":
+        ffmpeg = f"ffmpeg {partes_ff[2]}"
+    t.add_row("ffmpeg", Text(ffmpeg if ffmpeg else "○ no instalado",
                              style=LIMA if ffmpeg else ROJO))
     t.add_row("cookies", Text("● activas" if cookies_activas() else "○ no configuradas",
                               style=LIMA if cookies_activas() else AMBAR))
-    console.print(Panel(t, border_style=BORDE, box=box.ROUNDED, padding=(1, 2),
+    console.print(Panel(t, border_style=BORDE, box=box.ROUNDED, padding=relleno(),
                         title=f"[{CIAN}]estado de herramientas[/]", title_align="left"))
 
 
@@ -1617,10 +1699,12 @@ def ver_historial():
                   row_styles=["", f"on {FONDO_FILA}"], pad_edge=False)
     tabla.add_column("FECHA", style=GRIS, no_wrap=True)
     tabla.add_column("TIPO", no_wrap=True)
-    tabla.add_column("TÍTULO", style=TEXTO, overflow="ellipsis", no_wrap=True, max_width=56)
+    tabla.add_column("TÍTULO", style=TEXTO, overflow="ellipsis", no_wrap=True,
+                     max_width=max(14, console.width - 26) if estrecho() else 56)
     colores = {"VIDEO": CIAN, "AUDIO": MAGENTA}
     for fecha, tipo, titulo, _url in filas[-10:]:
-        tabla.add_row(fecha[:16], Text(tipo, style=f"bold {colores.get(tipo, AMBAR)}"), titulo)
+        tabla.add_row(fecha[:10] if estrecho() else fecha[:16],
+                      Text(tipo, style=f"bold {colores.get(tipo, AMBAR)}"), titulo)
     console.print(tabla)
     if confirmar("¿Eliminar todo el historial?", "n"):
         if confirmar("Esta acción no se puede deshacer. ¿Seguro?", "n"):
