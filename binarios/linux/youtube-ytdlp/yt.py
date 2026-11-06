@@ -21,8 +21,11 @@ Requisitos:
 import json
 import os
 import shutil
+import importlib.util
+import site
 import subprocess
 import sys
+import sysconfig
 import time
 import urllib.parse
 import urllib.request
@@ -1276,6 +1279,38 @@ def en_entorno_virtual():
     return sys.prefix != getattr(sys, "base_prefix", sys.prefix)
 
 
+def sistema_bloquea_pip():
+    """Ubuntu 23.04+, Debian 12+…: pip no instala fuera de un venv (PEP 668)."""
+    try:
+        return Path(sysconfig.get_path("stdlib"), "EXTERNALLY-MANAGED").exists()
+    except (KeyError, TypeError):
+        return False
+
+
+def origen_ytdlp():
+    """Dónde está instalado yt-dlp: venv | usuario | apt | sistema."""
+    if en_entorno_virtual():
+        return "venv"
+    ruta = str(Path(yt_dlp.__file__).resolve())
+    try:
+        sitio_usuario = site.getusersitepackages()
+    except AttributeError:
+        sitio_usuario = ""
+    if sitio_usuario and ruta.startswith(str(Path(sitio_usuario).resolve())):
+        return "usuario"   # pip install --user
+    if ruta.startswith("/usr/lib/"):
+        return "apt"       # sudo apt install yt-dlp (suele estar desactualizado)
+    return "sistema"       # sudo pip install (/usr/local/lib/...)
+
+
+DESCRIPCION_ORIGEN = {
+    "venv": "entorno virtual",
+    "usuario": "global · usuario (~/.local)",
+    "apt": "paquete apt del sistema",
+    "sistema": "global · sistema (/usr/local)",
+}
+
+
 def con_sudo(cmd):
     """Antepone sudo en Linux si no somos root y sudo existe."""
     if SISTEMA == "termux" or os.name == "nt":
@@ -1309,7 +1344,21 @@ def ejecutar(cmd, confirmar_antes=True):
 
 
 def comando_pip_ytdlp():
-    return [sys.executable, "-m", "pip", "install", "-U", "yt-dlp[default]", "rich"]
+    """pip adecuado según dónde esté instalado yt-dlp.
+
+    - venv o sistema sin bloqueo (Windows, Termux, Ubuntu antiguo): pip normal.
+    - Ubuntu/Debian modernos fuera de venv: se instala para el usuario en
+      ~/.local con --break-system-packages (no toca los paquetes del sistema).
+      Si yt-dlp venía de apt o de sudo pip, la copia de ~/.local tiene
+      prioridad y pasa a ser la que se usa.
+    """
+    cmd = [sys.executable, "-m", "pip", "install", "-U"]
+    origen = origen_ytdlp()
+    if origen != "venv" and sistema_bloquea_pip():
+        cmd += ["--user", "--break-system-packages"]
+    elif origen == "usuario":
+        cmd += ["--user"]
+    return cmd + ["yt-dlp[default]", "rich"]
 
 
 def comando_deno():
@@ -1342,9 +1391,21 @@ def comando_ffmpeg():
 
 def actualizar_ytdlp():
     """Devuelve True si se actualizó (hay que reiniciar para usar la versión nueva)."""
-    if not en_entorno_virtual() and SISTEMA in ("linux", "wsl"):
-        aviso("No estás en un entorno virtual: pip puede negarse a instalar en el sistema.")
-        info("Activa tu venv (ver Gui_uso.md) y vuelve a intentarlo si falla.")
+    if importlib.util.find_spec("pip") is None:
+        error("pip no está instalado en este Python.")
+        if SISTEMA in ("linux", "wsl") and shutil.which("apt-get"):
+            ejecutar(con_sudo(["apt-get", "install", "-y", "python3-pip"]))
+        if importlib.util.find_spec("pip") is None:
+            return False
+
+    origen = origen_ytdlp()
+    info(f"yt-dlp instalado en: {DESCRIPCION_ORIGEN[origen]}")
+    if origen == "apt":
+        aviso("La versión de apt suele ir atrasada: se instalará una copia nueva en ~/.local")
+    elif origen == "sistema" and sistema_bloquea_pip():
+        aviso("Se instalará una copia nueva en ~/.local que tendrá prioridad sobre /usr/local")
+    if origen != "venv" and sistema_bloquea_pip():
+        info("--user --break-system-packages instala solo para tu usuario, sin tocar el sistema")
     return ejecutar(comando_pip_ytdlp()) == 0
 
 
@@ -1425,6 +1486,7 @@ def tabla_estado(estado):
     t.add_row("sistema", Text(SISTEMA, style=AMBAR))
     t.add_row("python", Text(f"{sys.version.split()[0]} · "
                              f"{'venv activo' if en_entorno_virtual() else 'sin venv'}", style=TEXTO))
+    t.add_row("instalado", Text(DESCRIPCION_ORIGEN[origen_ytdlp()], style=TEXTO))
     t.add_row("yt-dlp", Text(f"{actual}" + (f"  ({dias} días)" if dias is not None else ""),
                              style=AMBAR if dias and dias > DIAS_AVISO else LIMA))
     t.add_row("", estado_yt)
